@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.adafruit.bluefruit.le.connect.app.ControllerActivity">
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_info_outline_white_24dp"
+        android:title="@string/common_help_action"
+        app:showAsAction="ifRoom" />
+</menu>

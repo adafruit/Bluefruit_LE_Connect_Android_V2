@@ -1,0 +1,107 @@
+<!--suppress AndroidElementNotAllowed -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.adafruit.bluefruit.le.connect.app.UartActivity">
+
+    <item
+        android:id="@+id/action_mqttsettings"
+        android:icon="@drawable/mqtt_disconnected"
+        android:title="@string/uart_mqtt_action"
+        app:showAsAction="always"
+        tools:ignore="AlwaysShowAction" />
+
+    <item
+        android:id="@+id/action_help"
+        android:icon="@drawable/ic_info_outline_white_24dp"
+        android:title="@string/common_help_action"
+        app:showAsAction="always" />
+
+    <group android:id="@+id/uartControls">
+
+        <item
+            android:id="@+id/action_displaymode"
+            android:title="@string/uart_settings_displayMode_text"
+            app:showAsAction="never">
+
+            <menu>
+                <group
+                    android:id="@+id/displayMode"
+                    android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/action_displaymode_timestamp"
+                        android:title="@string/uart_settings_displayMode_timestamp"
+                        app:showAsAction="never" />
+
+                    <item
+                        android:id="@+id/action_displaymode_text"
+                        android:title="@string/uart_settings_displayMode_text"
+                        app:showAsAction="never" />
+                </group>
+            </menu>
+        </item>
+        <item
+            android:id="@+id/action_datamode"
+            android:title="@string/uart_settings_dataMode_title"
+            app:showAsAction="never">
+
+            <menu>
+                <group
+                    android:id="@+id/dataMode"
+                    android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/action_datamode_ascii"
+                        android:title="@string/uart_settings_dataMode_ascii"
+                        app:showAsAction="never" />
+
+                    <item
+                        android:id="@+id/action_datamode_hex"
+                        android:title="@string/uart_settings_dataMode_hex"
+                        app:showAsAction="never" />
+                </group>
+            </menu>
+        </item>
+
+        <group
+            android:id="@+id/uartUserTextControls"
+            android:checkableBehavior="all">
+            <item
+                android:id="@+id/action_echo"
+                android:title="@string/uart_settings_echo_title"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/action_eol"
+                android:title="@string/uart_settings_eol_title"
+                app:showAsAction="never" />
+        </group>
+
+        <item
+            android:id="@+id/action_eolmode"
+            android:title="@string/uart_settings_eolCharacters_title"
+            app:showAsAction="never">
+
+            <menu>
+                <group
+                    android:id="@+id/eolMode"
+                    android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/action_eolmode_n"
+                        android:title="@string/uart_eolmode_n"
+                        app:showAsAction="never" />
+                    <item
+                        android:id="@+id/action_eolmode_r"
+                        android:title="@string/uart_eolmode_r"
+                        app:showAsAction="never" />
+                    <item
+                        android:id="@+id/action_eolmode_nr"
+                        android:title="@string/uart_eolmode_nr"
+                        app:showAsAction="never" />
+                    <item
+                        android:id="@+id/action_eolmode_rn"
+                        android:title="@string/uart_eolmode_rn"
+                        app:showAsAction="never" />
+                </group>
+            </menu>
+        </item>
+    </group>
+</menu>

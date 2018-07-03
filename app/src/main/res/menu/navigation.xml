@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_central"
+        android:icon="@drawable/ic_tap_and_play_white_24dp"
+        android:title="@string/main_tabbar_centralmode" />
+
+    <item
+        android:id="@+id/navigation_peripheral"
+        android:icon="@drawable/ic_speaker_phone_white_24dp"
+        android:title="@string/main_tabbar_peripheralmode" />
+</menu>

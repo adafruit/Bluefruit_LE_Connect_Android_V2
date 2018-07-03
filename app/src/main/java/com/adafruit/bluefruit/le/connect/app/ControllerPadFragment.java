@@ -1,0 +1,314 @@
+package com.adafruit.bluefruit.le.connect.app;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
+import android.text.SpannableStringBuilder;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.EditText;
+import android.widget.ImageButton;
+
+import com.adafruit.bluefruit.le.connect.BluefruitApplication;
+import com.adafruit.bluefruit.le.connect.BuildConfig;
+import com.adafruit.bluefruit.le.connect.R;
+import com.squareup.leakcanary.RefWatcher;
+
+public class ControllerPadFragment extends Fragment {
+    // Log
+    private final static String TAG = ControllerPadFragment.class.getSimpleName();
+
+    // Config
+    private final static float kMinAspectRatio = 1.8f;
+
+    // UI TextBuffer (refreshing the text buffer is managed with a timer because a lot of changes can arrive really fast and could stall the main thread)
+    private Handler mUIRefreshTimerHandler = new Handler();
+    private Runnable mUIRefreshTimerRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isUITimerRunning) {
+                updateTextDataUI();
+                // Log.d(TAG, "updateDataUI");
+                mUIRefreshTimerHandler.postDelayed(this, 200);
+            }
+        }
+    };
+    private boolean isUITimerRunning = false;
+
+    // UI
+    private ViewGroup mContentView;
+    private EditText mBufferTextView;
+    private ViewGroup mRootLayout;
+    private View mTopSpacerView;
+    private View mBottomSpacerView;
+
+    // Data
+    private ControllerPadFragmentListener mListener;
+    private volatile SpannableStringBuilder mTextSpanBuffer = new SpannableStringBuilder();
+    private int maxPacketsToPaintAsText;
+    View.OnTouchListener mPadButtonTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent event) {
+            final int tag = Integer.valueOf((String) view.getTag());
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                view.setPressed(true);
+                mListener.onSendControllerPadButtonStatus(tag, true);
+                return true;
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                view.setPressed(false);
+                mListener.onSendControllerPadButtonStatus(tag, false);
+                view.performClick();
+                return true;
+            }
+            return false;
+        }
+    };
+
+    // region Lifecycle
+    @SuppressWarnings("UnnecessaryLocalVariable")
+    public static ControllerPadFragment newInstance() {
+        ControllerPadFragment fragment = new ControllerPadFragment();
+        return fragment;
+    }
+
+    public ControllerPadFragment() {
+        // Required empty public constructor
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        if (activity != null) {
+            ActionBar actionBar = activity.getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(R.string.controlpad_title);
+                actionBar.setDisplayHomeAsUpEnabled(true);
+            }
+        }
+    }
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_controller_pad, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        mRootLayout = view.findViewById(R.id.rootLayout);
+        mTopSpacerView = view.findViewById(R.id.topSpacerView);
+        mBottomSpacerView = view.findViewById(R.id.bottomSpacerView);
+
+        mContentView = view.findViewById(R.id.contentView);
+        mBufferTextView = view.findViewById(R.id.bufferTextView);
+        if (mBufferTextView != null) {
+            mBufferTextView.setKeyListener(null);     // make it not editable
+        }
+
+        ImageButton upArrowImageButton = view.findViewById(R.id.upArrowImageButton);
+        upArrowImageButton.setOnTouchListener(mPadButtonTouchListener);
+        ImageButton leftArrowImageButton = view.findViewById(R.id.leftArrowImageButton);
+        leftArrowImageButton.setOnTouchListener(mPadButtonTouchListener);
+        ImageButton rightArrowImageButton = view.findViewById(R.id.rightArrowImageButton);
+        rightArrowImageButton.setOnTouchListener(mPadButtonTouchListener);
+        ImageButton bottomArrowImageButton = view.findViewById(R.id.bottomArrowImageButton);
+        bottomArrowImageButton.setOnTouchListener(mPadButtonTouchListener);
+
+        ImageButton button1ImageButton = view.findViewById(R.id.button1ImageButton);
+        button1ImageButton.setOnTouchListener(mPadButtonTouchListener);
+        ImageButton button2ImageButton = view.findViewById(R.id.button2ImageButton);
+        button2ImageButton.setOnTouchListener(mPadButtonTouchListener);
+        ImageButton button3ImageButton = view.findViewById(R.id.button3ImageButton);
+        button3ImageButton.setOnTouchListener(mPadButtonTouchListener);
+        ImageButton button4ImageButton = view.findViewById(R.id.button4ImageButton);
+        button4ImageButton.setOnTouchListener(mPadButtonTouchListener);
+
+        // Read shared preferences
+        maxPacketsToPaintAsText = UartBaseFragment.kDefaultMaxPacketsToPaintAsText; //PreferencesFragment.getUartTextMaxPackets(this);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof ControllerPadFragmentListener) {
+            mListener = (ControllerPadFragmentListener) context;
+        } else if (getTargetFragment() instanceof ControllerPadFragmentListener) {
+            mListener = (ControllerPadFragmentListener) getTargetFragment();
+        } else {
+            throw new RuntimeException(context.toString() + " must implement ControllerPadFragmentListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        ViewTreeObserver observer = mRootLayout.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                adjustAspectRatio();
+                mRootLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
+
+        // Refresh timer
+        isUITimerRunning = true;
+        mUIRefreshTimerHandler.postDelayed(mUIRefreshTimerRunnable, 0);
+    }
+
+    @Override
+    public void onPause() {
+        isUITimerRunning = false;
+        mUIRefreshTimerHandler.removeCallbacksAndMessages(mUIRefreshTimerRunnable);
+
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        if (BuildConfig.DEBUG && getActivity() != null) {
+            RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
+            refWatcher.watch(this);
+        }
+
+        super.onDestroy();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_help, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        FragmentActivity activity = getActivity();
+
+        switch (item.getItemId()) {
+            case R.id.action_help:
+                if (activity != null) {
+                    FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                    if (fragmentManager != null) {
+                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.controlpad_help_title), getString(R.string.controlpad_help_text));
+                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                                .replace(R.id.contentLayout, helpFragment, "Help");
+                        fragmentTransaction.addToBackStack(null);
+                        fragmentTransaction.commit();
+                    }
+                }
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    // endregion
+
+    // region UI
+
+    private void adjustAspectRatio() {
+        ViewGroup rootLayout = mContentView;
+        final int mainWidth = rootLayout.getWidth();
+
+        if (mainWidth > 0) {
+            final int mainHeight = rootLayout.getHeight() - mTopSpacerView.getLayoutParams().height - mBottomSpacerView.getLayoutParams().height;
+            if (mainHeight > 0) {
+                // Add black bars if aspect ratio is below min
+                final float aspectRatio = mainWidth / (float) mainHeight;
+                if (aspectRatio < kMinAspectRatio) {
+                    final int spacerHeight = Math.round(mainHeight - mainWidth / kMinAspectRatio);
+                    ViewGroup.LayoutParams topLayoutParams = mTopSpacerView.getLayoutParams();
+                    topLayoutParams.height = spacerHeight / 2;
+                    mTopSpacerView.setLayoutParams(topLayoutParams);
+
+                    ViewGroup.LayoutParams bottomLayoutParams = mBottomSpacerView.getLayoutParams();
+                    bottomLayoutParams.height = spacerHeight / 2;
+                    mBottomSpacerView.setLayoutParams(bottomLayoutParams);
+                }
+            }
+        }
+    }
+
+    public void addText(String text) {
+        // TODO
+    }
+
+    /*
+        private int mDataBufferLastSize = 0;
+        private boolean mLastPacketEndsWithNewLine = false;
+    */
+    private void updateTextDataUI() {
+/*
+        if (mDataBufferLastSize != mDataBuffer.size()) {
+
+            final int bufferSize = mDataBuffer.size();
+            if (bufferSize > maxPacketsToPaintAsText) {
+                mDataBufferLastSize = bufferSize - maxPacketsToPaintAsText;
+                mTextSpanBuffer.clear();
+                mTextSpanBuffer.append(getString(R.string.uart_text_dataomitted) + "\n");
+            }
+
+            // Add the a newline if was omitted last time
+            if (mLastPacketEndsWithNewLine) {
+                mTextSpanBuffer.append("\n");
+                mLastPacketEndsWithNewLine = false;
+            }
+
+            // Log.d(TAG, "update packets: "+(bufferSize-mDataBufferLastSize));
+            for (int i = mDataBufferLastSize; i < bufferSize; i++) {
+                final UartDataChunk dataChunk = mDataBuffer.get(i);
+                final byte[] bytes = dataChunk.getData();
+                String formattedData = BleUtils.bytesToText(bytes, true);
+
+                if (i == bufferSize - 1) {      // last packet
+                    // Remove the last character if is a newline character
+                    final int endIndex = formattedData.length() - 1;
+                    final char lastCharacter = formattedData.charAt(endIndex);
+                    mLastPacketEndsWithNewLine = lastCharacter == '\n' || lastCharacter == '\r'; //|| lastCharacter == '\r\n';
+                    formattedData = mLastPacketEndsWithNewLine ? formattedData.substring(0, endIndex) : formattedData;
+                }
+
+                //
+                mTextSpanBuffer.append(formattedData);
+            }
+
+            mDataBufferLastSize = mDataBuffer.size();
+            mBufferTextView.setText(mTextSpanBuffer);
+            mBufferTextView.setSelection(0, mTextSpanBuffer.length());        // to automatically scroll to the end
+        }
+        */
+    }
+    // endregion
+
+    // region ControllerPadFragmentListener
+    public interface ControllerPadFragmentListener {
+        void onSendControllerPadButtonStatus(int tag, boolean isPressed);
+    }
+    // endregion
+}

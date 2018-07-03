@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:drawable="@color/background" />
+
+    <item
+        android:bottom="60dp"
+        android:left="20dp"
+        android:right="20dp">
+
+        <bitmap
+
+            android:gravity="center"
+            android:src="@drawable/info_adafruit_logo" />
+    </item>
+</layer-list>
