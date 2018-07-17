@@ -18,7 +18,7 @@ public class UartDataManager implements BlePeripheralUart.UartRxHandler {
 
     // Listener
     public interface UartDataManagerListener {
-        void onUartRx(@NonNull byte[] data, @NonNull String peripheralIdentifier);  // data contents depends on the isRxCacheEnabled flag
+        void onUartRx(@NonNull byte[] data, @Nullable String peripheralIdentifier);  // data contents depends on the isRxCacheEnabled flag
     }
 
     // Data
@@ -60,11 +60,11 @@ public class UartDataManager implements BlePeripheralUart.UartRxHandler {
         }
     }
 
-    public void clearRxCache(@NonNull String peripheralIdentifier) {
+    public void clearRxCache(@Nullable String peripheralIdentifier) {
         mRxDatas.remove(peripheralIdentifier);
     }
 
-    public void removeRxCacheFirst(int n, @NonNull String peripheralIdentifier) {
+    public void removeRxCacheFirst(int n, @Nullable String peripheralIdentifier) {
         final byte[] rxData = mRxDatas.get(peripheralIdentifier);
         if (rxData != null) {
             if (n < rxData.length) {
@@ -76,7 +76,8 @@ public class UartDataManager implements BlePeripheralUart.UartRxHandler {
         }
     }
 
-    public void flushRxCache(@NonNull String peripheralIdentifier) {
+    @SuppressWarnings("unused")
+    public void flushRxCache(@Nullable String peripheralIdentifier) {
         final byte[] rxData = mRxDatas.get(peripheralIdentifier);
         if (rxData != null && rxData.length > 0) {
             try {

@@ -41,7 +41,6 @@ import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 import com.adafruit.bluefruit.le.connect.ble.UartPacket;
 import com.adafruit.bluefruit.le.connect.ble.UartPacketManagerBase;
-import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheralUart;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttManager;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttSettings;
@@ -98,7 +97,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     // Data
     protected final Handler mMainHandler = new Handler(Looper.getMainLooper());
     protected UartPacketManagerBase mUartData;
-    protected List<BlePeripheralUart> mBlePeripheralsUart = new ArrayList<>();;
+    protected List<BlePeripheralUart> mBlePeripheralsUart = new ArrayList<>();
 
     private boolean mShowDataInHexFormat;
     private boolean mIsTimestampDisplayMode;
@@ -478,23 +477,9 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         }
 
         send(newText);
-
-        /*
-        // Add to current buffer
-        byte[] bytes = new byte[0];
-        try {
-            bytes = newText.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        UartDataChunk dataChunk = new UartDataChunk(System.currentTimeMillis(), UartDataChunk.TRANSFERMODE_TX, bytes);
-        mDataBuffer.add(dataChunk);
-        */
-
     }
 
     // endregion
-
 
     // region UI
     protected void updateUartReadyUI(boolean isReady) {
@@ -660,19 +645,11 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
     // endregion
 
-    // region UartDataManagerListener
+    // region UartPacketManagerBase.Listener
 
     @Override
     public void onUartPacket(UartPacket packet) {
-
         updateBytesUI();
-        /*
-        if (mIsTimestampDisplayMode) {
-            reloadData();
-        } else {
-            onUartPacketText(packet);
-            reloadData();
-        }*/
     }
 
     // endregion
@@ -691,9 +668,9 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         updateMqttStatus();
     }
 
-// endregion
+    // endregion
 
-// region Buffer Adapter
+    // region Buffer Adapter
 
     class TimestampItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 

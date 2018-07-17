@@ -43,6 +43,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.adafruit.bluefruit.le.connect.R;
+import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheralUart;
 import com.adafruit.bluefruit.le.connect.ble.central.UartDataManager;
 import com.adafruit.bluefruit.le.connect.utils.AdapterUtils;
@@ -484,19 +485,6 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     }
 
     // endregion
-
-    /*
-    // region UartDataManagerListener
-
-    @Override
-    public void onUartRx(@NonNull byte[] data, @NonNull String peripheralIdentifier) {
-        String dataString = BleUtils.bytesToText(data, false);
-        processBuffer(dataString);
-        mUartDataManager.removeRxCacheFirst(data.length, peripheralIdentifier);
-    }
-
-    // endregion
-*/
 
     // region Google Services
     private synchronized void buildGoogleApiClient(@NonNull Context context) {
@@ -1044,14 +1032,15 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     // region UartDataManagerListener
 
     @Override
-    public void onUartRx(@NonNull byte[] data, @NonNull String peripheralIdentifier) {
+    public void onUartRx(@NonNull byte[] data, @Nullable String peripheralIdentifier) {
         ControllerPadFragment controllerPadFragment = mWeakControllerPadFragment.get();
         if (controllerPadFragment != null) {
-            // TODO
-            //String text = stringFromData(data, false);
-            //controllerPadFragment.addText(text);
+            String dataString = BleUtils.bytesToText(data, true);
+            controllerPadFragment.addText(dataString);
+            mUartDataManager.removeRxCacheFirst(data.length, peripheralIdentifier);
         }
     }
 
     // endregion
+
 }

@@ -183,6 +183,7 @@ public class BleUtils {
         } else return null;
     }
 
+    /*
     public static String byteToHex(byte value) {
         if (value > 0x0f) {
             char[] hexChars = new char[2];
@@ -192,7 +193,9 @@ public class BleUtils {
         } else {
             return "" + hexArray[value & 0x0F];
         }
-    }
+    }*/
+
+    // TODO: merge all these byteToXXX functions and remove unused ones
 
     public static String bytesToHex2(byte[] bytes) {
         StringBuilder stringBuffer = new StringBuilder();
@@ -212,9 +215,10 @@ public class BleUtils {
         return text;
     }
 
+    /*
     public static String stringToHex(String string) {
         return bytesToHex(string.getBytes());
-    }
+    }*/
 
     public static String bytesToHexWithSpaces(byte[] bytes) {
         StringBuilder newString = new StringBuilder();
@@ -234,6 +238,7 @@ public class BleUtils {
         return buffer.toString();
     }
 
+    /*
     public static UUID getUuidFromByteArrayBigEndian(byte[] bytes) {
         ByteBuffer bb = ByteBuffer.wrap(bytes);
         long high = bb.getLong();
@@ -247,12 +252,14 @@ public class BleUtils {
         long low = bb.getLong();
         return new UUID(low, high);
     }
+    */
 
     // region uuidToString
     public static String uuidToString(UUID uuid) {
         return uuidToString(uuid, true);
     }
 
+    @SuppressWarnings("unused")
     static String uuidToString(UUID uuid, boolean shorten) {
         String uppercaseUuidString = uuid.toString().toUpperCase();
         if (uppercaseUuidString.startsWith("0000") && uppercaseUuidString.endsWith("-0000-1000-8000-00805F9B34FB")) {

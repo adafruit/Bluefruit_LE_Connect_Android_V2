@@ -11,7 +11,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.text.SpannableStringBuilder;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,6 +29,7 @@ import com.squareup.leakcanary.RefWatcher;
 
 public class ControllerPadFragment extends Fragment {
     // Log
+    @SuppressWarnings("unused")
     private final static String TAG = ControllerPadFragment.class.getSimpleName();
 
     // Config
@@ -58,7 +58,8 @@ public class ControllerPadFragment extends Fragment {
 
     // Data
     private ControllerPadFragmentListener mListener;
-    private volatile SpannableStringBuilder mTextSpanBuffer = new SpannableStringBuilder();
+    private volatile StringBuilder mDataBuffer = new StringBuilder();
+    private volatile StringBuilder mTextSpanBuffer = new StringBuilder();
     private int maxPacketsToPaintAsText;
     View.OnTouchListener mPadButtonTouchListener = new View.OnTouchListener() {
         @Override
@@ -255,54 +256,33 @@ public class ControllerPadFragment extends Fragment {
         }
     }
 
-    public void addText(String text) {
-        // TODO
+    public synchronized void addText(String text) {
+        mDataBuffer.append(text);
     }
 
-    /*
-        private int mDataBufferLastSize = 0;
-        private boolean mLastPacketEndsWithNewLine = false;
-    */
-    private void updateTextDataUI() {
-/*
-        if (mDataBufferLastSize != mDataBuffer.size()) {
 
-            final int bufferSize = mDataBuffer.size();
+    private int mDataBufferLastSize = 0;
+
+    private synchronized void updateTextDataUI() {
+
+        final int bufferSize = mDataBuffer.length();
+        if (mDataBufferLastSize != bufferSize) {
+
             if (bufferSize > maxPacketsToPaintAsText) {
                 mDataBufferLastSize = bufferSize - maxPacketsToPaintAsText;
-                mTextSpanBuffer.clear();
-                mTextSpanBuffer.append(getString(R.string.uart_text_dataomitted) + "\n");
+                mTextSpanBuffer.setLength(0);
+                mTextSpanBuffer.append(getString(R.string.uart_text_dataomitted)).append("\n");
+                mDataBuffer.replace(0, mDataBufferLastSize, "");
+                mTextSpanBuffer.append(mDataBuffer);
+
+            } else {
+                mTextSpanBuffer.append(mDataBuffer.substring(mDataBufferLastSize, bufferSize));
             }
 
-            // Add the a newline if was omitted last time
-            if (mLastPacketEndsWithNewLine) {
-                mTextSpanBuffer.append("\n");
-                mLastPacketEndsWithNewLine = false;
-            }
-
-            // Log.d(TAG, "update packets: "+(bufferSize-mDataBufferLastSize));
-            for (int i = mDataBufferLastSize; i < bufferSize; i++) {
-                final UartDataChunk dataChunk = mDataBuffer.get(i);
-                final byte[] bytes = dataChunk.getData();
-                String formattedData = BleUtils.bytesToText(bytes, true);
-
-                if (i == bufferSize - 1) {      // last packet
-                    // Remove the last character if is a newline character
-                    final int endIndex = formattedData.length() - 1;
-                    final char lastCharacter = formattedData.charAt(endIndex);
-                    mLastPacketEndsWithNewLine = lastCharacter == '\n' || lastCharacter == '\r'; //|| lastCharacter == '\r\n';
-                    formattedData = mLastPacketEndsWithNewLine ? formattedData.substring(0, endIndex) : formattedData;
-                }
-
-                //
-                mTextSpanBuffer.append(formattedData);
-            }
-
-            mDataBufferLastSize = mDataBuffer.size();
+            mDataBufferLastSize = mDataBuffer.length();
             mBufferTextView.setText(mTextSpanBuffer);
             mBufferTextView.setSelection(0, mTextSpanBuffer.length());        // to automatically scroll to the end
         }
-        */
     }
     // endregion
 

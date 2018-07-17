@@ -158,7 +158,7 @@ public class BlePeripheral {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
 
-            Log.d(TAG, "onCharacteristicChanged. numCaptureReadHandlers: " + mCaptureReadHandlers.size());
+            //Log.d(TAG, "onCharacteristicChanged. numCaptureReadHandlers: " + mCaptureReadHandlers.size());
 
             final String identifier = getCharacteristicIdentifier(characteristic);
             final int status = BluetoothGatt.GATT_SUCCESS;          // On Android, there is no error reported for this callback, so we assume it is SUCCESS
