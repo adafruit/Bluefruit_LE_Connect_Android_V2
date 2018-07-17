@@ -34,15 +34,18 @@
     public static int e(...);
  }
 
- # Nordic DFU library
- -keep class no.nordicsemi.android.dfu.** { *; }
+# Keep anonymous class declaration
+-keepattributes EnclosingMethod
 
- # Paho library logger
- -keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger {
-     *;
- }
+# Nordic DFU library
+-keep class no.nordicsemi.android.dfu.** { *; }
 
- # Avoid warnings for old code in Paho 1.0.2 on Android Studio 2
- -keep class org.eclipse.paho.client.mqttv3.persist.** { *; }
- -dontwarn org.eclipse.paho.client.mqttv3.persist.**
- -keepattributes Exceptions, Signature, InnerClasses
+# Paho library logger
+-keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger {
+    *;
+}
+
+# Avoid warnings for old code in Paho 1.0.2 on Android Studio 2
+-keep class org.eclipse.paho.client.mqttv3.persist.** { *; }
+-dontwarn org.eclipse.paho.client.mqttv3.persist.**
+-keepattributes Exceptions, Signature, InnerClasses
