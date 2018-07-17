@@ -5,6 +5,8 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.AlertDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.bluetooth.le.ScanCallback;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
@@ -48,6 +50,7 @@ import android.widget.TextView;
 import com.adafruit.bluefruit.le.connect.BluefruitApplication;
 import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.R;
+import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 import com.adafruit.bluefruit.le.connect.ble.central.BleManager;
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
 import com.adafruit.bluefruit.le.connect.dfu.DfuUpdater;
@@ -62,6 +65,9 @@ import com.squareup.leakcanary.RefWatcher;
 
 import java.util.Locale;
 
+import no.nordicsemi.android.support.v18.scanner.ScanRecord;
+
+import static android.content.Context.CLIPBOARD_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
 
 public class ScannerFragment extends Fragment implements ScannerStatusFragmentDialog.onScannerStatusCancelListener {
@@ -169,7 +175,27 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             ((SimpleItemAnimator) peripheralsRecyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 
             // Adapter
-            mBlePeripheralsAdapter = new BlePeripheralsAdapter(context);
+            mBlePeripheralsAdapter = new BlePeripheralsAdapter(context, blePeripheral -> {
+                ScanRecord scanRecord = blePeripheral.getScanRecord();
+                if (scanRecord != null) {
+                    final byte[] advertisementBytes = scanRecord.getBytes();
+                    final String packetText = BleUtils.bytesToHexWithSpaces(advertisementBytes);
+                    final String clipboardLabel = context.getString(R.string.scanresult_advertisement_rawdata_title);
+
+                    new AlertDialog.Builder(context)
+                            .setTitle(R.string.scanresult_advertisement_rawdata_title)
+                            .setMessage(packetText)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .setNeutralButton(android.R.string.copy, (dialog, which) -> {
+                                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(CLIPBOARD_SERVICE);
+                                if (clipboard != null) {
+                                    ClipData clip = ClipData.newPlainText(clipboardLabel, packetText);
+                                    clipboard.setPrimaryClip(clip);
+                                }
+                            })
+                            .show();
+                }
+            });
             peripheralsRecyclerView.setAdapter(mBlePeripheralsAdapter);
 
             // Swipe to refreshAll
@@ -589,8 +615,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
             if (blePeripheral.isDisconnected()) {
                 Log.d(TAG, "Abort connection sequence. Peripheral disconnected");
-            }
-            else {
+            } else {
                 final boolean isMultiConnectEnabled = mScannerViewModel.isMultiConnectEnabledValue();
                 if (isMultiConnectEnabled) {
                     removeConnectionStateDialog();

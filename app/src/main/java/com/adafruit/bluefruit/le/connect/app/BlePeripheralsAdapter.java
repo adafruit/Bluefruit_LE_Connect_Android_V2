@@ -1,8 +1,5 @@
 package com.adafruit.bluefruit.le.connect.app;
 
-import android.app.AlertDialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
@@ -14,8 +11,6 @@ import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -36,7 +31,6 @@ import java.util.List;
 
 import no.nordicsemi.android.support.v18.scanner.ScanRecord;
 
-import static android.content.Context.CLIPBOARD_SERVICE;
 import static com.adafruit.bluefruit.le.connect.ble.central.BleScanner.kDeviceType_Beacon;
 import static com.adafruit.bluefruit.le.connect.ble.central.BleScanner.kDeviceType_Uart;
 import static com.adafruit.bluefruit.le.connect.ble.central.BleScanner.kDeviceType_UriBeacon;
@@ -46,13 +40,19 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
     @SuppressWarnings("unused")
     private final static String TAG = BlePeripheralsAdapter.class.getSimpleName();
 
-    //
+    interface Listener {
+        void onAdvertisementData(@NonNull BlePeripheral blePeripheral);
+    }
+
+    // Data
     private List<BlePeripheral> mBlePeripherals;
     private Context mContext;
     private RecyclerView mRecyclerView;
+    private Listener mListener;
 
-    BlePeripheralsAdapter(@NonNull Context context) {
+    BlePeripheralsAdapter(@NonNull Context context, @NonNull Listener listener) {
         mContext = context.getApplicationContext();
+        mListener = listener;
     }
 
     private static String deviceDescription(Context context, BlePeripheral blePeripheral) {
@@ -336,25 +336,7 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         holder.dataTextView.setText(text);
 
         holder.rawDataButton.setOnClickListener(v -> {
-            ScanRecord scanRecord = blePeripheral.getScanRecord();
-            if (scanRecord != null) {
-                final byte[] advertisementBytes = scanRecord.getBytes();
-                final String packetText = BleUtils.bytesToHexWithSpaces(advertisementBytes);
-                final String clipboardLabel = mContext.getString(R.string.scanresult_advertisement_rawdata_title);
-
-                new AlertDialog.Builder(mContext)
-                        .setTitle(R.string.scanresult_advertisement_rawdata_title)
-                        .setMessage(packetText)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .setNeutralButton(android.R.string.copy, (dialog, which) -> {
-                            ClipboardManager clipboard = (ClipboardManager) mContext.getSystemService(CLIPBOARD_SERVICE);
-                            if (clipboard != null) {
-                                ClipData clip = ClipData.newPlainText(clipboardLabel, packetText);
-                                clipboard.setPrimaryClip(clip);
-                            }
-                        })
-                        .show();
-            }
+            mListener.onAdvertisementData(blePeripheral);
         });
         //    }
     }
