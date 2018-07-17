@@ -111,13 +111,36 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
 
     private WeakReference<ControllerPadFragment> mWeakControllerPadFragment = null;
 
-    private LocationCallback mLocationCallback = new LocationCallback() {
+
+    // region LocationCallback
+    // Create a WeakReference to LocationCallback to avoid memory leaks in GoogleServices: https://github.com/googlesamples/android-play-location/issues/26
+    private static class LocationCallbackReference extends LocationCallback {
+
+        private WeakReference<LocationCallback> weakLocationCallback;
+
+        LocationCallbackReference(LocationCallback locationCallback) {
+            weakLocationCallback = new WeakReference<>(locationCallback);
+        }
+
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+            if (weakLocationCallback.get() != null) {
+                weakLocationCallback.get().onLocationResult(locationResult);
+            }
+        }
+    }
+
+    private LocationCallback mInternalLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             Location location = locationResult.getLastLocation();
             setLastLocation(location);
         }
     };
+
+    private LocationCallbackReference mLocationCallback = new LocationCallbackReference(mInternalLocationCallback);
+    // endregion
 
     // region Fragment Lifecycle
     public static ControllerFragment newInstance(@Nullable String singlePeripheralIdentifier) {
@@ -259,7 +282,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
             // Sensor Manager
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
 
-            mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+            mSensorManager = (SensorManager) context.getApplicationContext().getSystemService(Context.SENSOR_SERVICE);          // Use applicationContext to avoid memory leaks
             if (mSensorManager != null) {
                 mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
                 mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -362,7 +385,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
             }
             sendDataHandler.removeCallbacksAndMessages(null);
             isSensorPollingEnabled = false;
-            mGoogleApiClient.disconnect();
+            disconnectGoogleApiClient();
         }
         mSensorManager = null;
 
@@ -385,6 +408,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
 
         // Force release mLocationCallback to avoid memory leaks
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        mFusedLocationClient = null;
 
         super.onDestroy();
     }
@@ -475,7 +499,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
 */
 
     // region Google Services
-    protected synchronized void buildGoogleApiClient(@NonNull Context context) {
+    private synchronized void buildGoogleApiClient(@NonNull Context context) {
         mGoogleApiClient = new GoogleApiClient.Builder(context.getApplicationContext())         // Use getApplicationContext to prevent memory leak: https://stackoverflow.com/questions/35308231/memory-leak-with-googleapiclient-detected-by-android-studio
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -483,6 +507,12 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                 .build();
     }
 
+    private synchronized void disconnectGoogleApiClient() {
+        mGoogleApiClient.disconnect();
+        mGoogleApiClient.unregisterConnectionCallbacks(this);
+        mGoogleApiClient.unregisterConnectionFailedListener(this);
+        mGoogleApiClient = null;
+    }
 
     // region GoogleApiClient.ConnectionCallbacks
     @Override
@@ -849,16 +879,12 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         // Data
         private Context mContext;
         private SensorData[] mSensorData;
-        private Listener mListener;
-        //private boolean[] mExpandedNodes;
+        private WeakReference<Listener> mWeakListener;
 
         ControllerAdapter(@NonNull Context context, @NonNull SensorData[] sensorData, @NonNull Listener listener) {
             mContext = context.getApplicationContext();
             mSensorData = sensorData;
-            mListener = listener;
-
-            //mExpandedNodes = new boolean[kNumSensorTypes];
-            //Arrays.fill(mExpandedNodes, false);
+            mWeakListener = new WeakReference<>(listener);
         }
 
         @Override
@@ -913,7 +939,10 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                     sensorDataViewHolder.enabledSwitch.setChecked(mSensorData[sensorId].enabled);
                     sensorDataViewHolder.enabledSwitch.setOnCheckedChangeListener((compoundButton, isChecked) -> {
                         if (compoundButton.isPressed()) {
-                            mListener.onSensorEnabled(sensorId, isChecked);
+                            Listener listener = mWeakListener.get();
+                            if (listener != null) {
+                                listener.onSensorEnabled(sensorId, isChecked);
+                            }
                             sensorDataViewHolder.animateExpanded();
                         }
                     });
@@ -956,7 +985,12 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                     ModuleViewHolder moduleViewHolder = (ModuleViewHolder) holder;
                     final int moduleId = position - kModuleCellsStartPosition;
                     moduleViewHolder.nameTextView.setText(kModuleTitleKeys[position - kModuleCellsStartPosition]);
-                    moduleViewHolder.mainViewGroup.setOnClickListener(view -> mListener.onModuleSelected(moduleId));
+                    moduleViewHolder.mainViewGroup.setOnClickListener(view -> {
+                        Listener listener = mWeakListener.get();
+                        if (listener != null) {
+                            listener.onModuleSelected(moduleId);
+                        }
+                    });
                     break;
             }
         }
