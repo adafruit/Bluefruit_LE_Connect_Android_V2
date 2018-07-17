@@ -92,8 +92,10 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         mDfuViewModel = ViewModelProviders.of(this).get(DfuViewModel.class);
 
         // Check if there is any update to the firmware database
-        updateAndroidSecurityProvider(this);        // Call this before refreshSoftwareUpdatesDatabase because SSL connections will fail on Android 4.4 if this is not executed:  https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
-        DfuUpdater.refreshSoftwareUpdatesDatabase(this, success -> Log.d(TAG, "refreshSoftwareUpdatesDatabase completed. Success: " + success));
+        if (savedInstanceState == null) {
+            updateAndroidSecurityProvider(this);        // Call this before refreshSoftwareUpdatesDatabase because SSL connections will fail on Android 4.4 if this is not executed:  https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
+            DfuUpdater.refreshSoftwareUpdatesDatabase(this, success -> Log.d(TAG, "refreshSoftwareUpdatesDatabase completed. Success: " + success));
+        }
     }
 
     private void updateAndroidSecurityProvider(Activity callingActivity) {

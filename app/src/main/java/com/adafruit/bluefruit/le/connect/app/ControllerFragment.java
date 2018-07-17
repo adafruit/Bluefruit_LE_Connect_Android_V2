@@ -157,6 +157,9 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Retain this fragment across configuration changes
+        setRetainInstance(true);
     }
 
     @Override
@@ -292,12 +295,15 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                 Log.w(TAG, "Sensor Service not available");
             }
 
-            // Google Play Services (used for location updates)
-            buildGoogleApiClient(context);
 
-            // Setup
-            mUartDataManager = new UartDataManager(context, null, false);            // The listener will be set only for ControlPad
-            setupUart();
+            if (mUartDataManager == null) { // Only the first time
+                // Google Play Services (used for location updates)
+                buildGoogleApiClient(context);
+
+                // Setup
+                mUartDataManager = new UartDataManager(context, null, false);            // The listener will be set only for ControlPad
+                setupUart();
+            }
         }
     }
 

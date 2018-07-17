@@ -102,6 +102,9 @@ public class ControllerPadFragment extends Fragment {
                 actionBar.setDisplayHomeAsUpEnabled(true);
             }
         }
+
+        // Retain this fragment across configuration changes
+        setRetainInstance(true);
     }
 
     @Override
