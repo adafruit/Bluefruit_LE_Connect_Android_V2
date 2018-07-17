@@ -497,9 +497,12 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         }
     }
 
+    @MainThread
     private void updateBytesUI() {
-        mSentBytesTextView.setText(String.format(getString(R.string.uart_sentbytes_format), mUartData.getSentBytes()));
-        mReceivedBytesTextView.setText(String.format(getString(R.string.uart_receivedbytes_format), mUartData.getReceivedBytes()));
+        if (mUartData != null) {
+            mSentBytesTextView.setText(String.format(getString(R.string.uart_sentbytes_format), mUartData.getSentBytes()));
+            mReceivedBytesTextView.setText(String.format(getString(R.string.uart_receivedbytes_format), mUartData.getReceivedBytes()));
+        }
     }
 
     private void setDisplayFormatToTimestamp(boolean enabled) {
