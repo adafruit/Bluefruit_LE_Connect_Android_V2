@@ -219,11 +219,13 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
             ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 
             // Adapter
+            WeakReference<ControllerFragment> weakThis = new WeakReference<>(this);
             mControllerAdapter = new ControllerAdapter(context, mSensorData, new ControllerAdapter.Listener() {
                 @Override
                 public void onSensorEnabled(int sensorId, boolean enabled) {
                     final Context context = getContext();
-                    if (context == null) return;
+                    ControllerFragment controllerFragment = weakThis.get();
+                    if (context == null || controllerFragment == null) return;
 
                     // Special check for location data
                     if (sensorId == kSensorType_Location && enabled) {
@@ -239,8 +241,8 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                     }
 
                     // Enable sensor
-                    mSensorData[sensorId].enabled = enabled;
-                    registerEnabledSensorListeners(context, true);
+                    controllerFragment.mSensorData[sensorId].enabled = enabled;
+                    controllerFragment.registerEnabledSensorListeners(context, true);
                 }
 
                 @Override
@@ -842,7 +844,8 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
             }
 
             void animateExpanded() {
-                if (mSensorData[getViewHolderId()].enabled) {
+                final int index = getViewHolderId();
+                if (mSensorData[index].enabled) {
                     AdapterUtils.expand(expandedViewGroup);
                 } else {
                     AdapterUtils.collapse(expandedViewGroup);
@@ -873,12 +876,12 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         // Data
         private Context mContext;
         private SensorData[] mSensorData;
-        private WeakReference<Listener> mWeakListener;
+        private Listener mListener;
 
         ControllerAdapter(@NonNull Context context, @NonNull SensorData[] sensorData, @NonNull Listener listener) {
             mContext = context.getApplicationContext();
             mSensorData = sensorData;
-            mWeakListener = new WeakReference<>(listener);
+            mListener = listener;
         }
 
         @Override
@@ -928,14 +931,15 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                     break;
                 case kCellType_SensorDataCell:
                     final int sensorId = position - kSensorDataCellsStartPosition;
+                    SensorData sensorData = mSensorData[sensorId];
+                    Log.d(TAG, "sensorId: " + sensorId + " enabled: " + sensorData.enabled);
                     SensorDataViewHolder sensorDataViewHolder = (SensorDataViewHolder) holder;
                     sensorDataViewHolder.nameTextView.setText(kSensorTitleKeys[sensorId]);
-                    sensorDataViewHolder.enabledSwitch.setChecked(mSensorData[sensorId].enabled);
+                    sensorDataViewHolder.enabledSwitch.setChecked(sensorData.enabled);
                     sensorDataViewHolder.enabledSwitch.setOnCheckedChangeListener((compoundButton, isChecked) -> {
                         if (compoundButton.isPressed()) {
-                            Listener listener = mWeakListener.get();
-                            if (listener != null) {
-                                listener.onSensorEnabled(sensorId, isChecked);
+                            if (mListener != null) {
+                                mListener.onSensorEnabled(sensorId, isChecked);
                             }
                             sensorDataViewHolder.animateExpanded();
                         }
@@ -945,7 +949,6 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                     sensorDataViewHolder.expandedViewGroup.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
 
                     if (isExpanded) {
-                        SensorData sensorData = mSensorData[sensorId];
 
                         if (sensorData.sensorType == kSensorType_Location && sensorData.values == null) {
                             sensorDataViewHolder.value0TextView.setText(mContext.getString(R.string.controller_location_unknown));
@@ -980,9 +983,8 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                     final int moduleId = position - kModuleCellsStartPosition;
                     moduleViewHolder.nameTextView.setText(kModuleTitleKeys[position - kModuleCellsStartPosition]);
                     moduleViewHolder.mainViewGroup.setOnClickListener(view -> {
-                        Listener listener = mWeakListener.get();
-                        if (listener != null) {
-                            listener.onModuleSelected(moduleId);
+                        if (mListener != null) {
+                            mListener.onModuleSelected(moduleId);
                         }
                     });
                     break;
