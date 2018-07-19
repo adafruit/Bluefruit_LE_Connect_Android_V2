@@ -7,8 +7,8 @@ android {
         applicationId "com.adafruit.bluefruit.le.connect"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 22
-        versionName "3.0.1"
+        versionCode 23
+        versionName "3.0.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         resValue "string", "app_name", "Bluefruit"
