@@ -95,6 +95,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     private TextView mFiltersRssiValueTextView;
     private CheckBox mFiltersUnnamedCheckBox;
     private CheckBox mFiltersUartCheckBox;
+    private TextView mFilteredPeripheralsCountTextView;
 
     // Data - Multiconnect
     private View mMultiConnectPanelView;
@@ -304,6 +305,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             }
         });
 
+
         ViewGroup filtersTitleGroupView = view.findViewById(R.id.filtersTitleGroupView);
         filtersTitleGroupView.setOnClickListener(view12 -> {        // onClickExpandFilters
 
@@ -319,6 +321,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
         mFiltersClearButton.setOnClickListener(view13 -> mScannerViewModel.setDefaultFilters(false));
 
+        mFilteredPeripheralsCountTextView = view.findViewById(R.id.filteredPeripheralsCountTextView);
 
         // Multiple Connection
         mMultiConnectPanelView = view.findViewById(R.id.multiConnectExpansionView);
@@ -415,6 +418,18 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             final String message = String.format(Locale.ENGLISH, LocalizationManager.getInstance().getString(getContext(), numDevices == 1 ? "multiconnect_connecteddevices_single_format" : "multiconnect_connecteddevices_multiple_format"), numConnectedDevices);
             mMultiConnectConnectedDevicesTextView.setText(message);
             mMultiConnectStartButton.setEnabled(numDevices >= 2);
+        });
+
+        // Filtered-out peripherals
+        mScannerViewModel.getNumPeripheralsFilteredOut().observe(this, numPeripheralsFilteredOutInteger -> {
+            final int numPeripheralsFilteredOut = numPeripheralsFilteredOutInteger != null ? numPeripheralsFilteredOutInteger : 0;
+            Integer numPeripheralsFilteredInteger = mScannerViewModel.getNumPeripheralsFiltered().getValue();
+            final int numPeripheralsFiltered = numPeripheralsFilteredInteger != null ? numPeripheralsFilteredInteger : 0;
+
+            boolean isFilteredPeripheralCountLabelHidden = numPeripheralsFiltered > 0 || numPeripheralsFilteredOut == 0;
+            mFilteredPeripheralsCountTextView.setVisibility(isFilteredPeripheralCountLabelHidden ? View.GONE : View.VISIBLE);
+            String message = String.format(Locale.ENGLISH, LocalizationManager.getInstance().getString(getContext(), numPeripheralsFilteredOut == 1 ? "scanner_filteredoutinfo_single_format" : "scanner_filteredoutinfo_multiple_format"), numPeripheralsFilteredOut);
+            mFilteredPeripheralsCountTextView.setText(message);
         });
 
         // Dfu Update

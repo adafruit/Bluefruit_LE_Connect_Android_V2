@@ -57,6 +57,9 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     private final MediatorLiveData<FilterData> mFiltersLiveDataMerger = new MediatorLiveData<>();
     private final MediatorLiveData<ScanData> mScanFilterLiveDataMerger = new MediatorLiveData<>();
 
+    private final MutableLiveData<Integer> mNumPeripheralsFilteredOut = new MutableLiveData<>();
+    private final MutableLiveData<Integer> mNumPeripheralsFiltered = new MutableLiveData<>();
+
     private LiveData<String> mRssiFilterDescription = Transformations.map(mRssiFilterValue, rssi -> String.format(Locale.ENGLISH, getApplication().getString(R.string.scanner_filter_rssivalue_format), rssi));
 
     private LiveData<Boolean> mIsAnyFilterEnabled = Transformations.map(mFiltersLiveDataMerger, FilterData::isAnyFilterEnabled);
@@ -65,6 +68,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         String filtersDescription = input.getDescription();
         return filtersDescription != null ? String.format(Locale.ENGLISH, getApplication().getString(R.string.scanner_filter_currentfilter_format), filtersDescription) : getApplication().getString(R.string.scanner_filter_nofilter);
     });
+
+
 
     private LiveData<List<BlePeripheral>> mFilteredBlePeripherals = Transformations.switchMap(mScanFilterLiveDataMerger, input -> {
         FilterData filterData = input.filterData;
@@ -124,9 +129,15 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
             }
         }
 
+        // Update related variables
+        mNumPeripheralsFiltered.setValue(results.size());
+        final int numPeripheralsFilteredOut = input.blePeripherals.size() - results.size();
+        mNumPeripheralsFilteredOut.setValue(numPeripheralsFilteredOut);
+
         // Create result
         MutableLiveData<List<BlePeripheral>> liveResults = new MutableLiveData<>();
         liveResults.setValue(results);
+
         return liveResults;
     });
 
@@ -224,6 +235,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         mBlePeripheralDiscoveredServices.setValue(null);
         mIsMultiConnectEnabled.setValue(false);
         mNumDevicesConnected.setValue(0);
+        mNumPeripheralsFilteredOut.setValue(0);
+        mNumPeripheralsFiltered.setValue(0);
     }
 
     @Override
@@ -350,6 +363,14 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
 
     public LiveData<Integer> getNumDevicesConnected() {
         return mNumDevicesConnected;
+    }
+
+    public LiveData<Integer> getNumPeripheralsFilteredOut() {
+        return mNumPeripheralsFilteredOut;
+    }
+
+    public LiveData<Integer> getNumPeripheralsFiltered() {
+        return mNumPeripheralsFiltered;
     }
 
     public LiveData<BlePeripheral> getBlePeripheralDiscoveredServices() {
