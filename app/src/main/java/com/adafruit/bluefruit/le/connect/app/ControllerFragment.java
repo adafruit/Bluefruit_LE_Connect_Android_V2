@@ -226,7 +226,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                     if (context == null) return;
 
                     // Special check for location data
-                    if (sensorId == kSensorType_Location) {
+                    if (sensorId == kSensorType_Location && enabled) {
                         // Detect if location is enabled or warn user
                         final boolean isLocationEnabled = isLocationEnabled(context);
                         if (!isLocationEnabled) {
