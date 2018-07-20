@@ -33,6 +33,10 @@ class DownloadTask extends AsyncTask<Uri, Integer, ByteArrayOutputStream> {
         mOperationId = operationId;
     }
 
+    void setListener(@Nullable Listener listener) {
+        mListener = listener;
+    }
+
     @Override
     protected ByteArrayOutputStream doInBackground(Uri... sUrl) {
         InputStream input = null;

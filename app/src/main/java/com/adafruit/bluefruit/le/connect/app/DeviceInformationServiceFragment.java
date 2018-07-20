@@ -51,11 +51,14 @@ public class DeviceInformationServiceFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
         // ViewModel
-        FragmentActivity activity = getActivity();
-        if (activity != null) {
-            mModel = ViewModelProviders.of(this).get(DeviceInformationServiceViewModel.class);
-        }
+        mModel = ViewModelProviders.of(this).get(DeviceInformationServiceViewModel.class);
     }
 
     @Override

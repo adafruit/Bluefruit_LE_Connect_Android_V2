@@ -45,7 +45,6 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
         return fragment;
     }
 
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +54,9 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
             mMessage = bundle.getString(kParamMessage);
             mBlePeripheralIdentifier = bundle.getString(kParamBlePeripheralId);
         }
+
+        // Retain this fragment across configuration changes
+        setRetainInstance(true);
     }
 
     @SuppressWarnings("UnnecessaryLocalVariable")
@@ -126,6 +128,15 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
         mCancelListener.scannerStatusCancelled(mBlePeripheralIdentifier);
     }
 
+    @Override
+    public void dismiss() {
+        // Avoid null pointer exceptions on orientation change: https://stackoverflow.com/questions/10526743/dialogfragment-dismiss-crashing-with-nullpointerexception
+        if (getFragmentManager() != null) {
+            super.dismiss();
+        }
+    }
+
+    // region Actions
     public void setMessage(int messageId) {
         Context context = getContext();
         if (context != null) {
@@ -141,4 +152,6 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
     public boolean isInitialized() {
         return mMessageTextView != null;
     }
+
+    // endregion
 }

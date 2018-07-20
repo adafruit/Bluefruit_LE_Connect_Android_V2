@@ -32,6 +32,9 @@ public class MainFragment extends Fragment {
     // Log
     private final static String TAG = MainFragment.class.getSimpleName();
 
+    // UI
+    private BottomNavigationView mNavigationView;
+
     // Data
     private WeakReference<Fragment> mCurrentFragmentReference;
     private int selectedFragmentId = 0;
@@ -66,25 +69,29 @@ public class MainFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Setup bottom navigation view
-        BottomNavigationView navigationView = view.findViewById(R.id.navigation);
-        navigationView.setOnNavigationItemSelectedListener(this::selectFragment);
-        updateActionBarTitle(navigationView.getSelectedItemId());       // Restore title (i.e. when a fragment is popped)
+        mNavigationView = view.findViewById(R.id.navigation);
+        mNavigationView.setOnNavigationItemSelectedListener(this::selectFragment);
+        updateActionBarTitle(mNavigationView.getSelectedItemId());       // Restore title (i.e. when a fragment is popped)
+    }
 
-        // ViewModels
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
         FragmentActivity activity = getActivity();
         if (activity != null) {
+            // ViewModels
             mPeripheralModeViewModel = ViewModelProviders.of(activity).get(PeripheralModeViewModel.class);   // Note: shares viewModel with Activity
-        }
 
-        // Setup when activity is created for the first time
-        if (!mIsInitialNavigationItemSelected) {
-            // Set initial value
-            navigationView.setSelectedItemId(R.id.navigation_central);
-            mIsInitialNavigationItemSelected = true;
-        }
+            // update options menu with current values
+            activity.invalidateOptionsMenu();
 
-        if (activity != null) {
-            activity.invalidateOptionsMenu();        // update options menu with current values
+            // Setup when activity is created for the first time
+            if (!mIsInitialNavigationItemSelected) {
+                // Set initial value
+                mNavigationView.setSelectedItemId(R.id.navigation_central);
+                mIsInitialNavigationItemSelected = true;
+            }
         }
     }
 

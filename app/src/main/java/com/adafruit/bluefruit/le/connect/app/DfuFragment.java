@@ -70,12 +70,6 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // ViewModel
-        FragmentActivity activity = getActivity();
-        if (activity != null) {
-            mDfuViewModel = ViewModelProviders.of(activity).get(DfuViewModel.class);
-        }
     }
 
     @Override
@@ -135,10 +129,6 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
             });
             recyclerView.setAdapter(mAdapter);
 
-            // Check updates if needed
-            Log.d(TAG, "Check firmware updates");
-            mWaitView.setVisibility(View.VISIBLE);
-            mDfuViewModel.startUpdatesCheck(context, mBlePeripheral);
         }
     }
 
@@ -146,14 +136,24 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        // Dfu Update
-        mDfuViewModel.getDfuCheckResult().observe(this, dfuCheckResult -> {
-            if (dfuCheckResult != null) {
-                onDfuUpdateCheckResultReceived(dfuCheckResult.blePeripheral, dfuCheckResult.isUpdateAvailable, dfuCheckResult.dfuInfo, dfuCheckResult.firmwareInfo);
-            }
-        });
-    }
+        // ViewModel
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            mDfuViewModel = ViewModelProviders.of(activity).get(DfuViewModel.class);
 
+            // Dfu Update
+            mDfuViewModel.getDfuCheckResult().observe(this, dfuCheckResult -> {
+                if (dfuCheckResult != null) {
+                    onDfuUpdateCheckResultReceived(dfuCheckResult.blePeripheral, dfuCheckResult.isUpdateAvailable, dfuCheckResult.dfuInfo, dfuCheckResult.firmwareInfo);
+                }
+            });
+
+            // Check updates if needed
+            Log.d(TAG, "Check firmware updates");
+            mWaitView.setVisibility(View.VISIBLE);
+            mDfuViewModel.startUpdatesCheck(activity, mBlePeripheral);
+        }
+    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -257,6 +257,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
         private DfuUpdater.DeviceDfuInfo mDeviceDfuInfo;
         private BlePeripheral mBlePeripheral;
         private Listener mListener;
+
         DfuAdapter(@NonNull Context context, @NonNull BlePeripheral blePeripheral, @NonNull Listener listener) {
             mContext = context.getApplicationContext();
             mBlePeripheral = blePeripheral;

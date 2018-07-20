@@ -104,6 +104,9 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     private TextView mMultiConnectConnectedDevicesTextView;
     private Button mMultiConnectStartButton;
 
+    // Data - Dialogs
+    private ScannerStatusFragmentDialog mConnectingDialog;
+
     // region Fragment lifecycle
     public static ScannerFragment newInstance() {
         return new ScannerFragment();
@@ -137,17 +140,9 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
         setHasOptionsMenu(true);
 
-        // ViewModel
-        FragmentActivity activity = getActivity();
-        if (activity != null) {
-            mDfuViewModel = ViewModelProviders.of(activity).get(DfuViewModel.class);
-        }
-        mScannerViewModel = ViewModelProviders.of(this).get(ScannerViewModel.class);
-
         // Retain this fragment across configuration changes
         setRetainInstance(true);
     }
-
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -359,6 +354,13 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        // ViewModel
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            mDfuViewModel = ViewModelProviders.of(activity).get(DfuViewModel.class);
+        }
+        mScannerViewModel = ViewModelProviders.of(this).get(ScannerViewModel.class);
+
         // Scan results
         mScannerViewModel.getFilteredBlePeripherals().observe(this, blePeripherals -> mBlePeripheralsAdapter.setBlePeripherals(blePeripherals));
 
@@ -469,6 +471,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     @Override
     public void onDestroy() {
         mScannerViewModel.saveFilters();
+
         if (BuildConfig.DEBUG && getActivity() != null) {
             RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
             refWatcher.watch(this);
@@ -565,7 +568,6 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     // endregion
 
     // region Dialogs
-    private ScannerStatusFragmentDialog mConnectingDialog;
 
     private void showConnectionStateDialog(BlePeripheral blePeripheral) {
         final int connectionState = blePeripheral.getConnectionState();
@@ -587,10 +589,10 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         if (mConnectingDialog != null) {
             mConnectingDialog.dismiss();
 //            mConnectingDialog.cancel();
+
             mConnectingDialog = null;
         }
     }
-
 
     @Override
     public void scannerStatusCancelled(@NonNull String blePeripheralIdentifier) {

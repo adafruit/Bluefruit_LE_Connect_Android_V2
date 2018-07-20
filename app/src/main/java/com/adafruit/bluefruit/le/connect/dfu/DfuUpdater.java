@@ -98,6 +98,7 @@ public class DfuUpdater {
         // Cancel previous downloads
         if (sDownloadTask != null) {
             sDownloadTask.cancel(true);
+            sDownloadTask.setListener(null);
         }
 
         if (NetworkUtils.isNetworkAvailable(context)) {
@@ -329,6 +330,7 @@ public class DfuUpdater {
         // Cancel previous download task if still running
         if (sDownloadTask != null) {
             sDownloadTask.cancel(true);
+            sDownloadTask.setListener(null);
         }
 
         if (NetworkUtils.isNetworkAvailable(context)) {
@@ -450,6 +452,7 @@ public class DfuUpdater {
         // Abort downloads
         if (sDownloadTask != null) {
             sDownloadTask.cancel(true);
+            sDownloadTask.setListener(null);
             sDownloadTask = null;
         }
 

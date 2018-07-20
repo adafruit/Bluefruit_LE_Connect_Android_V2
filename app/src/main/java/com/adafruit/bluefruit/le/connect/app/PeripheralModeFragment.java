@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.arch.lifecycle.ViewModelProviders;
 import android.bluetooth.le.AdvertiseCallback;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -37,8 +36,6 @@ import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
 import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
 import com.squareup.leakcanary.RefWatcher;
 
-import static android.content.Context.MODE_PRIVATE;
-
 public class PeripheralModeFragment extends Fragment {
     // Constants
     private final static String TAG = PeripheralModeFragment.class.getSimpleName();
@@ -69,12 +66,6 @@ public class PeripheralModeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // ViewModel
-        FragmentActivity activity = getActivity();
-        if (activity != null) {
-            mModel = ViewModelProviders.of(activity).get(PeripheralModeViewModel.class);           // Note: shares viewModel with Activity
-        }
 
         // Retain this fragment across configuration changes
         setRetainInstance(true);
@@ -144,19 +135,25 @@ public class PeripheralModeFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mModel.getStartAdvertisingErrorCode().observe(this, errorCode -> {
-            Log.d(TAG, "Advertising error: " + errorCode);
+        // ViewModel
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            mModel = ViewModelProviders.of(activity).get(PeripheralModeViewModel.class);           // Note: shares viewModel with Activity
 
-            if (errorCode != null) {
-                int messageId = errorCode == AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE ? R.string.peripheral_advertising_starterror_toolarge : R.string.peripheral_advertising_starterror_undefined;
+            mModel.getStartAdvertisingErrorCode().observe(this, errorCode -> {
+                Log.d(TAG, "Advertising error: " + errorCode);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                AlertDialog dialog = builder.setTitle(R.string.dialog_error).setMessage(messageId)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
-                DialogUtils.keepDialogOnOrientationChanges(dialog);
-            }
-        });
+                if (errorCode != null) {
+                    int messageId = errorCode == AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE ? R.string.peripheral_advertising_starterror_toolarge : R.string.peripheral_advertising_starterror_undefined;
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    AlertDialog dialog = builder.setTitle(R.string.dialog_error).setMessage(messageId)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                    DialogUtils.keepDialogOnOrientationChanges(dialog);
+                }
+            });
+        }
     }
 
     @Override
@@ -348,7 +345,6 @@ public class PeripheralModeFragment extends Fragment {
         public int getItemCount() {
             return 1 + 1 + 1 + mModel.getPeripheralServices().size();
         }
-
 
 
     }
