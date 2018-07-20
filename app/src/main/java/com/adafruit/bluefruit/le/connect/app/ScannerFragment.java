@@ -141,12 +141,13 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         FragmentActivity activity = getActivity();
         if (activity != null) {
             mDfuViewModel = ViewModelProviders.of(activity).get(DfuViewModel.class);
-            mScannerViewModel = ViewModelProviders.of(this).get(ScannerViewModel.class);
         }
+        mScannerViewModel = ViewModelProviders.of(this).get(ScannerViewModel.class);
 
         // Retain this fragment across configuration changes
         setRetainInstance(true);
     }
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

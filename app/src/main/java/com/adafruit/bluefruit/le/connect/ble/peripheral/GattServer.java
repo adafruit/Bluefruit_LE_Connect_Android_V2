@@ -78,7 +78,7 @@ public class GattServer implements PeripheralService.Listener {
     private Listener mListener;
 
     private List<PeripheralService> mPeripheralServices = new ArrayList<>();
-    private Semaphore mAddServicesSemaphore = new Semaphore(1, true);
+    private Semaphore mAddServicesSemaphore;
 
     // Data - preparedWrite
     class ServiceCharacteristicKey {
@@ -250,7 +250,7 @@ public class GattServer implements PeripheralService.Listener {
     // endregion
 
     // region Advertising
-    public boolean startAdvertising(@NonNull Context context) {
+    public synchronized boolean startAdvertising(@NonNull Context context) {
         mShouldStartAdvertising = true;
 
         if (mBluetoothManager == null || mAdvertiser == null) {
@@ -263,24 +263,26 @@ public class GattServer implements PeripheralService.Listener {
 
         // Start Gatt Server
         Log.d(TAG, "startAdvertising");
+        mAddServicesSemaphore = new Semaphore(1, true);
         mGattServer = mBluetoothManager.openGattServer(context.getApplicationContext(), mGattServerCallback);
         if (mGattServer != null) {
             for (PeripheralService peripheralService : mPeripheralServices) {
                 if (peripheralService.isEnabled()) {
                     BluetoothGattService service = peripheralService.getService();
                     try {
-                        mAddServicesSemaphore.acquire();            // Only allow a service to be added simultaneously to avoid internal Android bugs. (i.e. on Android v7 null pointer exceptions are thrown sometimes)
+                        mAddServicesSemaphore.acquire();                        // Semaphore to wait for onServiceAdded callback before adding a new service (check addService docs)
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    final boolean isAdded = mGattServer.addService(service);
+
+                    final boolean isAdded = mGattServer.addService(service);    // Note: Wait for onServiceAdded callback before adding another service
                     if (!isAdded) {
                         Log.e(TAG, "startGattServer service not added");
                     }
                 }
             }
 
-            mAddServicesSemaphore.release();        // Force release any remaining permits (there are no more service that are going to be added)
+            //mAddServicesSemaphore.release();        // Force release any remaining permits (there are no more services that are going to be added)
 
             // Start advertising
             AdvertiseSettings advertiseSettings = new AdvertiseSettings.Builder()
@@ -360,7 +362,7 @@ public class GattServer implements PeripheralService.Listener {
         }
     };
 
-    private void stopAdvertising(/*@NonNull Context context, */boolean notifyListener) {
+    private synchronized void stopAdvertising(/*@NonNull Context context, */boolean notifyListener) {
         mShouldStartAdvertising = false;
 
         if (mAdvertiser != null && mIsAdvertising) {

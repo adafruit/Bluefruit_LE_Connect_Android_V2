@@ -175,7 +175,7 @@ public class BleScanner {
     }
 
     //     @RequiresPermission(anyOf = {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION})
-    private void startWithFilters(@Nullable List<ScanFilter> filters) {
+    private synchronized void startWithFilters(@Nullable List<ScanFilter> filters) {
         if (!mIsScanning) {
             BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
             ScanSettings settings = new ScanSettings.Builder()
@@ -195,7 +195,7 @@ public class BleScanner {
         }
     }
 
-    public void stop() {
+    public synchronized void stop() {
         if (mIsScanning) {
             BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
             scanner.stopScan(mScanCallback);
@@ -207,7 +207,7 @@ public class BleScanner {
         }
     }
 
-    public void refresh() {
+    public synchronized void refresh() {
         //mPeripheralScanResults.clear();
 
         stop();
