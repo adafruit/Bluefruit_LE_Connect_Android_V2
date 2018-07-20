@@ -27,7 +27,7 @@ public class DfuViewModel extends AndroidViewModel {
         public ReleasesParser.FirmwareInfo firmwareInfo;
         public DfuUpdater.DeviceDfuInfo dfuInfo;
 
-        DfuCheckResult(BlePeripheral blePeripheral, boolean isUpdateAvailable, ReleasesParser.FirmwareInfo firmwareInfo, DfuUpdater.DeviceDfuInfo dfuInfo) {
+        DfuCheckResult(@NonNull BlePeripheral blePeripheral, boolean isUpdateAvailable, @Nullable ReleasesParser.FirmwareInfo firmwareInfo, @Nullable DfuUpdater.DeviceDfuInfo dfuInfo) {
             this.blePeripheral = blePeripheral;
             this.isUpdateAvailable = isUpdateAvailable;
             this.firmwareInfo = firmwareInfo;

@@ -187,7 +187,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
 
     @SuppressWarnings("unused")
     @MainThread
-    private void onDfuUpdateCheckResultReceived(@NonNull BlePeripheral blePeripheral, boolean isUpdateAvailable, @NonNull DfuUpdater.DeviceDfuInfo deviceDfuInfo, @Nullable ReleasesParser.FirmwareInfo latestRelease) {
+    private void onDfuUpdateCheckResultReceived(@NonNull BlePeripheral blePeripheral, boolean isUpdateAvailable, @Nullable DfuUpdater.DeviceDfuInfo deviceDfuInfo, @Nullable ReleasesParser.FirmwareInfo latestRelease) {
         Context context = getContext();
         if (context == null) {
             return;
@@ -198,10 +198,15 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
         ReleasesParser.BoardInfo boardRelease = null;
         Map<String, ReleasesParser.BoardInfo> allReleases = mDfuViewModel.getReleases(context, mShowBetaVersions);
         if (allReleases != null) {
-            if (deviceDfuInfo.modelNumber != null) {
-                boardRelease = allReleases.get(deviceDfuInfo.modelNumber);
-            } else {
-                Log.d(TAG, "Warning: no releases found for this board");
+            if (deviceDfuInfo != null) {
+                if (deviceDfuInfo.modelNumber != null) {
+                    boardRelease = allReleases.get(deviceDfuInfo.modelNumber);
+                } else {
+                    Log.d(TAG, "Warning: no releases found for this board");
+                }
+            }
+            else {
+                Log.d(TAG, "Warning: no deviceDfuInfo found");
             }
         } else {
             Log.d(TAG, "Warning: no releases found");
