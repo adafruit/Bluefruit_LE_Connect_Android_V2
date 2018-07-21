@@ -41,8 +41,8 @@ public class PeripheralModeFragment extends Fragment {
     private final static String TAG = PeripheralModeFragment.class.getSimpleName();
     //private final static int kRssiRefreshInterval = 300; // in milliseconds
 
-    // Data
-    private PeripheralModeViewModel mModel;
+    // UI
+    private RecyclerView mRecyclerView;
 
     // region Fragment lifecycle
     public static PeripheralModeFragment newInstance() {
@@ -82,25 +82,50 @@ public class PeripheralModeFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         final Context context = getContext();
-
         if (context != null) {
 
             // Peripherals recycler view
-            RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
+            mRecyclerView = view.findViewById(R.id.recyclerView);
             DividerItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
             Drawable lineSeparatorDrawable = ContextCompat.getDrawable(context, R.drawable.simpledivideritemdecoration);
             assert lineSeparatorDrawable != null;
             itemDecoration.setDrawable(lineSeparatorDrawable);
-            recyclerView.addItemDecoration(itemDecoration);
+            mRecyclerView.addItemDecoration(itemDecoration);
 
             //   recyclerView.setHasFixedSize(true);        // Improve performance
             RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
-            recyclerView.setLayoutManager(layoutManager);
+            mRecyclerView.setLayoutManager(layoutManager);
+        }
+    }
 
-            PeripheralModeAdapter adapter = new PeripheralModeAdapter(context, mModel, index -> {
-                FragmentActivity activity = getActivity();
-                if (activity != null) {
-                    FragmentManager fragmentManager = activity.getSupportFragmentManager();
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        // ViewModel
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            PeripheralModeViewModel model = ViewModelProviders.of(activity).get(PeripheralModeViewModel.class);
+
+            model.getStartAdvertisingErrorCode().observe(this, errorCode -> {
+                Log.d(TAG, "Advertising error: " + errorCode);
+
+                if (errorCode != null) {
+                    int messageId = errorCode == AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE ? R.string.peripheral_advertising_starterror_toolarge : R.string.peripheral_advertising_starterror_undefined;
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    AlertDialog dialog = builder.setTitle(R.string.dialog_error).setMessage(messageId)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                    DialogUtils.keepDialogOnOrientationChanges(dialog);
+                }
+            });
+
+            // RecyclerView Adapter
+            PeripheralModeAdapter adapter = new PeripheralModeAdapter(activity, model, index -> {
+                FragmentActivity activity2 = getActivity();
+                if (activity2 != null) {
+                    FragmentManager fragmentManager = activity2.getSupportFragmentManager();
                     if (fragmentManager != null) {
 
                         Fragment fragment = null;
@@ -127,32 +152,7 @@ public class PeripheralModeFragment extends Fragment {
                     }
                 }
             });
-            recyclerView.setAdapter(adapter);
-        }
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        // ViewModel
-        FragmentActivity activity = getActivity();
-        if (activity != null) {
-            mModel = ViewModelProviders.of(activity).get(PeripheralModeViewModel.class);           // Note: shares viewModel with Activity
-
-            mModel.getStartAdvertisingErrorCode().observe(this, errorCode -> {
-                Log.d(TAG, "Advertising error: " + errorCode);
-
-                if (errorCode != null) {
-                    int messageId = errorCode == AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE ? R.string.peripheral_advertising_starterror_toolarge : R.string.peripheral_advertising_starterror_undefined;
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    AlertDialog dialog = builder.setTitle(R.string.dialog_error).setMessage(messageId)
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show();
-                    DialogUtils.keepDialogOnOrientationChanges(dialog);
-                }
-            });
+            mRecyclerView.setAdapter(adapter);
         }
     }
 
@@ -345,7 +345,5 @@ public class PeripheralModeFragment extends Fragment {
         public int getItemCount() {
             return 1 + 1 + 1 + mModel.getPeripheralServices().size();
         }
-
-
     }
 }

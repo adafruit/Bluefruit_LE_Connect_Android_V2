@@ -27,7 +27,7 @@ class DownloadTask extends AsyncTask<Uri, Integer, ByteArrayOutputStream> {
     private Uri mUri;
     private Object mTag;
 
-    DownloadTask(@NonNull Context context, int operationId, Listener listener) {
+    DownloadTask(@NonNull Context context, int operationId, @NonNull Listener listener) {
         mWeakContext = new WeakReference<>(context.getApplicationContext());
         mListener = listener;
         mOperationId = operationId;
@@ -133,7 +133,6 @@ class DownloadTask extends AsyncTask<Uri, Integer, ByteArrayOutputStream> {
     protected void onProgressUpdate(Integer... progress) {
         super.onProgressUpdate(progress);
 
-       // Listener listener = mWeakListener.get();
         if (mListener != null) {
             mListener.onDownloadProgress(mOperationId, progress[0]);
         }
@@ -141,17 +140,14 @@ class DownloadTask extends AsyncTask<Uri, Integer, ByteArrayOutputStream> {
 
     @Override
     protected void onPostExecute(ByteArrayOutputStream result) {
-        //Log.d(TAG, "Download:onPostExecute");
-
         if (mWakeLock != null) {
             mWakeLock.release();
             mWakeLock = null;
         }
 
-        //Listener listener = mWeakListener.get();
-        //Log.d(TAG, "Download:onPostExecute2" + mListener);
         if (mListener != null) {
             mListener.onDownloadCompleted(mOperationId, mUri, result);
+            mListener = null;
         }
     }
 

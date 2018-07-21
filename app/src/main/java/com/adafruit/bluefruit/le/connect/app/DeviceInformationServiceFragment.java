@@ -7,8 +7,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -32,11 +33,10 @@ public class DeviceInformationServiceFragment extends Fragment {
     // Log
     private final static String TAG = DeviceInformationServiceFragment.class.getSimpleName();
 
-    // Data
-    DeviceInformationServiceViewModel mModel;
+    // UI
+    private RecyclerView mRecyclerView;
 
     // region Fragment Lifecycle
-
     @SuppressWarnings("UnnecessaryLocalVariable")
     public static DeviceInformationServiceFragment newInstance() {
         DeviceInformationServiceFragment fragment = new DeviceInformationServiceFragment();
@@ -54,14 +54,6 @@ public class DeviceInformationServiceFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        // ViewModel
-        mModel = ViewModelProviders.of(this).get(DeviceInformationServiceViewModel.class);
-    }
-
-    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_deviceinformationservice, container, false);
@@ -71,25 +63,44 @@ public class DeviceInformationServiceFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        if (activity != null) {
+            ActionBar actionBar = activity.getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(R.string.peripheral_dis_title);
+                actionBar.setDisplayHomeAsUpEnabled(true);
+            }
+        }
+
         final Context context = getContext();
-
         if (context != null) {
-
             // Peripherals recycler view
-            RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
+            mRecyclerView = view.findViewById(R.id.recyclerView);
             DividerItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
             Drawable lineSeparatorDrawable = ContextCompat.getDrawable(context, R.drawable.simpledivideritemdecoration);
             assert lineSeparatorDrawable != null;
             itemDecoration.setDrawable(lineSeparatorDrawable);
-            recyclerView.addItemDecoration(itemDecoration);
+            mRecyclerView.addItemDecoration(itemDecoration);
 
-            recyclerView.setHasFixedSize(true);        // Improves performance
+            mRecyclerView.setHasFixedSize(true);        // Improves performance
             RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
-            recyclerView.setLayoutManager(layoutManager);
-
-            DeviceInformationServiceAdapter adapter = new DeviceInformationServiceAdapter(context, mModel);
-            recyclerView.setAdapter(adapter);
+            mRecyclerView.setLayoutManager(layoutManager);
         }
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        // ViewModel
+        DeviceInformationServiceViewModel model = ViewModelProviders.of(this).get(DeviceInformationServiceViewModel.class);
+
+        final Context context = getContext();
+        if (context != null) {
+            DeviceInformationServiceAdapter adapter = new DeviceInformationServiceAdapter(context, model);
+            mRecyclerView.setAdapter(adapter);
+        }
+
     }
 
     @Override
@@ -101,7 +112,6 @@ public class DeviceInformationServiceFragment extends Fragment {
 
         super.onDestroy();
     }
-
 
     // endregion
 
