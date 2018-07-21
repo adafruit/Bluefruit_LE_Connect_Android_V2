@@ -366,7 +366,11 @@ public class GattServer implements PeripheralService.Listener {
         mShouldStartAdvertising = false;
 
         if (mAdvertiser != null && mIsAdvertising) {
-            mAdvertiser.stopAdvertising(mAdvertisingCallback);
+            try {
+                mAdvertiser.stopAdvertising(mAdvertisingCallback);
+            } catch (IllegalStateException e) {         // Discard IllegalStateException reported in Android vitals crashes
+                Log.w(TAG, "stopAdvertising illegalstate: " + e);
+            }
             mIsAdvertising = false;
             Log.d(TAG, "Advertising stopAdvertising");
         }
@@ -529,7 +533,8 @@ public class GattServer implements PeripheralService.Listener {
             mGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, new byte[]{});
         }
 
-        private @NonNull byte[] processWriteRequest(BluetoothDevice device, int requestId, boolean prepared, boolean responseNeeded, int offset, byte[] value, byte[] currentCharacteristicValue) {
+        private @NonNull
+        byte[] processWriteRequest(BluetoothDevice device, int requestId, boolean prepared, boolean responseNeeded, int offset, byte[] value, byte[] currentCharacteristicValue) {
             // Adjust currentValue to make room for the new data
             // Question: should the characteristic value be expanded to accommodate the value? Maybe not...
             if (currentCharacteristicValue == null || offset == 0) {
