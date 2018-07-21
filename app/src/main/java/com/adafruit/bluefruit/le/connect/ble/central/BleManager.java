@@ -5,6 +5,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -51,11 +53,24 @@ public class BleManager {
         return isEnabled;
     }
 
-    public BluetoothAdapter getAdapter() {
+    /*
+    public @Nullable
+    BluetoothAdapter getAdapter() {
         return mAdapter;
+    }*/
+
+    public void cancelDiscovery() {
+        if (mAdapter != null) {
+            mAdapter.cancelDiscovery();
+        }
     }
 
-    public List<BluetoothDevice> getConnectedDevices() {
+    public boolean isAdapterEnabled() {
+        return mAdapter != null && mAdapter.isEnabled();
+    }
+
+    public @NonNull
+    List<BluetoothDevice> getConnectedDevices() {
         List<BluetoothDevice> connectedDevices = new ArrayList<>();
 
         // Check if already initialized

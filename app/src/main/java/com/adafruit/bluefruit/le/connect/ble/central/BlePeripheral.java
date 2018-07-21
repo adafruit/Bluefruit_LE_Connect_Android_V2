@@ -389,7 +389,7 @@ public class BlePeripheral {
         mConnectionState = STATE_CONNECTING;
         localBroadcastUpdate(kBlePeripheral_OnConnecting, getIdentifier());
 
-        BleManager.getInstance().getAdapter().cancelDiscovery();        // Always cancel discovery before connecting
+        BleManager.getInstance().cancelDiscovery();        // Always cancel discovery before connecting
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mBluetoothGatt = device.connectGatt(context, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);

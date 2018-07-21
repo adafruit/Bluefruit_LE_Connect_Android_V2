@@ -198,7 +198,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             // Swipe to refreshAll
             mSwipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
             mSwipeRefreshLayout.setOnRefreshListener(() -> {
-                if (BleManager.getInstance().getAdapter().isEnabled()) {
+                if (BleManager.getInstance().isAdapterEnabled()) {
                     mScannerViewModel.refresh();
                 } else {
                     mListener.bluetoothAdapterIsDisabled();
