@@ -94,15 +94,6 @@ public class ControllerPadFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        AppCompatActivity activity = (AppCompatActivity) getActivity();
-        if (activity != null) {
-            ActionBar actionBar = activity.getSupportActionBar();
-            if (actionBar != null) {
-                actionBar.setTitle(R.string.controlpad_title);
-                actionBar.setDisplayHomeAsUpEnabled(true);
-            }
-        }
-
         // Retain this fragment across configuration changes
         setRetainInstance(true);
     }
@@ -117,6 +108,17 @@ public class ControllerPadFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Set title
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        if (activity != null) {
+            ActionBar actionBar = activity.getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.setTitle(R.string.controlpad_title);
+                actionBar.setDisplayHomeAsUpEnabled(true);
+            }
+        }
+
+        // UI
         mRootLayout = view.findViewById(R.id.rootLayout);
         mTopSpacerView = view.findViewById(R.id.topSpacerView);
         mBottomSpacerView = view.findViewById(R.id.bottomSpacerView);

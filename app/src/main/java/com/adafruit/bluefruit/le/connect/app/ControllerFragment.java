@@ -637,6 +637,10 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     };
 
     private void sendCrcData(byte[] data) {
+        if (mUartDataManager == null) {     // Check because crash found on logs (mUartDataManager is null)
+            return;
+        }
+
         byte[] crcData = BlePeripheralUart.appendCrc(data);
         mUartDataManager.send(mBlePeripheralUart, crcData, null);
     }
@@ -656,36 +660,38 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
 
     private void registerEnabledSensorListeners(@NonNull Context context, boolean register) {
 
-        // Accelerometer
-        if (register && (mSensorData[kSensorType_Accelerometer].enabled || mSensorData[kSensorType_Quaternion].enabled)) {
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        } else {
-            mSensorManager.unregisterListener(this, mAccelerometer);
-        }
-
-        // Gyroscope
-        if (register && mSensorData[kSensorType_Gyroscope].enabled) {
-            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
-        } else {
-            mSensorManager.unregisterListener(this, mGyroscope);
-        }
-
-        // Magnetometer
-        if (register && (mSensorData[kSensorType_Magnetometer].enabled || mSensorData[kSensorType_Quaternion].enabled)) {
-            if (mMagnetometer == null) {
-                new AlertDialog.Builder(context)
-                        .setMessage(getString(R.string.controller_magnetometermissing))
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
-                mSensorData[kSensorType_Magnetometer].enabled = false;
-                mSensorData[kSensorType_Quaternion].enabled = false;
-                mControllerAdapter.notifySensorChanged(kSensorType_Magnetometer);
-                mControllerAdapter.notifySensorChanged(kSensorType_Quaternion);
+        if (mSensorManager != null) {       // Check not null (crash detected when app is resumed and device has been disconnected and onDestroy tries to remove sensor manager listeners)
+            // Accelerometer
+            if (register && (mSensorData[kSensorType_Accelerometer].enabled || mSensorData[kSensorType_Quaternion].enabled)) {
+                mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
             } else {
-                mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+                mSensorManager.unregisterListener(this, mAccelerometer);
             }
-        } else {
-            mSensorManager.unregisterListener(this, mMagnetometer);
+
+            // Gyroscope
+            if (register && mSensorData[kSensorType_Gyroscope].enabled) {
+                mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
+            } else {
+                mSensorManager.unregisterListener(this, mGyroscope);
+            }
+
+            // Magnetometer
+            if (register && (mSensorData[kSensorType_Magnetometer].enabled || mSensorData[kSensorType_Quaternion].enabled)) {
+                if (mMagnetometer == null) {
+                    new AlertDialog.Builder(context)
+                            .setMessage(getString(R.string.controller_magnetometermissing))
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                    mSensorData[kSensorType_Magnetometer].enabled = false;
+                    mSensorData[kSensorType_Quaternion].enabled = false;
+                    mControllerAdapter.notifySensorChanged(kSensorType_Magnetometer);
+                    mControllerAdapter.notifySensorChanged(kSensorType_Quaternion);
+                } else {
+                    mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+                }
+            } else {
+                mSensorManager.unregisterListener(this, mMagnetometer);
+            }
         }
 
         // Location
