@@ -18,6 +18,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -31,13 +32,17 @@ public class MqttManager implements IMqttActionListener, MqttCallback, MqttTrace
     public static int MqqtQos_ExactlyOnce = 2;
     // Data
     private MqttAndroidClient mMqttClient;
-    private MqttManagerListener mListener;
+    private WeakReference<MqttManagerListener> mWeakListener;
     private MqqtConnectionStatus mMqqtClientStatus = MqqtConnectionStatus.NONE;
     private Context mContext;
 
     public MqttManager(@NonNull Context context, @NonNull MqttManagerListener listener) {
         mContext = context.getApplicationContext();
-        mListener = listener;
+        mWeakListener = new WeakReference<>(listener);
+    }
+
+    public void setListener(@Nullable MqttManagerListener listener) {
+        mWeakListener = new WeakReference<>(listener);
     }
 
     @Override
@@ -111,23 +116,22 @@ public class MqttManager implements IMqttActionListener, MqttCallback, MqttTrace
                 Log.e(TAG, "Mqtt:x disconnection error: ", e);
             }
         }
-
     }
 
-    public void connectFromSavedSettings(@NonNull Context context) {
-        String host = MqttSettings.getServerAddress(context);
-        int port = MqttSettings.getServerPort(context);
+    public void connectFromSavedSettings() {
+        String host = MqttSettings.getServerAddress(mContext);
+        int port = MqttSettings.getServerPort(mContext);
 
-        String username = MqttSettings.getUsername(context);
-        String password = MqttSettings.getPassword(context);
-        boolean cleanSession = MqttSettings.isCleanSession(context);
-        boolean sslConnection = MqttSettings.isSslConnection(context);
+        String username = MqttSettings.getUsername(mContext);
+        String password = MqttSettings.getPassword(mContext);
+        boolean cleanSession = MqttSettings.isCleanSession(mContext);
+        boolean sslConnection = MqttSettings.isSslConnection(mContext);
 
-        connect(context, host, port, username, password, cleanSession, sslConnection);
+        connect(host, port, username, password, cleanSession, sslConnection);
     }
 
     @SuppressWarnings("ConstantConditions")
-    public void connect(@NonNull Context context, @NonNull String host, int port, @Nullable String username, @Nullable String password, boolean cleanSession, boolean sslConnection) {
+    public void connect(@NonNull String host, int port, @Nullable String username, @Nullable String password, boolean cleanSession, boolean sslConnection) {
         String clientId = "Bluefruit_" + UUID.randomUUID().toString();
         final int timeout = MqttConnectOptions.CONNECTION_TIMEOUT_DEFAULT;
         final int keepalive = MqttConnectOptions.KEEP_ALIVE_INTERVAL_DEFAULT;
@@ -146,8 +150,8 @@ public class MqttManager implements IMqttActionListener, MqttCallback, MqttTrace
         }
 
         Log.d(TAG, "Mqtt: Create client: " + clientId);
-        mMqttClient = new MqttAndroidClient(context, uri, clientId);
-        mMqttClient.registerResources(context);
+        mMqttClient = new MqttAndroidClient(mContext, uri, clientId);
+        mMqttClient.registerResources(mContext);
 
         MqttConnectOptions conOpt = new MqttConnectOptions();
         Log.d(TAG, "Mqtt: clean session:" + (cleanSession ? "yes" : "no"));
@@ -179,7 +183,7 @@ public class MqttManager implements IMqttActionListener, MqttCallback, MqttTrace
         mMqttClient.setTraceCallback(this);
 
         if (doConnect) {
-            MqttSettings.setConnectedEnabled(context, true);
+            MqttSettings.setConnectedEnabled(mContext, true);
 
             try {
                 Log.d(TAG, "Mqtt: connect to " + uri);
@@ -194,11 +198,12 @@ public class MqttManager implements IMqttActionListener, MqttCallback, MqttTrace
     // region IMqttActionListener
     @Override
     public void onSuccess(IMqttToken iMqttToken) {
+        MqttManagerListener listener = mWeakListener.get();
         if (mMqqtClientStatus == MqqtConnectionStatus.CONNECTING) {
             Log.d(TAG, "Mqtt connect onSuccess");
             mMqqtClientStatus = MqqtConnectionStatus.CONNECTED;
-            if (mListener != null) {
-                mListener.onMqttConnected();
+            if (listener != null) {
+                listener.onMqttConnected();
             }
 
             String topic = MqttSettings.getSubscribeTopic(mContext);
@@ -209,8 +214,8 @@ public class MqttManager implements IMqttActionListener, MqttCallback, MqttTrace
         } else if (mMqqtClientStatus == MqqtConnectionStatus.DISCONNECTING) {
             Log.d(TAG, "Mqtt disconnect onSuccess");
             mMqqtClientStatus = MqqtConnectionStatus.DISCONNECTED;
-            if (mListener != null) {
-                mListener.onMqttDisconnected();
+            if (listener != null) {
+                listener.onMqttDisconnected();
             }
         } else {
             Log.d(TAG, "Mqtt unknown onSuccess");
@@ -234,8 +239,9 @@ public class MqttManager implements IMqttActionListener, MqttCallback, MqttTrace
         Toast.makeText(mContext, errorText, Toast.LENGTH_LONG).show();
 
         // Call listener
-        if (mListener != null) {
-            mListener.onMqttDisconnected();
+        MqttManagerListener listener = mWeakListener.get();
+        if (listener != null) {
+            listener.onMqttDisconnected();
         }
     }
 
@@ -250,8 +256,9 @@ public class MqttManager implements IMqttActionListener, MqttCallback, MqttTrace
 
         mMqqtClientStatus = MqqtConnectionStatus.DISCONNECTED;
 
-        if (mListener != null) {
-            mListener.onMqttDisconnected();
+        MqttManagerListener listener = mWeakListener.get();
+        if (listener != null) {
+            listener.onMqttDisconnected();
         }
     }
     // endregion
@@ -263,8 +270,9 @@ public class MqttManager implements IMqttActionListener, MqttCallback, MqttTrace
         if (message.length() > 0) {      // filter cleared messages (to avoid duplicates)
 
             Log.d(TAG, "Mqtt messageArrived from topic: " + topic + " message: " + message + " isDuplicate: " + (mqttMessage.isDuplicate() ? "yes" : "no"));
-            if (mListener != null) {
-                mListener.onMqttMessageArrived(topic, mqttMessage);
+            MqttManagerListener listener = mWeakListener.get();
+            if (listener != null) {
+                listener.onMqttMessageArrived(topic, mqttMessage);
             }
 
             // Fix duplicated messages clearing the received payload and processing only non null messages

@@ -7,8 +7,6 @@ import android.util.Log;
 
 import com.adafruit.bluefruit.le.connect.ble.UartPacket;
 import com.adafruit.bluefruit.le.connect.ble.UartPacketManagerBase;
-import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
-import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheralUart;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttManager;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttSettings;
 
@@ -47,6 +45,14 @@ public class UartPeripheralModePacketManager extends UartPacketManagerBase {
         byte[] data = text.getBytes(Charset.forName("UTF-8"));
         UartPacket uartPacket = new UartPacket(null, UartPacket.TRANSFERMODE_TX, data);
 
+        try {
+            mPacketsSemaphore.acquire();        // don't append more data, till the delegate has finished processing it
+        } catch (InterruptedException e) {
+            Log.w(TAG, "InterruptedException: " + e.toString());
+        }
+        mPackets.add(uartPacket);
+        mPacketsSemaphore.release();
+
         Listener listener = mWeakListener.get();
         if (listener != null) {
             mMainHandler.post(() -> listener.onUartPacket(uartPacket));
@@ -57,14 +63,6 @@ public class UartPeripheralModePacketManager extends UartPacketManagerBase {
 
         if (shouldBeSent) {
             send(uartPeripheralService, data);
-
-            try {
-                mPacketsSemaphore.acquire();        // don't append more data, till the delegate has finished processing it
-            } catch (InterruptedException e) {
-                Log.w(TAG, "InterruptedException: " + e.toString());
-            }
-            mPackets.add(uartPacket);
-            mPacketsSemaphore.release();
         }
     }
 

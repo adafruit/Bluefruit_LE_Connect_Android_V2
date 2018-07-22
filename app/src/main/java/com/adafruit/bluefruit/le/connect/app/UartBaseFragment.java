@@ -71,7 +71,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     // UI
     private EditText mBufferTextView;
     private RecyclerView mBufferRecylerView;
-    private TimestampItemAdapter mBufferItemAdapter;
+    protected TimestampItemAdapter mBufferItemAdapter;
     private EditText mSendEditText;
     private Button mSendButton;
     private MenuItem mMqttMenuItem;
@@ -145,7 +145,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             mBufferRecylerView.setLayoutManager(layoutManager);
 
             ((SimpleItemAnimator) mBufferRecylerView.getItemAnimator()).setSupportsChangeAnimations(false);         // Disable update animation
-            mBufferItemAdapter = new TimestampItemAdapter(context, mUartData);            // Adapter
+            mBufferItemAdapter = new TimestampItemAdapter(context);            // Adapter
 
             mBufferRecylerView.setAdapter(mBufferItemAdapter);
         }
@@ -201,9 +201,14 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             }
 
             // Mqtt init
-            mMqttManager = new MqttManager(context, this);
-            if (MqttSettings.isConnected(context)) {
-                mMqttManager.connectFromSavedSettings(context);
+            if (mMqttManager == null) {
+                mMqttManager = new MqttManager(context, this);
+                if (MqttSettings.isConnected(context)) {
+                    mMqttManager.connectFromSavedSettings();
+                }
+            }
+            else {
+                mMqttManager.setListener(this);
             }
         }
     }
@@ -571,6 +576,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     };
     private int mMqttMenuItemAnimationFrame = 0;
 
+    @MainThread
     private void updateMqttStatus() {
         if (mMqttMenuItem == null) {
             return;      // Hack: Sometimes this could have not been initialized so we don't update icons
@@ -700,10 +706,14 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         private List<UartPacket> mTableCachedDataBuffer;
         private SimpleDateFormat mDateFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
 
-        TimestampItemAdapter(@NonNull Context context, @NonNull UartPacketManagerBase uartData) {
+        TimestampItemAdapter(@NonNull Context context) {
             super();
             mContext = context;
+        }
+
+        void setUartData(@Nullable UartPacketManagerBase uartData) {
             mUartData = uartData;
+            notifyDataSetChanged();
         }
 
         int getCachedDataBufferSize() {
@@ -747,6 +757,10 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
         @Override
         public int getItemCount() {
+            if (mUartData == null) {
+                return 0;
+            }
+
             if (mIsEchoEnabled) {
                 mTableCachedDataBuffer = mUartData.getPacketsCache();
             } else {

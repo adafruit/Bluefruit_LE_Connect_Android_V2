@@ -61,7 +61,15 @@ public class UartPacketManager extends UartPacketManagerBase {
         byte[] data = text.getBytes(Charset.forName("UTF-8"));
         UartPacket uartPacket = new UartPacket(uartPeripheral.getIdentifier(), UartPacket.TRANSFERMODE_TX, data);
 
+        try {
+            mPacketsSemaphore.acquire();        // don't append more data, till the delegate has finished processing it
+        } catch (InterruptedException e) {
+            Log.w(TAG, "InterruptedException: " + e.toString());
+        }
+        mPacketsSemaphore.release();
+
         Listener listener = mWeakListener.get();
+        mPackets.add(uartPacket);
         if (listener != null) {
             mMainHandler.post(() -> listener.onUartPacket(uartPacket));
         }
@@ -71,14 +79,6 @@ public class UartPacketManager extends UartPacketManagerBase {
 
         if (shouldBeSent) {
             send(uartPeripheral, data, null);
-
-            try {
-                mPacketsSemaphore.acquire();        // don't append more data, till the delegate has finished processing it
-            } catch (InterruptedException e) {
-                Log.w(TAG, "InterruptedException: " + e.toString());
-            }
-            mPackets.add(uartPacket);
-            mPacketsSemaphore.release();
         }
     }
 

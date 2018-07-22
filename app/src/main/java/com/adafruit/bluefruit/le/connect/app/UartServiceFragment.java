@@ -41,13 +41,6 @@ public class UartServiceFragment extends UartBaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Init
-        Context context = getContext();
-        if (context != null) {
-            mUartData = new UartPeripheralModePacketManager(context, this, true, mMqttManager);
-        }
-        mUartPeripheralService = PeripheralModeManager.getInstance().getUartPeripheralService();
     }
 
     @Override
@@ -77,12 +70,16 @@ public class UartServiceFragment extends UartBaseFragment {
     }
 
     protected void setupUart() {
-
-        if (mUartPeripheralService != null) {
-            mUartPeripheralService.uartEnable(data -> mUartData.onRxDataReceived(data, null, BluetoothGatt.GATT_SUCCESS));
-        } else {
-            Log.w(TAG, "UartPeripheralService is nil");
+        // Init
+        Context context = getContext();
+        if (context == null) {
+            return;
         }
+
+        mUartData = new UartPeripheralModePacketManager(context, this, true, mMqttManager);
+        mBufferItemAdapter.setUartData(mUartData);
+        mUartPeripheralService = PeripheralModeManager.getInstance().getUartPeripheralService();
+        mUartPeripheralService.uartEnable(data -> mUartData.onRxDataReceived(data, null, BluetoothGatt.GATT_SUCCESS));
 
         updateUartReadyUI(mUartPeripheralService != null);
     }
@@ -105,9 +102,7 @@ public class UartServiceFragment extends UartBaseFragment {
 
         UartPeripheralModePacketManager uartData = (UartPeripheralModePacketManager) mUartData;
         uartData.send(mUartPeripheralService, message, false);
-
     }
-
 
     // endregion
 

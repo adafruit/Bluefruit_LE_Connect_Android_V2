@@ -55,12 +55,6 @@ public class UartModeFragment extends UartBaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Init
-        Context context = getContext();
-        if (context != null) {
-            mUartData = new UartPacketManager(context, this, true, mMqttManager);
-        }
     }
 
     @Override
@@ -189,6 +183,14 @@ public class UartModeFragment extends UartBaseFragment {
     }
 
     protected void setupUart() {
+        // Init
+        Context context = getContext();
+        if (context == null) {
+            return;
+        }
+        mUartData = new UartPacketManager(context, this, true, mMqttManager);           // Note: mqttmanager should have been initialized previously
+        mBufferItemAdapter.setUartData(mUartData);
+
         // Colors assigned to peripherals
         final int[] colors = UartStyle.defaultColors();
 
@@ -238,8 +240,7 @@ public class UartModeFragment extends UartBaseFragment {
                         });
 
                     });
-                }
-                else if (isLastPeripheral) {
+                } else if (isLastPeripheral) {
                     updateUartReadyUI(true);
                 }
             }
@@ -272,10 +273,6 @@ public class UartModeFragment extends UartBaseFragment {
             }
         }
     }
-
-    // endregion
-
-    // region Uart
 
     @Override
     protected void send(String message) {

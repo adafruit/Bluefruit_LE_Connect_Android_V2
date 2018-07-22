@@ -3,8 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     tools:context="app.MqttSettingsFragment">
 
     <ScrollView
@@ -23,8 +21,11 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+
                 android:layout_marginBottom="10dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -98,14 +99,17 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+
                     android:layout_marginBottom="10dp"
+                    android:paddingLeft="@dimen/activity_horizontal_margin"
+                    android:paddingRight="@dimen/activity_horizontal_margin"
                     android:text="@string/uart_mqtt_settings_group_server"
                     android:textColor="@color/infotext" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#cccccc"
+                    android:background="@color/white"
                     android:orientation="vertical"
                     android:paddingBottom="6dp"
                     android:paddingLeft="10dp"
@@ -119,7 +123,8 @@
                         <TextView
                             android:layout_width="@dimen/fragment_mqtt_edit_title_width"
                             android:layout_height="wrap_content"
-                            android:text="@string/uart_mqtt_settings_server_address" />
+                            android:text="@string/uart_mqtt_settings_server_address"
+                            android:textColor="@color/black" />
 
                         <EditText
                             android:id="@+id/serverAddressEditText"
@@ -138,7 +143,8 @@
                         <TextView
                             android:layout_width="@dimen/fragment_mqtt_edit_title_width"
                             android:layout_height="wrap_content"
-                            android:text="@string/uart_mqtt_settings_server_port" />
+                            android:text="@string/uart_mqtt_settings_server_port"
+                            android:textColor="@color/black" />
 
                         <EditText
                             android:id="@+id/serverPortEditText"
@@ -162,7 +168,9 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:paddingLeft="@dimen/activity_horizontal_margin"
+                        android:paddingRight="@dimen/activity_horizontal_margin">
 
                         <TextView
                             android:layout_width="0dp"
@@ -181,11 +189,11 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="#cccccc"
+                        android:background="@color/white"
                         android:orientation="vertical"
                         android:paddingBottom="6dp"
-                        android:paddingLeft="10dp"
-                        android:paddingRight="10dp">
+                        android:paddingEnd="0dp"
+                        android:paddingStart="10dp">
 
 
                         <LinearLayout
@@ -196,7 +204,8 @@
                             <TextView
                                 android:layout_width="@dimen/fragment_mqtt_edit_title_width"
                                 android:layout_height="wrap_content"
-                                android:text="@string/uart_mqtt_settings_publish_rx" />
+                                android:text="@string/uart_mqtt_settings_publish_rx"
+                                android:textColor="@color/black" />
 
                             <EditText
                                 android:id="@+id/publish0TopicEditText"
@@ -206,6 +215,7 @@
                                 android:singleLine="true" />
 
                             <Spinner
+
                                 android:id="@+id/publish0Spinner"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
@@ -218,8 +228,10 @@
 
                             <TextView
                                 android:layout_width="@dimen/fragment_mqtt_edit_title_width"
+
                                 android:layout_height="wrap_content"
-                                android:text="@string/uart_mqtt_settings_publish_tx" />
+                                android:text="@string/uart_mqtt_settings_publish_tx"
+                                android:textColor="@color/black" />
 
                             <EditText
                                 android:id="@+id/publish1TopicEditText"
@@ -248,7 +260,9 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:paddingLeft="@dimen/activity_horizontal_margin"
+                        android:paddingRight="@dimen/activity_horizontal_margin">
 
                         <TextView
                             android:layout_width="0dp"
@@ -268,11 +282,11 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="#cccccc"
+                        android:background="@color/white"
                         android:orientation="vertical"
                         android:paddingBottom="6dp"
-                        android:paddingLeft="10dp"
-                        android:paddingRight="10dp">
+                        android:paddingEnd="0dp"
+                        android:paddingStart="10dp">
 
 
                         <LinearLayout
@@ -283,7 +297,8 @@
                             <TextView
                                 android:layout_width="@dimen/fragment_mqtt_edit_title_width"
                                 android:layout_height="wrap_content"
-                                android:text="@string/uart_mqtt_settings_subscribe_topic" />
+                                android:text="@string/uart_mqtt_settings_subscribe_topic"
+                                android:textColor="@color/black" />
 
                             <EditText
                                 android:id="@+id/subscribeTopicEditText"
@@ -306,7 +321,8 @@
                             <TextView
                                 android:layout_width="@dimen/fragment_mqtt_edit_title_width"
                                 android:layout_height="wrap_content"
-                                android:text="@string/uart_mqtt_settings_subscribe_action" />
+                                android:text="@string/uart_mqtt_settings_subscribe_action"
+                                android:textColor="@color/black" />
 
                             <Spinner
                                 android:id="@+id/subscribeBehaviourSpinner"
@@ -329,7 +345,9 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:paddingLeft="@dimen/activity_horizontal_margin"
+                        android:paddingRight="@dimen/activity_horizontal_margin">
 
                         <TextView
                             android:layout_width="0dp"
@@ -344,7 +362,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="#cccccc"
+                        android:background="@color/white"
                         android:orientation="vertical"
                         android:paddingBottom="6dp"
                         android:paddingLeft="10dp"
@@ -358,7 +376,8 @@
                             <TextView
                                 android:layout_width="@dimen/fragment_mqtt_edit_title_width"
                                 android:layout_height="wrap_content"
-                                android:text="@string/uart_mqtt_settings_advanced_username" />
+                                android:text="@string/uart_mqtt_settings_advanced_username"
+                                android:textColor="@color/black" />
 
                             <EditText
                                 android:id="@+id/usernameEditText"
