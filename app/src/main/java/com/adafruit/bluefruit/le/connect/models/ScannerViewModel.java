@@ -582,7 +582,9 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         }
 
         void saveFilters() {
-            filterData.save();
+            if (filterData != null) {
+                filterData.save();
+            }
         }
     }
     // endregion

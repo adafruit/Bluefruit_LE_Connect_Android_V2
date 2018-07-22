@@ -2,6 +2,7 @@ package com.adafruit.bluefruit.le.connect.app;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -235,11 +236,11 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
             });
 
             mPasswordEditText = view.findViewById(R.id.passwordEditText);
-            mPasswordEditText.setText(MqttSettings.getPassword(context));
             mPasswordEditText.setOnFocusChangeListener((v, hasFocus) -> {
                 if (!hasFocus) {
-                    final String password = mPasswordEditText.getText().toString();
-                    MqttSettings.setPassword(context, password);
+                    final String newPassword = mPasswordEditText.getText().toString();
+                    MqttSettings.setPassword(context, newPassword);
+                    Log.d(TAG, "save password: " + newPassword);
                 }
             });
 
@@ -314,6 +315,18 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+
+        Context context = getContext();
+        if (context != null) {
+            // EditText setText: set it on onStart:  https://stackoverflow.com/questions/13303469/edittext-settext-not-working-with-fragment
+            String password = MqttSettings.getPassword(context);
+            mPasswordEditText.setText(password);
+        }
+    }
+
+    @Override
     public void onDestroy() {
         if (BuildConfig.DEBUG && getActivity() != null) {
             RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
@@ -333,6 +346,7 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
         mPreviousSubscriptionTopic = newTopic;
     }
 
+    @MainThread
     private void updateStatusUI() {
         MqttManager.MqqtConnectionStatus status = mMqttManager.getClientStatus();
 
@@ -378,6 +392,10 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
     @Override
     public void onPasswordUpdated(String password) {
         mPasswordEditText.setText(password);
+        Context context = getContext();
+        if (context != null) {
+            MqttSettings.setPassword(context, password);
+        }
         mPasswordEditText.requestFocus();
     }
 

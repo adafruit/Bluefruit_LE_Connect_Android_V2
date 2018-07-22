@@ -299,8 +299,12 @@ public class MqttSettingsCodeReaderFragment extends Fragment implements BarcodeG
      */
     private void startCameraSource() throws SecurityException {
         // check that the device has play services available.
-        int code = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(
-                getContext().getApplicationContext());
+        Context context = getContext();
+        if (context == null) {
+            return;
+        }
+
+        int code = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context.getApplicationContext());
         if (code != ConnectionResult.SUCCESS) {
             Dialog dlg = GoogleApiAvailability.getInstance().getErrorDialog(getActivity(), code, RC_HANDLE_GMS);
             dlg.show();
@@ -319,9 +323,12 @@ public class MqttSettingsCodeReaderFragment extends Fragment implements BarcodeG
     // endregion
 
     // region BarcodeGraphicTracker.BarcodeTrackerListener
+    private boolean isCodeAlreadyScanned = false;
     @Override
     public void onCodeScanned(String contents) {
         Log.d(TAG, "Code Scanned: " + contents);
+        if (isCodeAlreadyScanned) { return; }       // To avoid double scans and pop 2 times the fragment
+        isCodeAlreadyScanned = true;
 
         // Beep
         final ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
