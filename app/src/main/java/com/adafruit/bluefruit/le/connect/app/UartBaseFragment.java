@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+// TODO: register
 public abstract class UartBaseFragment extends ConnectedPeripheralFragment implements UartPacketManagerBase.Listener, MqttManager.MqttManagerListener {
     // Log
     private final static String TAG = UartBaseFragment.class.getSimpleName();
@@ -488,9 +489,13 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
     // region UI
     protected void updateUartReadyUI(boolean isReady) {
-        mSendEditText.setEnabled(isReady);
-        //mSendEditText.setBackgroundColor(isReady ? Color.TRANSPARENT : 0x20000000);
-        mSendButton.setEnabled(isReady);
+        // Check null because crash detected in logs
+        if (mSendEditText != null) {
+            mSendEditText.setEnabled(isReady);
+        }
+        if (mSendButton != null) {
+            mSendButton.setEnabled(isReady);
+        }
     }
 
     private void addTextToSpanBuffer(SpannableStringBuilder spanBuffer, String text, int color, boolean isBold) {

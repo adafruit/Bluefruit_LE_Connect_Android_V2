@@ -167,7 +167,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
         mInfoData.clear();
 
         // Services
-        List<BluetoothGattService> services = mBlePeripheral.getServices();
+        List<BluetoothGattService> services = mBlePeripheral == null ? null : mBlePeripheral.getServices();     // Check if mBlePeripheral is null (crash detected on Google logs)
 
         if (services != null) {
             // Order services so "DIS" is at the top (if present)

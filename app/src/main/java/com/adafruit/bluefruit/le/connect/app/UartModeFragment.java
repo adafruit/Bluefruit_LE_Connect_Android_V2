@@ -80,7 +80,12 @@ public class UartModeFragment extends UartBaseFragment {
                 mSendPeripheralSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
-                        mMultiUartSendToPeripheralIdentifier = mBlePeripheralsUart.get(pos).getIdentifier();
+                        if (pos == 0) {
+                            mMultiUartSendToPeripheralIdentifier = null;    // All peripherals
+                        }
+                        else if (pos < mBlePeripheralsUart.size() - 1) {     // Check boundaries
+                            mMultiUartSendToPeripheralIdentifier = mBlePeripheralsUart.get(pos).getIdentifier();
+                        }
                     }
 
                     @Override
@@ -203,8 +208,8 @@ public class UartModeFragment extends UartBaseFragment {
                 BlePeripheral blePeripheral = connectedPeripherals.get(i);
                 mColorForPeripheral.put(blePeripheral.getIdentifier(), colors[i % colors.length]);
 
-                if (!BlePeripheralUart.isUartInitialized(mBlePeripheral, mBlePeripheralsUart)) {
-                    BlePeripheralUart blePeripheralUart = new BlePeripheralUart(mBlePeripheral);
+                if (!BlePeripheralUart.isUartInitialized(blePeripheral, mBlePeripheralsUart)) {
+                    BlePeripheralUart blePeripheralUart = new BlePeripheralUart(blePeripheral);
                     mBlePeripheralsUart.add(blePeripheralUart);
                     blePeripheralUart.uartEnable(mUartData, status -> {
 

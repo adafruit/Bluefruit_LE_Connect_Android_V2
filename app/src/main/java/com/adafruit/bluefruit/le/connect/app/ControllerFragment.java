@@ -416,8 +416,10 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         }
 
         // Force release mLocationCallback to avoid memory leaks
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-        mFusedLocationClient = null;
+        if  (mFusedLocationClient != null) {
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+            mFusedLocationClient = null;
+        }
 
         super.onDestroy();
     }
@@ -504,10 +506,12 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     }
 
     private synchronized void disconnectGoogleApiClient() {
-        mGoogleApiClient.disconnect();
-        mGoogleApiClient.unregisterConnectionCallbacks(this);
-        mGoogleApiClient.unregisterConnectionFailedListener(this);
-        mGoogleApiClient = null;
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.disconnect();
+            mGoogleApiClient.unregisterConnectionCallbacks(this);
+            mGoogleApiClient.unregisterConnectionFailedListener(this);
+            mGoogleApiClient = null;
+        }
     }
 
     // region GoogleApiClient.ConnectionCallbacks
@@ -695,7 +699,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         }
 
         // Location
-        if (mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             if (register && mSensorData[kSensorType_Location].enabled) {
                 LocationRequest locationRequest = new LocationRequest();
                 locationRequest.setInterval(2000);

@@ -355,6 +355,12 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
 
     @MainThread
     private void updateStatusUI() {
+        Context context = getContext(); // Use context for getString and check that is not null to solve a crash detected on logs
+        if (context == null) {
+            Log.e(TAG, "Context is null");
+            return;
+        }
+
         MqttManager.MqqtConnectionStatus status = mMqttManager.getClientStatus();
 
         // Update enable-disable button
@@ -368,7 +374,7 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
                 stringId = R.string.uart_mqtt_action_disconnect;
             }
 
-            mConnectButton.setText(getString(stringId));
+            mConnectButton.setText(context.getString(stringId));
         }
 
         // Update status text
@@ -390,7 +396,7 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
                 statusStringId = R.string.uart_mqtt_status_disconnected;
                 break;
         }
-        mStatusTextView.setText(getString(statusStringId));
+        mStatusTextView.setText(context.getString(statusStringId));
     }
     // endregion
 
