@@ -277,7 +277,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                                         .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
                                         .replace(R.id.contentLayout, fragment, fragmentTag);
                                 fragmentTransaction.addToBackStack(null);
-                                fragmentTransaction.commit();
+                                fragmentTransaction.commitAllowingStateLoss();      // Allowing state loss to avoid detected crashes
                             }
                         }
                     }
@@ -416,7 +416,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         }
 
         // Force release mLocationCallback to avoid memory leaks
-        if  (mFusedLocationClient != null) {
+        if (mFusedLocationClient != null) {
             mFusedLocationClient.removeLocationUpdates(mLocationCallback);
             mFusedLocationClient = null;
         }

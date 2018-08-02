@@ -101,12 +101,16 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
 
         // UI
         mChart = view.findViewById(R.id.chart);
+        WeakReference<PlotterFragment> weakThis = new WeakReference<>(this);
         SwitchCompat autoscrollSwitch = view.findViewById(R.id.autoscrollSwitch);
         autoscrollSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isPressed()) {
-                mIsAutoScrollEnabled = isChecked;
-                mChart.setDragEnabled(!isChecked);
-                notifyDataSetChanged();
+                PlotterFragment fragment = weakThis.get();          // Fix detected memory leak
+                if (fragment != null) {
+                    fragment.mIsAutoScrollEnabled = isChecked;
+                    fragment.mChart.setDragEnabled(!isChecked);
+                    fragment.notifyDataSetChanged();
+                }
             }
         });
         xMaxEntriesSeekBar = view.findViewById(R.id.xMaxEntriesSeekBar);

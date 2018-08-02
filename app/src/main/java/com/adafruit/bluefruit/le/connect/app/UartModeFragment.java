@@ -263,16 +263,19 @@ public class UartModeFragment extends UartBaseFragment {
                         updateUartReadyUI(true);
                     } else {
                         WeakReference<BlePeripheralUart> weakBlePeripheralUart = new WeakReference<>(blePeripheralUart);
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                        AlertDialog dialog = builder.setMessage(R.string.uart_error_peripheralinit)
-                                .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
-                                    BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
-                                    if (strongBlePeripheralUart != null) {
-                                        strongBlePeripheralUart.disconnect();
-                                    }
-                                })
-                                .show();
-                        DialogUtils.keepDialogOnOrientationChanges(dialog);
+                        Context context1 = getContext();
+                        if (context1 != null) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(context1);
+                            AlertDialog dialog = builder.setMessage(R.string.uart_error_peripheralinit)
+                                    .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
+                                        BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
+                                        if (strongBlePeripheralUart != null) {
+                                            strongBlePeripheralUart.disconnect();
+                                        }
+                                    })
+                                    .show();
+                            DialogUtils.keepDialogOnOrientationChanges(dialog);
+                        }
                     }
                 }));
             }
