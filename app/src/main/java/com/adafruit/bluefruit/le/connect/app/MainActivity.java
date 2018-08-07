@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             if (resultCode == Activity.RESULT_OK) {
                 checkPermissions();
             } else if (resultCode == Activity.RESULT_CANCELED) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());     // getApplicationContext to avoid WindowManager$BadTokenException
                 AlertDialog dialog = builder.setMessage(R.string.bluetooth_poweredoff)
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
