@@ -257,9 +257,10 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 // Done
                 Log.d(TAG, "Uart enabled");
-
-                if (mPins.size() == 0 && !isQueryingCapabilities()) {
-                    startQueryCapabilitiesProcess();
+                if (getContext() != null) {     // Check that the fragment is still attached to avoid showing alerts when detached
+                    if (mPins.size() == 0 && !isQueryingCapabilities()) {
+                        startQueryCapabilitiesProcess();
+                    }
                 }
             } else {
                 WeakReference<BlePeripheralUart> weakBlePeripheralUart = new WeakReference<>(mBlePeripheralUart);
@@ -450,7 +451,9 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
 
     private void dismissCurrentDialog() {
         if (mAlertDialog != null) {
-            mAlertDialog.dismiss();
+            if (mAlertDialog.isShowing()) {     // Check that is showing to avoid IllegalArgumentException
+                mAlertDialog.dismiss();
+            }
             mAlertDialog = null;
         }
     }
