@@ -58,7 +58,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-base:15.0.1'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation 'com.google.android.gms:play-services-vision:15.0.2'
-    implementation 'com.google.android.gms:play-services-auth:15.0.1'       // To enable ssl to download files on Android 4.4
+    implementation 'com.google.android.gms:play-services-auth:16.0.0'       // Needed to download files with SSL on Android 4.4
 
     // Nordic
     implementation 'no.nordicsemi.android.support.v18:scanner:1.1.0'

@@ -217,8 +217,8 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
                 BlePeripheral blePeripheral = connectedPeripherals.get(i);
                 mLineDashPathEffectForPeripheral.put(blePeripheral.getIdentifier(), dashPathEffects[i % dashPathEffects.length]);
 
-                if (!BlePeripheralUart.isUartInitialized(mBlePeripheral, mBlePeripheralsUart)) {
-                    BlePeripheralUart blePeripheralUart = new BlePeripheralUart(mBlePeripheral);
+                if (!BlePeripheralUart.isUartInitialized(blePeripheral, mBlePeripheralsUart)) {
+                    BlePeripheralUart blePeripheralUart = new BlePeripheralUart(blePeripheral);
                     mBlePeripheralsUart.add(blePeripheralUart);
                     blePeripheralUart.uartEnable(mUartDataManager, status -> {
 
