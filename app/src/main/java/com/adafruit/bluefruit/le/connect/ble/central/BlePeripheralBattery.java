@@ -3,6 +3,7 @@ package com.adafruit.bluefruit.le.connect.ble.central;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.UUID;
@@ -46,21 +47,25 @@ public class BlePeripheralBattery {
     }
 
     public int getCurrentBatteryLevel() {
-        return mCurrentBatteryLevel;
+        return mCurrentBatteryLevel;            // -1 if value has not been read
+    }
+
+    private int getBatteryLevel(@NonNull BluetoothGattCharacteristic batteryCharacteristic) {
+        return batteryCharacteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
     }
 
     public void startReadingBatteryLevel(@NonNull UpdateHandler updateHandler) {
         BluetoothGattCharacteristic batteryCharacteristic = mBlePeripheral.getCharacteristic(kBatteryCharacteristicUuid, kBatteryServiceUuid);
 
         if (batteryCharacteristic == null) {
-            Log.w(TAG, "Error reading battery level. characteristic not found");
+            Log.w(TAG, "Error starting read battery level. characteristic not found");
             return;
         }
 
         // Read current value
         mBlePeripheral.readCharacteristic(batteryCharacteristic, (status, data) -> {
-            if (status == BluetoothGatt.GATT_SUCCESS && data != null && data.length >= 1) {
-                mCurrentBatteryLevel = (int) data[0];
+            if (status == BluetoothGatt.GATT_SUCCESS ) {
+                mCurrentBatteryLevel = getBatteryLevel(batteryCharacteristic);
                 updateHandler.onBatteryLevelChanged(mCurrentBatteryLevel);
             } else {
                 Log.w(TAG, "Error reading battery level");
@@ -70,20 +75,34 @@ public class BlePeripheralBattery {
         // Enable notifications to receive value changes
         mBlePeripheral.characteristicEnableNotify(batteryCharacteristic, status -> {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                byte[] data = batteryCharacteristic.getValue();
-                if (data != null && data.length >= 1) {
-                    mCurrentBatteryLevel = (int) data[0];
-                    updateHandler.onBatteryLevelChanged(mCurrentBatteryLevel);
-                }
-                else {
-                    Log.w(TAG, "Invalid data receiving notify for battery level");
-                }
+                mCurrentBatteryLevel = getBatteryLevel(batteryCharacteristic);
+                updateHandler.onBatteryLevelChanged(mCurrentBatteryLevel);
             } else {
-                Log.w(TAG, "Error reading battery level");
+                Log.w(TAG, "Error reading notify battery level");
             }
         }, null);
     }
 
+    public void stopReadingBatteryLevel(@Nullable BlePeripheral.CompletionHandler completionHandler) {
+        BluetoothGattCharacteristic batteryCharacteristic = mBlePeripheral.getCharacteristic(kBatteryCharacteristicUuid, kBatteryServiceUuid);
+        if (batteryCharacteristic == null) {
+            Log.w(TAG, "Error stopping battery level. characteristic not found");
+            return;
+        }
+
+        mBlePeripheral.characteristicDisableNotify(batteryCharacteristic, status -> {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.d(TAG, "Stopped reading battery level");
+            }
+            else {
+                Log.w(TAG, "Error stopping notify battery level");
+            }
+
+            if (completionHandler != null) {
+                completionHandler.completion(status);
+            }
+        });
+    }
 
     // endregion
 }

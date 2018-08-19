@@ -3,6 +3,8 @@ package com.adafruit.bluefruit.le.connect.app;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,8 +15,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -57,6 +57,8 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
     // Data
     private PeripheralModulesFragmentListener mListener;
     private List<BlePeripheralBattery> mBatteryPeripherals = new ArrayList<>();
+    private RecyclerView mRecyclerView;
+    private ModulesAdapter mModulesAdapter;
 
     // region Fragment Lifecycle
     public static PeripheralModulesFragment newInstance(@Nullable String singlePeripheralIdentifier) {      // if singlePeripheralIdentifier is null, uses multiconnect
@@ -108,38 +110,16 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
         final Context context = getContext();
         if (context != null) {
             // Peripherals recycler view
-            RecyclerView recyclerView = view.findViewById(R.id.recyclerView);
+            mRecyclerView = view.findViewById(R.id.recyclerView);
             DividerItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
             Drawable lineSeparatorDrawable = ContextCompat.getDrawable(context, R.drawable.simpledivideritemdecoration);
             assert lineSeparatorDrawable != null;
             itemDecoration.setDrawable(lineSeparatorDrawable);
-            recyclerView.addItemDecoration(itemDecoration);
+            mRecyclerView.addItemDecoration(itemDecoration);
 
-            recyclerView.setHasFixedSize(false);
+            mRecyclerView.setHasFixedSize(false);
             RecyclerView.LayoutManager mPeripheralsLayoutManager = new LinearLayoutManager(getContext());
-            recyclerView.setLayoutManager(mPeripheralsLayoutManager);
-
-            // Setup
-            mBatteryPeripherals.clear();
-            if (mBlePeripheral != null) {   // Single peripheral
-                setupBatteryUI(mBlePeripheral);
-            } else {       // Multiple peripherals
-
-                List<BlePeripheral> connectedPeripherals = BleScanner.getInstance().getConnectedPeripherals();
-                for (BlePeripheral blePeripheral : connectedPeripherals) {
-                    setupBatteryUI(blePeripheral);
-                }
-            }
-
-            WeakReference<PeripheralModulesFragment> weakFragment = new WeakReference<>(this);
-            ModulesAdapter adapter = new ModulesAdapter(context, mBatteryPeripherals, mBlePeripheral, view1 -> {
-                PeripheralModulesFragment fragment = weakFragment.get();
-                if (fragment != null) {
-                    final int moduleId = (int) view1.getTag();
-                    fragment.onModuleSelected(moduleId);
-                }
-            });
-            recyclerView.setAdapter(adapter);
+            mRecyclerView.setLayoutManager(mPeripheralsLayoutManager);
         }
 
         FragmentActivity activity = getActivity();
@@ -148,17 +128,71 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        final Context context = getContext();
+        if (context == null) {
+            Log.w(TAG, "onResume with null context");
+            return;
+        }
+
+        // Start reading battery
+        mBatteryPeripherals.clear();
+        if (mBlePeripheral != null) {   // Single peripheral
+            startBatteryUI(mBlePeripheral);
+        } else {       // Multiple peripherals
+            List<BlePeripheral> connectedPeripherals = BleScanner.getInstance().getConnectedPeripherals();
+            for (BlePeripheral blePeripheral : connectedPeripherals) {
+                startBatteryUI(blePeripheral);
+            }
+        }
+
+        // Setup
+        WeakReference<PeripheralModulesFragment> weakFragment = new WeakReference<>(this);
+        mModulesAdapter = new ModulesAdapter(context, mBatteryPeripherals, mBlePeripheral, view1 -> {
+            PeripheralModulesFragment fragment = weakFragment.get();
+            if (fragment != null) {
+                final int moduleId = (int) view1.getTag();
+                fragment.onModuleSelected(moduleId);
+            }
+        });
+        mRecyclerView.setAdapter(mModulesAdapter);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        //  Disable notification for battery reading
+        for (BlePeripheralBattery blePeripheralBattery : mBatteryPeripherals) {
+            blePeripheralBattery.stopReadingBatteryLevel(null);
+        }
+    }
+
     // endregion
 
     // region Battery
-    private void setupBatteryUI(@NonNull BlePeripheral blePeripheral) {
+    private void startBatteryUI(@NonNull BlePeripheral blePeripheral) {
         final boolean hasBattery = BlePeripheralBattery.hasBattery(blePeripheral);
 
         if (hasBattery) {
             BlePeripheralBattery blePeripheralBattery = new BlePeripheralBattery(blePeripheral);
+            final int batteryIndex = mBatteryPeripherals.size();
             mBatteryPeripherals.add(blePeripheralBattery);
+
+            blePeripheralBattery.startReadingBatteryLevel(level -> {
+                if (mModulesAdapter != null) {
+                    Log.d(TAG, "onBatteryLevelChanged: " + level + " for index: " + batteryIndex);
+
+                    final Handler mainHandler = new Handler(Looper.getMainLooper());
+                    mainHandler.post(() -> mModulesAdapter.notifyDataSetChanged());
+                }
+            });
         }
     }
+
     // endregion
 
     // region Actions
@@ -335,7 +369,7 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
                     detailsViewHolder.rssiTextView.setText(String.format(Locale.ENGLISH, mContext.getString(R.string.peripheralmodules_rssi_format), rssi));
 
                     BlePeripheralBattery blePeripheralBattery = getPeripheralBatteryForPeripheral(blePeripheral);
-                    final boolean hasBattery = blePeripheralBattery != null;
+                    final boolean hasBattery = blePeripheralBattery != null && blePeripheralBattery.getCurrentBatteryLevel() >= 0;      // if batter value is -1 means that is not available
                     detailsViewHolder.batteryGroupView.setVisibility(hasBattery ? View.VISIBLE : View.GONE);
                     if (hasBattery) {
                         final int batteryLevel = blePeripheralBattery.getCurrentBatteryLevel();
