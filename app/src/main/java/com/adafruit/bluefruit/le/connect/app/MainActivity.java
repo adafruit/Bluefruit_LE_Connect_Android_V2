@@ -117,11 +117,17 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         super.onResume();
 
         BluefruitApplication.activityResumed();
-        popFragmentsIfNoPeripheralsConnected();         // check if peripherals were disconnected while the app was in background
         checkPermissions();
 
         // Observe disconnections
         registerGattReceiver();
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+
+        popFragmentsIfNoPeripheralsConnected();         // check if peripherals were disconnected while the app was in background
     }
 
     @Override
@@ -434,8 +440,10 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
 
             @Override
             public void onDownloadProgress(int percent) {
-                mDfuProgressDialog.setIndeterminate(false);
-                mDfuProgressDialog.setProgress(percent);
+                if (mDfuProgressDialog != null) {       // Check null (Google crash logs)
+                    mDfuProgressDialog.setIndeterminate(false);
+                    mDfuProgressDialog.setProgress(percent);
+                }
             }
 
             @Override

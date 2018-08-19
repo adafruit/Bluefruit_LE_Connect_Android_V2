@@ -266,6 +266,12 @@ public class GattServer implements PeripheralService.Listener {
         mAddServicesSemaphore = new Semaphore(1, true);
         mGattServer = mBluetoothManager.openGattServer(context.getApplicationContext(), mGattServerCallback);
         if (mGattServer != null) {
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            if (!adapter.isMultipleAdvertisementSupported() && mPeripheralServices.size() > 1) {
+                Log.w(TAG, "Trying to advertise multiple services but multipleAdvertisement is no supported on this device");
+                return false;
+            }
+
             for (PeripheralService peripheralService : mPeripheralServices) {
                 if (peripheralService.isEnabled()) {
                     BluetoothGattService service = peripheralService.getService();

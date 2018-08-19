@@ -466,7 +466,7 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     // endregion
 
     // region Utils
-    private String getResultNameForOrdering(BlePeripheral result) {
+    private @NonNull String getResultNameForOrdering(BlePeripheral result) {
         BluetoothDevice device = result.getDevice();
         String name = device.getName();
         if (name == null) {

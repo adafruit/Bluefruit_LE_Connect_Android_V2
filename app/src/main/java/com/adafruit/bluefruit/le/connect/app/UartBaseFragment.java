@@ -778,7 +778,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
                 List<UartPacket> packets = mUartData.getPacketsCache();
                 for (int i = 0; i < packets.size(); i++) {
                     UartPacket packet = packets.get(i);
-                    if (packet.getMode() == UartPacket.TRANSFERMODE_RX) {
+                    if (packet != null && packet.getMode() == UartPacket.TRANSFERMODE_RX) {     // packet != null because crash found in google logs
                         mTableCachedDataBuffer.add(packet);
                     }
                 }

@@ -449,17 +449,20 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                 Log.d(TAG, "Uart enabled");
 
             } else {
-                WeakReference<BlePeripheralUart> weakBlePeripheralUart = new WeakReference<>(mBlePeripheralUart);
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                AlertDialog dialog = builder.setMessage(R.string.uart_error_peripheralinit)
-                        .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
-                            BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
-                            if (strongBlePeripheralUart != null) {
-                                strongBlePeripheralUart.disconnect();
-                            }
-                        })
-                        .show();
-                DialogUtils.keepDialogOnOrientationChanges(dialog);
+                Context context = getContext();
+                if (context != null) {
+                    WeakReference<BlePeripheralUart> weakBlePeripheralUart = new WeakReference<>(mBlePeripheralUart);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    AlertDialog dialog = builder.setMessage(R.string.uart_error_peripheralinit)
+                            .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
+                                BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
+                                if (strongBlePeripheralUart != null) {
+                                    strongBlePeripheralUart.disconnect();
+                                }
+                            })
+                            .show();
+                    DialogUtils.keepDialogOnOrientationChanges(dialog);
+                }
             }
         }));
     }
