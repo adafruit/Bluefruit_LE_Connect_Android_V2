@@ -694,7 +694,7 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
         byte green = (byte) Color.green(color);
         byte blue = (byte) Color.blue(color);
 
-        byte[] command;     // Command: 'P'
+        byte[] command;     // Command: 'C'
         if (numComponents == 4) {
             byte colorWValue = (byte) (colorW * 255);
             command = new byte[]{0x43, red, green, blue, colorWValue};
