@@ -90,7 +90,7 @@ public class UartServiceFragment extends UartBaseFragment {
 
     @Override
     protected void send(String message) {
-        if (mUartData == null || !(mUartData instanceof UartPeripheralModePacketManager)) {
+        if (!(mUartData instanceof UartPeripheralModePacketManager)) {
             Log.e(TAG, "Error send with invalid uartData class");
             return;
         }
@@ -120,7 +120,7 @@ public class UartServiceFragment extends UartBaseFragment {
     @MainThread
     @Override
     public void onMqttMessageArrived(String topic, @NonNull MqttMessage mqttMessage) {
-        if (mUartData == null || !(mUartData instanceof UartPeripheralModePacketManager)) {
+        if (!(mUartData instanceof UartPeripheralModePacketManager)) {
             Log.e(TAG, "Error send with invalid uartData class");
             return;
         }

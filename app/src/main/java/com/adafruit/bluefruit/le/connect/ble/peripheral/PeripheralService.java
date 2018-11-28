@@ -24,7 +24,7 @@ public class PeripheralService {
     // Constants
     private static final String kPreferences = "PeripheralService_prefs";
 
-    // Inteface
+    // Interface
     interface Listener {
         void updateValue(@NonNull BluetoothDevice[] devices, @NonNull BluetoothGattCharacteristic characteristic);
         // TODO: add support for indications

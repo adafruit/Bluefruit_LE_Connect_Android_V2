@@ -349,7 +349,7 @@ public class ThermalCameraFragment extends ConnectedPeripheralFragment implement
     // region UartDataManagerListener
 
     @Override
-    public void onUartRx(@NonNull byte[] data, @NonNull String peripheralIdentifier) {
+    public void onUartRx(@NonNull byte[] data, @Nullable String peripheralIdentifier) {
         String dataString = BleUtils.bytesToText(data, false);
         processBuffer(dataString);
         mUartDataManager.removeRxCacheFirst(data.length, peripheralIdentifier);

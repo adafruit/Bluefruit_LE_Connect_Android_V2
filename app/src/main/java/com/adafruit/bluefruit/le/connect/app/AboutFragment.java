@@ -8,8 +8,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -21,14 +19,14 @@ import com.squareup.leakcanary.RefWatcher;
 
 public class AboutFragment extends Fragment {
 
+    public AboutFragment() {
+        // Required empty public constructor
+    }
+
     @SuppressWarnings("UnnecessaryLocalVariable")
     public static AboutFragment newInstance() {
         AboutFragment fragment = new AboutFragment();
         return fragment;
-    }
-
-    public AboutFragment() {
-        // Required empty public constructor
     }
 
     @Override

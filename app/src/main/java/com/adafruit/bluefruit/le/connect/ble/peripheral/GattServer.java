@@ -41,7 +41,7 @@ import static android.content.Context.MODE_PRIVATE;
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class GattServer implements PeripheralService.Listener {
     // Log
-    private final static String TAG = BleScanner.class.getSimpleName();
+    private final static String TAG = GattServer.class.getSimpleName();
 
     // Constants
     private final static String kPreferences = "GattServer";

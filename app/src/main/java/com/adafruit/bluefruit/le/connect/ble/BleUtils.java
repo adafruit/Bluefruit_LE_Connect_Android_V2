@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -260,9 +261,11 @@ public class BleUtils {
     }
 
     @SuppressWarnings("unused")
-    static String uuidToString(UUID uuid, boolean shorten) {
+    static @Nullable String uuidToString(@Nullable UUID uuid, boolean shorten) {
+        if (uuid == null) return null;
+
         String uppercaseUuidString = uuid.toString().toUpperCase();
-        if (uppercaseUuidString.startsWith("0000") && uppercaseUuidString.endsWith("-0000-1000-8000-00805F9B34FB")) {
+        if (shorten && uppercaseUuidString.startsWith("0000") && uppercaseUuidString.endsWith("-0000-1000-8000-00805F9B34FB")) {
             return uppercaseUuidString.substring(4, 8);
         } else {
             return uppercaseUuidString;
