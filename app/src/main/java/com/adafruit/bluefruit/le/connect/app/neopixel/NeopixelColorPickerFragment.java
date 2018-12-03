@@ -143,16 +143,6 @@ public class NeopixelColorPickerFragment extends AppCompatDialogFragment impleme
         super.onDetach();
         mListener = null;
     }
-
-    @Override
-    public void onDestroy() {
-        if (BuildConfig.DEBUG && getActivity() != null) {
-            RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
-            refWatcher.watch(this);
-        }
-
-        super.onDestroy();
-    }
     // endregion
 
     // region OnColorChangedListener

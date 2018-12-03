@@ -6,8 +6,8 @@ android {
         applicationId "com.adafruit.bluefruit.le.connect"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 29
-        versionName "3.0.8"
+        versionCode 30
+        versionName "3.0.9"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         resValue "string", "app_name", "Bluefruit"
@@ -81,9 +81,9 @@ dependencies {
     implementation 'com.larswerkman:HoloColorPicker:1.5'
 
     // LeakCanary
-    betaImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.1'
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.1'
-    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.1'
+    betaImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.2'
 
     //
     testImplementation 'junit:junit:4.12'

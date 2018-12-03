@@ -152,16 +152,6 @@ public class ControllerColorPickerFragment extends Fragment implements ColorPick
     }
 
     @Override
-    public void onDestroy() {
-        if (BuildConfig.DEBUG && getActivity() != null) {
-            RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
-            refWatcher.watch(this);
-        }
-
-        super.onDestroy();
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_help, menu);

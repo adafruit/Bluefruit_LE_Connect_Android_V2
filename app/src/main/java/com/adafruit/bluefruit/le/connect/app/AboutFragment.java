@@ -58,16 +58,6 @@ public class AboutFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onDestroy() {
-        if (BuildConfig.DEBUG && getActivity() != null) {
-            RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
-            refWatcher.watch(this);
-        }
-
-        super.onDestroy();
-    }
-
 
     // region Action Bar
     protected void setActionBarTitle(int titleStringId) {

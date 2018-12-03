@@ -47,16 +47,6 @@ public class ConnectedPeripheralFragment extends Fragment {
         setHasOptionsMenu(true);
     }
 
-    @Override
-    public void onDestroy() {
-        if (BuildConfig.DEBUG && getActivity() != null) {
-            RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
-            refWatcher.watch(this);
-        }
-
-        super.onDestroy();
-    }
-
     // endregion
 
     // region Action Bar

@@ -27,9 +27,6 @@ public class BluefruitApplication extends Application {
             return;
         }
         mRefWatcher = LeakCanary.install(this);
-        // Normal app init code...
-
-
 
 
         // Setup handler for uncaught exceptions.
@@ -60,16 +57,6 @@ public class BluefruitApplication extends Application {
 
     public static void activityPaused() {
         mIsActivityVisible = false;
-    }
-
-
-    // endregion
-
-
-    // region LeakCanary
-    public static RefWatcher getRefWatcher(@NonNull Context context) {
-        BluefruitApplication application = (BluefruitApplication) context.getApplicationContext();
-        return application.mRefWatcher;
     }
 
     // endregion

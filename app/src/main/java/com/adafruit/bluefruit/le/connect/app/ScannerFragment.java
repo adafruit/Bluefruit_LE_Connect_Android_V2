@@ -471,12 +471,6 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     @Override
     public void onDestroy() {
         mScannerViewModel.saveFilters();
-
-        if (BuildConfig.DEBUG && getActivity() != null) {
-            RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
-            refWatcher.watch(this);
-        }
-
         super.onDestroy();
     }
 

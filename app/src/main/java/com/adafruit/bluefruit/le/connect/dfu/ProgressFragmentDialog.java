@@ -76,16 +76,6 @@ public class ProgressFragmentDialog extends AppCompatDialogFragment {
         super.onCancel(dialog);
     }
 
-    @Override
-    public void onDestroy() {
-        if (BuildConfig.DEBUG && getActivity() != null) {
-            RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
-            refWatcher.watch(this);
-        }
-
-        super.onDestroy();
-    }
-
     // endregion
 
     public void setOnCancelListener(DialogInterface.OnCancelListener listener) {

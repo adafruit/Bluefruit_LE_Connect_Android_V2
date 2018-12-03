@@ -121,16 +121,6 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
         mListener = null;
     }
 
-    @Override
-    public void onDestroy() {
-        if (BuildConfig.DEBUG && getActivity() != null) {
-            RefWatcher refWatcher = BluefruitApplication.getRefWatcher(getActivity());
-            refWatcher.watch(this);
-        }
-
-        super.onDestroy();
-    }
-
     // endregion
 
     // region StandardComponentsAdapter
