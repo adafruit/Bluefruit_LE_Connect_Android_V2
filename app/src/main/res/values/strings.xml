@@ -226,6 +226,7 @@
 
     <string name="uart_help_title">UART</string>
     <string name="uart_help_text">Instructions:\n\n• Tap the input field at the bottom of the screen.\n\n• Enter the text string you want to send.\n\n• Send a message by pressing the keyboard\'s Send button.\n\n• Use the Timestamp/Text and ASCII/Hex control above the main console view to control the display format of messages.\n\n• Use the Export button to copy or send the contents of the console.\n\n• Use the Clear button to clear the console\'s contents.</string>
+    <string name="uart_help_text_android">Instructions:\n\n• Tap the input field at the bottom of the screen.\n\n• Enter the text string you want to send.\n\n• Send a message by pressing the keyboard\'s Send button.\n\n• Use the Timestamp/Text and ASCII/Hex control above the main console view to control the display format of messages.</string>
 
     <string name="uart_error_peripheralinit">Uart protocol can not be initialized</string>
     <string name="uart_error_multipleperiperipheralinit_format" formatted="false">Uart protocol can not be initialized for peripheral: %s</string>

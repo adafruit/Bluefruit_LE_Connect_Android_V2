@@ -374,7 +374,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             case R.id.action_help: {
                 FragmentManager fragmentManager = activity.getSupportFragmentManager();
                 if (fragmentManager != null) {
-                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.uart_help_title), getString(R.string.uart_help_text));
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.uart_help_title), getString(R.string.uart_help_text_android));
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
                             .replace(R.id.contentLayout, helpFragment, "Help");
                     fragmentTransaction.addToBackStack(null);
