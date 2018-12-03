@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     // Data
     private MainFragment mMainFragment;
     private AlertDialog mRequestLocationDialog;
+    private boolean hasUserAlreadyBeenAskedAboutBluetoothStatus = false;
 
     // region Activity Lifecycle
     @Override
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
                     .commit();
 
         } else {
+            hasUserAlreadyBeenAskedAboutBluetoothStatus=savedInstanceState.getBoolean("hasUserAlreadyBeenAskedAboutBluetoothStatus");
             mMainFragment = (MainFragment) fragmentManager.findFragmentByTag("Main");
         }
 
@@ -96,6 +98,11 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             updateAndroidSecurityProvider(this);        // Call this before refreshSoftwareUpdatesDatabase because SSL connections will fail on Android 4.4 if this is not executed:  https://stackoverflow.com/questions/29916962/javax-net-ssl-sslhandshakeexception-javax-net-ssl-sslprotocolexception-ssl-han
             DfuUpdater.refreshSoftwareUpdatesDatabase(this, success -> Log.d(TAG, "refreshSoftwareUpdatesDatabase completed. Success: " + success));
         }
+    }
+
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putBoolean("hasUserAlreadyBeenAskedAboutBluetoothStatus", hasUserAlreadyBeenAskedAboutBluetoothStatus);
     }
 
     private void updateAndroidSecurityProvider(Activity callingActivity) {
@@ -186,17 +193,19 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             }
 
             // Bluetooth state
-            final boolean isBluetoothEnabled = manageBluetoothAvailability();
+            if (!hasUserAlreadyBeenAskedAboutBluetoothStatus) {     // Don't repeat the check if the user was already informed to avoid showing the "Enable Bluetooth" system prompt several times
+                final boolean isBluetoothEnabled = manageBluetoothAvailability();
 
-            if (isBluetoothEnabled) {
-                // Request Bluetooth scanning permissions
-                final boolean isLocationPermissionGranted = requestCoarseLocationPermissionIfNeeded();
+                if (isBluetoothEnabled) {
+                    // Request Bluetooth scanning permissions
+                    final boolean isLocationPermissionGranted = requestCoarseLocationPermissionIfNeeded();
 
-                if (isLocationPermissionGranted) {
-                    // All good. Start Scanning
-                    BleManager.getInstance().start(MainActivity.this);
-                    // Bluetooth was enabled, resume scanning
-                    mMainFragment.startScanning();
+                    if (isLocationPermissionGranted) {
+                        // All good. Start Scanning
+                        BleManager.getInstance().start(MainActivity.this);
+                        // Bluetooth was enabled, resume scanning
+                        mMainFragment.startScanning();
+                    }
                 }
             }
         }
@@ -288,8 +297,8 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             case BleUtils.STATUS_BLUETOOTH_DISABLED: {
                 isEnabled = false;      // it was already off
                 // if no enabled, launch settings dialog to enable it (user should always be prompted before automatically enabling bluetooth)
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, kActivityRequestCode_EnableBluetooth);
+                Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBluetoothIntent, kActivityRequestCode_EnableBluetooth);
                 // execution will continue at onActivityResult()
                 break;
             }
@@ -314,11 +323,14 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             if (resultCode == Activity.RESULT_OK) {
                 checkPermissions();
             } else if (resultCode == Activity.RESULT_CANCELED) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());     // getApplicationContext to avoid WindowManager$BadTokenException
-                AlertDialog dialog = builder.setMessage(R.string.bluetooth_poweredoff)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
-                DialogUtils.keepDialogOnOrientationChanges(dialog);
+                if (!isFinishing()) {
+                    hasUserAlreadyBeenAskedAboutBluetoothStatus = true;     // Remember that
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    AlertDialog dialog = builder.setMessage(R.string.bluetooth_poweredoff)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                    DialogUtils.keepDialogOnOrientationChanges(dialog);
+                }
             }
         }
     }
