@@ -254,26 +254,27 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         // Enable Uart
         mBlePeripheralUart = new BlePeripheralUart(mBlePeripheral);
         mBlePeripheralUart.uartEnable(mUartDataManager, status -> mMainHandler.post(() -> {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                // Done
-                Log.d(TAG, "Uart enabled");
-                if (getContext() != null) {     // Check that the fragment is still attached to avoid showing alerts when detached
+            Context context = getContext();
+            if (getContext() != null) {     // Check that the fragment is still attached to avoid showing alerts when detached
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    // Done
+                    Log.d(TAG, "Uart enabled");
                     if (mPins.size() == 0 && !isQueryingCapabilities()) {
                         startQueryCapabilitiesProcess();
                     }
+                } else {
+                    WeakReference<BlePeripheralUart> weakBlePeripheralUart = new WeakReference<>(mBlePeripheralUart);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    AlertDialog dialog = builder.setMessage(R.string.uart_error_peripheralinit)
+                            .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
+                                BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
+                                if (strongBlePeripheralUart != null) {
+                                    strongBlePeripheralUart.disconnect();
+                                }
+                            })
+                            .show();
+                    DialogUtils.keepDialogOnOrientationChanges(dialog);
                 }
-            } else {
-                WeakReference<BlePeripheralUart> weakBlePeripheralUart = new WeakReference<>(mBlePeripheralUart);
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                AlertDialog dialog = builder.setMessage(R.string.uart_error_peripheralinit)
-                        .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
-                            BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
-                            if (strongBlePeripheralUart != null) {
-                                strongBlePeripheralUart.disconnect();
-                            }
-                        })
-                        .show();
-                DialogUtils.keepDialogOnOrientationChanges(dialog);
             }
         }));
     }
