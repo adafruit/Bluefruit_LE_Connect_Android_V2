@@ -60,7 +60,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:16.0.1'       // Needed to download files with SSL on Android 4.4
 
     // Nordic
-    implementation 'no.nordicsemi.android.support.v18:scanner:1.1.0'
+    implementation 'no.nordicsemi.android.support.v18:scanner:1.2.0'
     implementation 'no.nordicsemi.android:dfu:1.6.1'
 
     //  Architecture Components
