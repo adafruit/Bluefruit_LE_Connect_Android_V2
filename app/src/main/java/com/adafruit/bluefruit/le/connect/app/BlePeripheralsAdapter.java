@@ -117,12 +117,15 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
 
         final ScanRecord scanRecord = blePeripheral.getScanRecord();
         if (scanRecord != null) {
-            String uri = UriBeaconUtils.getUriFromAdvertisingPacket(scanRecord.getBytes()) + "</b><br>";
-            result.append(context.getString(R.string.scanresult_advertisement_uribeacon_uri)).append(": <b>").append(uri);
+            byte[] scanRecordBytes = scanRecord.getBytes();
+            if (scanRecordBytes != null) {
+                String uri = UriBeaconUtils.getUriFromAdvertisingPacket(scanRecordBytes) + "</b><br>";
+                result.append(context.getString(R.string.scanresult_advertisement_uribeacon_uri)).append(": <b>").append(uri);
 
-            final int txPower = scanRecord.getTxPowerLevel();
-            if (txPower > -255) {       // is valid?
-                result.append(context.getString(R.string.scanresult_advertisement_txpower)).append(": <b>").append(txPower).append("</b>");
+                final int txPower = scanRecord.getTxPowerLevel();
+                if (txPower > -255) {       // is valid?
+                    result.append(context.getString(R.string.scanresult_advertisement_txpower)).append(": <b>").append(txPower).append("</b>");
+                }
             }
         }
 
@@ -179,10 +182,12 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         ScanRecord scanRecord = blePeripheral.getScanRecord();
         if (scanRecord != null) {
             byte[] advertisedBytes = scanRecord.getBytes();
-            final byte[] manufacturerBytes = {advertisedBytes[6], advertisedBytes[5]};      // Little endian
-            String manufacturerId = BleUtils.bytesToHex(manufacturerBytes);
-            String manufacturer = getManufacturerName(manufacturerId);
-            result.append(context.getString(R.string.scanresult_advertisement_manufacturer)).append(": <b>").append(manufacturer == null ? "" : manufacturer).append("</b><br>");
+            if (advertisedBytes != null && advertisedBytes.length > 6) {
+                final byte[] manufacturerBytes = {advertisedBytes[6], advertisedBytes[5]};      // Little endian
+                String manufacturerId = BleUtils.bytesToHex(manufacturerBytes);
+                String manufacturer = getManufacturerName(manufacturerId);
+                result.append(context.getString(R.string.scanresult_advertisement_manufacturer)).append(": <b>").append(manufacturer == null ? "" : manufacturer).append("</b><br>");
+            }
         }
 
         StringBuilder text = new StringBuilder();
@@ -195,13 +200,17 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
 
         if (scanRecord != null) {
             byte[] advertisedBytes = scanRecord.getBytes();
-            final byte[] majorBytes = {advertisedBytes[25], advertisedBytes[26]};           // Big endian
-            final String major = BleUtils.bytesToHex(majorBytes);
-            result.append(context.getString(R.string.scanresult_advertisement_beacon_major)).append(": <b>").append(major).append("</b><br>");
+            if (advertisedBytes != null && advertisedBytes.length > 26) {
+                final byte[] majorBytes = {advertisedBytes[25], advertisedBytes[26]};           // Big endian
+                final String major = BleUtils.bytesToHex(majorBytes);
+                result.append(context.getString(R.string.scanresult_advertisement_beacon_major)).append(": <b>").append(major).append("</b><br>");
+            }
 
-            final byte[] minorBytes = {advertisedBytes[27], advertisedBytes[28]};           // Big endian
-            final String minor = BleUtils.bytesToHex(minorBytes);
-            result.append(context.getString(R.string.scanresult_advertisement_beacon_minor)).append(": <b>").append(minor).append("</b><br>");
+            if (advertisedBytes != null && advertisedBytes.length > 28) {
+                final byte[] minorBytes = {advertisedBytes[27], advertisedBytes[28]};           // Big endian
+                final String minor = BleUtils.bytesToHex(minorBytes);
+                result.append(context.getString(R.string.scanresult_advertisement_beacon_minor)).append(": <b>").append(minor).append("</b><br>");
+            }
 
             final int txPower = scanRecord.getTxPowerLevel();
             if (txPower > -255) {       // is valid?
@@ -335,10 +344,7 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         Spanned text = getAdvertisementDescription(mContext, blePeripheral);
         holder.dataTextView.setText(text);
 
-        holder.rawDataButton.setOnClickListener(v -> {
-            mListener.onAdvertisementData(blePeripheral);
-        });
-        //    }
+        holder.rawDataButton.setOnClickListener(v -> mListener.onAdvertisementData(blePeripheral));
     }
 
     @Override

@@ -44,7 +44,7 @@ public class BleScanner {
     private boolean mIsScanning;
 
     private ScanCallback mScanCallback = new ScanCallback() {
-        public void onScanResult(int callbackType, ScanResult result) {
+        public void onScanResult(int callbackType, @NonNull ScanResult result) {
             peripheralDiscovered(result);
 
             BleScannerListener listener = mWeakListener.get();
@@ -272,13 +272,13 @@ public class BleScanner {
             byte[] advertisedData = scanRecord.getBytes();
 
             // Check if is an iBeacon ( 0x02, 0x0x1, a flag byte, 0x1A, 0xFF, manufacturer (2bytes), 0x02, 0x15)
-            final boolean isBeacon = advertisedData[0] == 0x02 && advertisedData[1] == 0x01 && advertisedData[3] == 0x1A && advertisedData[4] == (byte) 0xFF && advertisedData[7] == 0x02 && advertisedData[8] == 0x15;
+            final boolean isBeacon = advertisedData != null && advertisedData.length > 8 && advertisedData[0] == 0x02 && advertisedData[1] == 0x01 && advertisedData[3] == 0x1A && advertisedData[4] == (byte) 0xFF && advertisedData[7] == 0x02 && advertisedData[8] == 0x15;
             if (isBeacon) {
                 type = kDeviceType_Beacon;
             } else {
                 // Check if is an URIBeacon
                 final byte[] kUriBeaconPrefix = {0x03, 0x03, (byte) 0xD8, (byte) 0xFE};
-                final boolean isUriBeacon = Arrays.equals(Arrays.copyOf(advertisedData, kUriBeaconPrefix.length), kUriBeaconPrefix) && advertisedData[5] == 0x16 && advertisedData[6] == kUriBeaconPrefix[2] && advertisedData[7] == kUriBeaconPrefix[3];
+                final boolean isUriBeacon = advertisedData != null && advertisedData.length > 7 && Arrays.equals(Arrays.copyOf(advertisedData, kUriBeaconPrefix.length), kUriBeaconPrefix) && advertisedData[5] == 0x16 && advertisedData[6] == kUriBeaconPrefix[2] && advertisedData[7] == kUriBeaconPrefix[3];
 
                 if (isUriBeacon) {
                     type = kDeviceType_UriBeacon;
