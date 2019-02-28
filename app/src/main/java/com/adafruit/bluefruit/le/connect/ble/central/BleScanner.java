@@ -137,8 +137,8 @@ public class BleScanner {
         }
     }
 
-    public @Nullable
-    BlePeripheral getPeripheralWithIdentifier(@Nullable String identifier) {
+    @Nullable
+    public BlePeripheral getPeripheralWithIdentifier(@Nullable String identifier) {
         if (identifier == null) {
             return null;
         }
@@ -208,8 +208,6 @@ public class BleScanner {
     }
 
     public synchronized void refresh() {
-        //mPeripheralScanResults.clear();
-
         stop();
 
         // Don't remove connnected or connecting peripherals
@@ -271,7 +269,7 @@ public class BleScanner {
         if (scanRecord != null) {
             byte[] advertisedData = scanRecord.getBytes();
 
-            // Check if is an iBeacon ( 0x02, 0x0x1, a flag byte, 0x1A, 0xFF, manufacturer (2bytes), 0x02, 0x15)
+            // Check if is an iBeacon ( 0x02, 0x01, a flag byte, 0x1A, 0xFF, manufacturer (2bytes), 0x02, 0x15)
             final boolean isBeacon = advertisedData != null && advertisedData.length > 8 && advertisedData[0] == 0x02 && advertisedData[1] == 0x01 && advertisedData[3] == 0x1A && advertisedData[4] == (byte) 0xFF && advertisedData[7] == 0x02 && advertisedData[8] == 0x15;
             if (isBeacon) {
                 type = kDeviceType_Beacon;

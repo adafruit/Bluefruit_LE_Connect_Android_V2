@@ -22,11 +22,9 @@ public class BlePeripheralBattery {
     }
 
     // Data
-    private @NonNull
-    BlePeripheral mBlePeripheral;
-
+    @NonNull
+    private BlePeripheral mBlePeripheral;
     private int mCurrentBatteryLevel = -1;
-
 
     // region Initialization
     public BlePeripheralBattery(@NonNull BlePeripheral blePeripheral) {
@@ -64,7 +62,7 @@ public class BlePeripheralBattery {
 
         // Read current value
         mBlePeripheral.readCharacteristic(batteryCharacteristic, (status, data) -> {
-            if (status == BluetoothGatt.GATT_SUCCESS ) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
                 mCurrentBatteryLevel = getBatteryLevel(batteryCharacteristic);
                 updateHandler.onBatteryLevelChanged(mCurrentBatteryLevel);
             } else {
@@ -93,8 +91,7 @@ public class BlePeripheralBattery {
         mBlePeripheral.characteristicDisableNotify(batteryCharacteristic, status -> {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d(TAG, "Stopped reading battery level");
-            }
-            else {
+            } else {
                 Log.w(TAG, "Error stopping notify battery level");
             }
 
