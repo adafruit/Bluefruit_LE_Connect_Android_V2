@@ -204,8 +204,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
                 } else {
                     Log.d(TAG, "Warning: no releases found for this board");
                 }
-            }
-            else {
+            } else {
                 Log.d(TAG, "Warning: no deviceDfuInfo found");
             }
         } else {
@@ -226,7 +225,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
 
     private void startUpdate(@NonNull ReleasesParser.BasicVersionInfo versionInfo) {
         FragmentActivity activity = getActivity();
-        if (activity != null && activity instanceof MainActivity) {
+        if (activity instanceof MainActivity) {
             MainActivity mainActivity = (MainActivity) activity;
             mainActivity.startUpdate(mBlePeripheral, versionInfo);
         }
@@ -376,7 +375,6 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
             }
         }
 
-        @SuppressWarnings("UnnecessaryLocalVariable")
         @Override
         public int getItemCount() {
 

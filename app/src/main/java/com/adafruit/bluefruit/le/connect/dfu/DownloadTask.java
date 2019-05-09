@@ -48,7 +48,7 @@ class DownloadTask extends AsyncTask<Uri, Integer, ByteArrayOutputStream> {
             int fileLength = 0;
             String uriScheme = mUri.getScheme();
             //Log.d(TAG, "Downloading from " + uriScheme);
-            boolean shouldBeConsideredAsInputStream = (uriScheme.equalsIgnoreCase("file") || uriScheme.equalsIgnoreCase("content"));
+            boolean shouldBeConsideredAsInputStream = uriScheme != null && (uriScheme.equalsIgnoreCase("file") || uriScheme.equalsIgnoreCase("content"));
             if (shouldBeConsideredAsInputStream) {
                 input = mWeakContext.get().getContentResolver().openInputStream(mUri);
             } else {
@@ -73,7 +73,7 @@ class DownloadTask extends AsyncTask<Uri, Integer, ByteArrayOutputStream> {
                 // download the file
                 output = new ByteArrayOutputStream();
 
-                byte data[] = new byte[4096];
+                byte[] data = new byte[4096];
                 long total = 0;
                 int count;
                 while ((count = input.read(data)) != -1) {

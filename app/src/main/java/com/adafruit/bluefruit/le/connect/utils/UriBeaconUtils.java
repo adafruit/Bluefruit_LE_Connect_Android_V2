@@ -2,7 +2,7 @@ package com.adafruit.bluefruit.le.connect.utils;
 
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class UriBeaconUtils {
@@ -63,7 +63,7 @@ public class UriBeaconUtils {
         byte schemeByte = scanRecord[10];
         String scheme = UriBeaconUtils.getSchemeFromPrefix(schemeByte);
 
-        String url = "";
+        String url;
         if (schemeByte == 0x04)        // Special case for urn:uuid
         {
             byte[] urlBytes = Arrays.copyOfRange(scanRecord, 11, 11 + 16);
@@ -72,11 +72,7 @@ public class UriBeaconUtils {
             final int length = scanRecord[4] - 6;       // 6 fixed fields bytes (uri length  is total lenght-6)
             byte[] urlBytes = Arrays.copyOfRange(scanRecord, 11, 11 + length);
 
-            try {
-                url = new String(urlBytes, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            url = new String(urlBytes, StandardCharsets.UTF_8);
 
             for (int i = urlBytes.length - 1; i >= 0; i--)            // Go backwards because we are replacing single characters with strings that will change the url lenght
             {

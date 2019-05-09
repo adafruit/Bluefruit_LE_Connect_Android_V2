@@ -6,7 +6,7 @@ public class LocalizationManager {
     // Constants
     private final static String TAG = LocalizationManager.class.getSimpleName();
 
-    private final static String kLanguageSettingsFile = "LanguageFile";
+    //private final static String kLanguageSettingsFile = "LanguageFile";
 
     // Singleton
     private static LocalizationManager sInstance = null;

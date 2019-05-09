@@ -303,7 +303,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         mPinsAdapter.pinsUpdated();
 
         // Reset Firmata
-        byte data[] = new byte[]{(byte) 0xff};
+        byte[] data = new byte[]{(byte) 0xff};
         mUartDataManager.send(mBlePeripheralUart, data, null);
 
         startQueryCapabilitiesProcess();
@@ -345,7 +345,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         mQueryCapabilitiesDataBuffer.clear();
 
         // Query Capabilities
-        byte data[] = new byte[]{SYSEX_START, (byte) 0x6B, SYSEX_END};
+        byte[] data = new byte[]{SYSEX_START, (byte) 0x6B, SYSEX_END};
         mUartDataManager.send(mBlePeripheralUart, data, null);
 
 
@@ -385,7 +385,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         mQueryAnalogMappingDataBuffer.clear();
 
         // Query Analog Mapping
-        byte data[] = new byte[]{SYSEX_START, (byte) 0x69, SYSEX_END};
+        byte[] data = new byte[]{SYSEX_START, (byte) 0x69, SYSEX_END};
         mUartDataManager.send(mBlePeripheralUart, data, null);
     }
 
@@ -621,7 +621,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         for (int i = 0; i <= 2; i++) {
             byte data0 = (byte) (0xd0 + i);     // start port 0 digital reporting (0xD0 + port#)
             byte data1 = 1;                     // enable
-            byte data[] = new byte[]{data0, data1};
+            byte[] data = new byte[]{data0, data1};
             mUartDataManager.send(mBlePeripheralUart, data, null);
         }
 
@@ -642,7 +642,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         pin.analogValue = 0;                                // Reset analog value when changing mode
 
         // Write pin mode
-        byte data[] = new byte[]{(byte) 0xf4, (byte) pin.digitalPinId, (byte) mode};
+        byte[] data = new byte[]{(byte) 0xf4, (byte) pin.digitalPinId, (byte) mode};
         mUartDataManager.send(mBlePeripheralUart, data, null);
 
         // Update reporting for Analog pins
@@ -659,7 +659,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         byte data1 = (byte) (enabled ? 1 : 0);              // enable
 
         // send data
-        byte data[] = {data0, data1};
+        byte[] data = {data0, data1};
         mUartDataManager.send(mBlePeripheralUart, data, null);
     }
 
@@ -687,12 +687,13 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         byte data2 = (byte) (state >> 7);        // top bit in second byte
 
         // send data
-        byte data[] = new byte[]{data0, data1, data2};
+        byte[] data = new byte[]{data0, data1, data2};
         mUartDataManager.send(mBlePeripheralUart, data, null);
     }
 
     private long lastSentAnalogValueTime = 0;
 
+    @SuppressWarnings("UnusedReturnValue")
     private boolean setPMWValue(PinData pin, int value) {
 
         // Limit the amount of messages sent over Uart
@@ -705,7 +706,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
             pin.analogValue = value;
 
             // Send
-            byte data[];
+            byte[] data;
             if (pin.digitalPinId > 15) {
                 // Extended analog
                 byte data0 = (byte) (pin.digitalPinId);
@@ -877,7 +878,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
     // region UartDataManagerListener
 
     @Override
-    public void onUartRx(@NonNull byte[] data, @NonNull String peripheralIdentifier) {
+    public void onUartRx(@NonNull byte[] data, @Nullable String peripheralIdentifier) {
         Log.d(TAG, "uart rx read (hex): " + BleUtils.bytesToHex2(data));
 
         switch (mUartStatus) {
@@ -966,8 +967,14 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
             }
 
             void togleExpanded() {
-                mExpandedNodes[getPinViewHolderId()] = !mExpandedNodes[getPinViewHolderId()];
-                animateExpanded();
+                final int index = getPinViewHolderId();
+                if (index >= 0 && index < mExpandedNodes.length) {
+                    mExpandedNodes[index] = !mExpandedNodes[index];
+                    animateExpanded();
+                }
+                else {
+                    Log.d(TAG, "toggleExpanded invalid index");
+                }
             }
 
             private void animateExpanded() {

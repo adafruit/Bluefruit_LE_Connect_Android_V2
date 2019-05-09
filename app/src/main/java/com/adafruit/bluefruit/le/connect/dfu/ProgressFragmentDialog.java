@@ -9,10 +9,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatDialogFragment;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
-import com.squareup.leakcanary.RefWatcher;
-
 public class ProgressFragmentDialog extends AppCompatDialogFragment {
     // Params
     protected final static String kParamMessage = "message";

@@ -79,7 +79,7 @@ public class ThermalGradientView extends View {
             return;
         }
 
-        int colors[] = new int[kNumColorSegments];
+        int[] colors = new int[kNumColorSegments];
         float x = 0;
         for (int i = 0; i < kNumColorSegments; i++) {
             final int color = mThermalCameraFragment.temperatureComponentsForValue(x);

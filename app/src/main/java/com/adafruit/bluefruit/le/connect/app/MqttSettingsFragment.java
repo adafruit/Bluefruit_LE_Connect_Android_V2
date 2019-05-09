@@ -128,8 +128,8 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
             publishSwitch.setChecked(MqttSettings.isPublishEnabled(context));
             publishSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> MqttSettings.setPublishEnabled(context, isChecked));
 
-            final int kPublishTopicEditTextsIds[] = {R.id.publish0TopicEditText, R.id.publish1TopicEditText};
-            final int kPublishTopicSpinnerIds[] = {R.id.publish0Spinner, R.id.publish1Spinner};
+            final int[] kPublishTopicEditTextsIds = {R.id.publish0TopicEditText, R.id.publish1TopicEditText};
+            final int[] kPublishTopicSpinnerIds = {R.id.publish0Spinner, R.id.publish1Spinner};
             List<String> qosEntries = new ArrayList<>();
             qosEntries.add(getString(R.string.uart_mqtt_qos_atleastonce));
             qosEntries.add(getString(R.string.uart_mqtt_qos_atmostonce));

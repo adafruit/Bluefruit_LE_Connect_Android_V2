@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Base64;
 
 import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
 
@@ -93,7 +92,8 @@ public class PeripheralService {
         }
     }
 
-    public @Nullable BluetoothDevice[] getDevicesSubscribedToCharacteristic(@NonNull UUID characteristicUuid) {
+    public @Nullable
+    BluetoothDevice[] getDevicesSubscribedToCharacteristic(@NonNull UUID characteristicUuid) {
         BluetoothDevice[] devices = null;
 
         Set<BluetoothDevice> existingSubscribedCharacteristic = mSubscribedCharacteristics.get(characteristicUuid);

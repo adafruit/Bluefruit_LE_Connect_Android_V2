@@ -22,10 +22,7 @@ import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.R;
-import com.squareup.leakcanary.RefWatcher;
 
 public class ControllerPadFragment extends Fragment {
     // Log

@@ -6,11 +6,8 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
 import com.adafruit.bluefruit.le.connect.ble.central.BleScanner;
-import com.squareup.leakcanary.RefWatcher;
 
 // helper class with common behaviour for all peripheral modules
 public class ConnectedPeripheralFragment extends Fragment {

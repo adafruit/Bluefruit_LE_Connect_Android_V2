@@ -222,8 +222,8 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
     }
 
     private static String getManufacturerName(String manufacturerId) {
-        final String kKnownManufacturers[] = {"004C", "0059"};
-        final String kManufacturerNames[] = {"Apple  (004C)", "Nordic (0059)"};
+        final String[] kKnownManufacturers = {"004C", "0059"};
+        final String[] kManufacturerNames = {"Apple  (004C)", "Nordic (0059)"};
 
         String result;
         int knownIndex = Arrays.asList(kKnownManufacturers).indexOf(manufacturerId);

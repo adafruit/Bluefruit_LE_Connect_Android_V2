@@ -324,10 +324,13 @@ public class MqttSettingsCodeReaderFragment extends Fragment implements BarcodeG
 
     // region BarcodeGraphicTracker.BarcodeTrackerListener
     private boolean isCodeAlreadyScanned = false;
+
     @Override
     public void onCodeScanned(String contents) {
         Log.d(TAG, "Code Scanned: " + contents);
-        if (isCodeAlreadyScanned) { return; }       // To avoid double scans and pop 2 times the fragment
+        if (isCodeAlreadyScanned) {
+            return;
+        }       // To avoid double scans and pop 2 times the fragment
         isCodeAlreadyScanned = true;
 
         // Beep

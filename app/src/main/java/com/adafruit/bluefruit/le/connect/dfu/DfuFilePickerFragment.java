@@ -161,7 +161,8 @@ public class DfuFilePickerFragment extends AppCompatDialogFragment {
 
         // Based on: https://stackoverflow.com/questions/5568874/how-to-extract-the-file-name-from-uri-returned-from-intent-action-get-content
         if (uri != null) {
-            if (uri.getScheme().equals("content")) {
+            String scheme = uri.getScheme();
+            if (scheme != null && scheme.equals("content")) {
                 try (Cursor cursor = context.getContentResolver().query(uri, null, null, null, null)) {
                     if (cursor != null && cursor.moveToFirst()) {
                         result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
@@ -170,9 +171,11 @@ public class DfuFilePickerFragment extends AppCompatDialogFragment {
             }
             if (result == null) {
                 result = uri.getPath();
-                int cut = result.lastIndexOf('/');
-                if (cut != -1) {
-                    result = result.substring(cut + 1);
+                if (result != null) {
+                    int cut = result.lastIndexOf('/');
+                    if (cut != -1) {
+                        result = result.substring(cut + 1);
+                    }
                 }
             }
         }

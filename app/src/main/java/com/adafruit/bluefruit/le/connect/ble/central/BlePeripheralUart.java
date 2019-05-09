@@ -196,7 +196,7 @@ public class BlePeripheralUart {
         checksum = (byte) (~checksum);       // Invert
 
         // Add crc to data
-        byte dataCrc[] = new byte[data.length + 1];
+        byte[] dataCrc = new byte[data.length + 1];
         System.arraycopy(data, 0, dataCrc, 0, data.length);
         dataCrc[data.length] = checksum;
 
@@ -210,10 +210,13 @@ public class BlePeripheralUart {
     public static boolean isUartAdvertised(@NonNull BlePeripheral blePeripheral) {
         List<ParcelUuid> serviceUuids = blePeripheral.getScanRecord().getServiceUuids();
         boolean found = false;
-        int i = 0;
-        while (i < serviceUuids.size() && !found) {
-            found = serviceUuids.get(i).getUuid().equals(kUartServiceUUID);
-            i++;
+
+        if (serviceUuids != null) {
+            int i = 0;
+            while (i < serviceUuids.size() && !found) {
+                found = serviceUuids.get(i).getUuid().equals(kUartServiceUUID);
+                i++;
+            }
         }
         return found;
     }

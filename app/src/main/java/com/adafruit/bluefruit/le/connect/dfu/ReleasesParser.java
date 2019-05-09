@@ -143,8 +143,7 @@ public class ReleasesParser {
                     }
                 }
             }
-        }
-        else {
+        } else {
             Log.d(TAG, "releasesXml is null");
         }
 

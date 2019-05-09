@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class FileUtils {
 
@@ -19,10 +20,11 @@ public class FileUtils {
             int size = is.available();
 
             byte[] buffer = new byte[size];
+            //noinspection ResultOfMethodCallIgnored
             is.read(buffer);
             is.close();
 
-            result = new String(buffer, "UTF-8");
+            result = new String(buffer, StandardCharsets.UTF_8);
 
         } catch (IOException e) {
             e.printStackTrace();

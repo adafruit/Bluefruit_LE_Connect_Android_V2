@@ -36,8 +36,8 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -322,7 +322,6 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
         if (!dataSetExists) {
             appendDataset(peripheralIdentifier, entry, index);
 
-            //List<LineDataSet> allDataSets = mDataSetsForPeripheral.values().stream().flatMap(x -> Arrays.stream(x))
             List<ILineDataSet> allDataSets = new ArrayList<>();
             for (List<LineDataSet> dataSetLists : mDataSetsForPeripheral.values()) {
                 allDataSets.addAll(dataSetLists);
@@ -383,7 +382,7 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
     private static final byte kLineSeparator = 10;
 
     @Override
-    public void onUartRx(@NonNull byte[] data, @NonNull String peripheralIdentifier) {
+    public void onUartRx(@NonNull byte[] data, @Nullable String peripheralIdentifier) {
         /*
         Log.d(TAG, "uart rx read (hex): " + BleUtils.bytesToHex2(data));
         try {
@@ -406,42 +405,39 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
         //
         if (found) {
             final byte[] subData = Arrays.copyOfRange(data, 0, lastSeparator);
-            try {
-                final float currentTimestamp = (System.currentTimeMillis() - mOriginTimestamp) / 1000.f;
-                final String dataString = new String(subData, "UTF-8");
-                //Log.d(TAG, "data: " + dataString);
+            final float currentTimestamp = (System.currentTimeMillis() - mOriginTimestamp) / 1000.f;
+            final String dataString = new String(subData, StandardCharsets.UTF_8);
+            //Log.d(TAG, "data: " + dataString);
 
-                final String[] lineStrings = dataString.replace("\r", "").split("\n");
-                for (String lineString : lineStrings) {
+            final String[] lineStrings = dataString.replace("\r", "").split("\n");
+            for (String lineString : lineStrings) {
 //                    Log.d(TAG, "line: " + lineString);
-                    final String[] valuesStrings = lineString.split("[,; \t]");
-                    int j = 0;
-                    for (String valueString : valuesStrings) {
-                        boolean isValid = true;
-                        float value = 0;
-                        if (valueString != null) {
-                            try {
-                                value = Float.parseFloat(valueString);
-                            } catch (NumberFormatException ignored) {
-                                isValid = false;
-                            }
-                        } else {
+                final String[] valuesStrings = lineString.split("[,; \t]");
+                int j = 0;
+                for (String valueString : valuesStrings) {
+                    boolean isValid = true;
+                    float value = 0;
+                    if (valueString != null) {
+                        try {
+                            value = Float.parseFloat(valueString);
+                        } catch (NumberFormatException ignored) {
                             isValid = false;
                         }
-
-                        if (isValid) {
-                            //Log.d(TAG, "value " + j + ": (" + currentTimestamp + ", " + value + ")");
-                            //Log.d(TAG, "value " + j + ": " + value);
-                            addEntry(peripheralIdentifier, j, value, currentTimestamp);
-                            j++;
-                        }
+                    } else {
+                        isValid = false;
                     }
 
-                    mMainHandler.post(this::notifyDataSetChanged);
+                    if (isValid && peripheralIdentifier != null) {
+                        //Log.d(TAG, "value " + j + ": (" + currentTimestamp + ", " + value + ")");
+                        //Log.d(TAG, "value " + j + ": " + value);
+                        addEntry(peripheralIdentifier, j, value, currentTimestamp);
+                        j++;
+                    }
                 }
 
-            } catch (UnsupportedEncodingException ignored) {
+                mMainHandler.post(this::notifyDataSetChanged);
             }
+
         }
 
         mUartDataManager.removeRxCacheFirst(lastSeparator, peripheralIdentifier);

@@ -377,7 +377,8 @@ public class BlePeripheral {
         mCommmandQueue.clear();
     }
 
-    public BluetoothDevice getDevice() {
+    public @NonNull
+    BluetoothDevice getDevice() {
         return mScanResult.getDevice();
     }
 

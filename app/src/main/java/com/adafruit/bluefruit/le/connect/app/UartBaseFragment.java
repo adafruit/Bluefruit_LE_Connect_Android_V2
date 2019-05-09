@@ -207,8 +207,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
                 if (MqttSettings.isConnected(context)) {
                     mMqttManager.connectFromSavedSettings();
                 }
-            }
-            else {
+            } else {
                 mMqttManager.setListener(this);
             }
         }
@@ -590,7 +589,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         MqttManager.MqqtConnectionStatus status = mMqttManager.getClientStatus();
 
         if (status == MqttManager.MqqtConnectionStatus.CONNECTING) {
-            final int kConnectingAnimationDrawableIds[] = {R.drawable.mqtt_connecting1, R.drawable.mqtt_connecting2, R.drawable.mqtt_connecting3};
+            final int[] kConnectingAnimationDrawableIds = {R.drawable.mqtt_connecting1, R.drawable.mqtt_connecting2, R.drawable.mqtt_connecting3};
             mMqttMenuItem.setIcon(kConnectingAnimationDrawableIds[mMqttMenuItemAnimationFrame]);
             mMqttMenuItemAnimationFrame = (mMqttMenuItemAnimationFrame + 1) % kConnectingAnimationDrawableIds.length;
         } else if (status == MqttManager.MqqtConnectionStatus.CONNECTED) {

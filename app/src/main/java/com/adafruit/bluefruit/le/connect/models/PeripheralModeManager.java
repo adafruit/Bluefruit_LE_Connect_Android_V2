@@ -1,7 +1,6 @@
 package com.adafruit.bluefruit.le.connect.models;
 
 import android.content.Context;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -79,8 +78,7 @@ public class PeripheralModeManager implements GattServer.Listener {
     String getLocalName() {
         if (mPeripheral != null) {
             return mPeripheral.getLocalBluetoothName();
-        }
-        else {
+        } else {
             return null;
         }
     }

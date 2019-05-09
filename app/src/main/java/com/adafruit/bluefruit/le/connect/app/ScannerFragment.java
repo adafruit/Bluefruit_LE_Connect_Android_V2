@@ -47,8 +47,6 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 import com.adafruit.bluefruit.le.connect.ble.central.BleManager;
@@ -61,7 +59,6 @@ import com.adafruit.bluefruit.le.connect.style.StyledSnackBar;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
 import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
 import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
-import com.squareup.leakcanary.RefWatcher;
 
 import java.util.Locale;
 
@@ -175,7 +172,10 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             mBlePeripheralsAdapter = new BlePeripheralsAdapter(context, blePeripheral -> {
                 ScanRecord scanRecord = blePeripheral.getScanRecord();
                 if (scanRecord != null) {
-                    final byte[] advertisementBytes = scanRecord.getBytes();
+                    byte[] advertisementBytes = scanRecord.getBytes();
+                    if (advertisementBytes == null) {
+                        advertisementBytes = new byte[]{};
+                    }
                     final String packetText = BleUtils.bytesToHexWithSpaces(advertisementBytes);
                     final String clipboardLabel = context.getString(R.string.scanresult_advertisement_rawdata_title);
 
@@ -368,14 +368,16 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         mScannerViewModel.getScanningErrorCode().observe(this, errorCode -> {
             Log.d(TAG, "Scanning error: " + errorCode);
 
-            if (errorCode != null && errorCode == ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED) {       // Check for known errors
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                AlertDialog dialog = builder.setTitle(R.string.dialog_error).setMessage(R.string.bluetooth_scanner_errorregisteringapp)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
-                DialogUtils.keepDialogOnOrientationChanges(dialog);
-            } else {        // Ask for location permission
-                mListener.scannerRequestLocationPermissionIfNeeded();
+            if (getActivity() != null && !getActivity().isFinishing()) {        // Check that is not finishing to avoid badtokenexceptions
+                if (errorCode != null && errorCode == ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED) {       // Check for known errors
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    AlertDialog dialog = builder.setTitle(R.string.dialog_error).setMessage(R.string.bluetooth_scanner_errorregisteringapp)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                    DialogUtils.keepDialogOnOrientationChanges(dialog);
+                } else {        // Ask for location permission
+                    mListener.scannerRequestLocationPermissionIfNeeded();
+                }
             }
         });
 

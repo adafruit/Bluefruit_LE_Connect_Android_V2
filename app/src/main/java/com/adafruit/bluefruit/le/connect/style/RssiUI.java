@@ -17,7 +17,7 @@ public class RssiUI {
             index = 4;
         }
 
-        final int kSignalDrawables[] = {
+        final int[] kSignalDrawables = {
                 R.drawable.signalstrength0,
                 R.drawable.signalstrength1,
                 R.drawable.signalstrength2,

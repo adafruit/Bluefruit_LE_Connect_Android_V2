@@ -70,7 +70,6 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     });
 
 
-
     private LiveData<List<BlePeripheral>> mFilteredBlePeripherals = Transformations.switchMap(mScanFilterLiveDataMerger, input -> {
         FilterData filterData = input.filterData;
         if (filterData == null) return null;     // Filter Data not initialized yet
@@ -268,7 +267,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     }
 
     @SuppressWarnings("UnnecessaryLocalVariable")
-    public @Nullable BlePeripheral getPeripheralAtFilteredPosition(int position) {
+    public @Nullable
+    BlePeripheral getPeripheralAtFilteredPosition(int position) {
         List<BlePeripheral> blePeripherals = mFilteredBlePeripherals.getValue();
         if (blePeripherals != null && position >= 0 && position < blePeripherals.size()) {
             final BlePeripheral blePeripheral = blePeripherals.get(position);
@@ -278,7 +278,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         }
     }
 
-    public @Nullable BlePeripheral getPeripheralWithIdentifier(@NonNull String identifier) {
+    public @Nullable
+    BlePeripheral getPeripheralWithIdentifier(@NonNull String identifier) {
         BlePeripheral result = null;
         int i = 0;
         List<BlePeripheral> blePeripherals = mBlePeripherals.getValue();
@@ -466,11 +467,13 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     // endregion
 
     // region Utils
-    private @NonNull String getResultNameForOrdering(BlePeripheral result) {
+    private @NonNull
+    String getResultNameForOrdering(BlePeripheral result) {
         BluetoothDevice device = result.getDevice();
         String name = device.getName();
         if (name == null) {
-            name = "~" + device.getAddress();     // Prefix with symbol so all the unknowns are pushed to the bottom
+            String address = device.getAddress();
+            name = "~" + (address != null ? address : "");     // Prefix with symbol so all the unknowns are pushed to the bottom
         }
         return name;
     }
@@ -543,7 +546,7 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
 
             if (rssi > FilterData.kMaxRssiValue) {
                 String rssiString = String.format(Locale.ENGLISH, getApplication().getString(R.string.scanner_filter_rssi_description_format), rssi);
-                if (filtersTitle != null && !filtersTitle.isEmpty()) {
+                if (filtersTitle != null) {
                     filtersTitle = filtersTitle + ", " + rssiString;
                 } else {
                     filtersTitle = rssiString;

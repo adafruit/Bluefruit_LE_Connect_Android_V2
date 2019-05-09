@@ -19,12 +19,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.models.PeripheralModeViewModel;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
-import com.squareup.leakcanary.RefWatcher;
 
 import java.lang.ref.WeakReference;
 

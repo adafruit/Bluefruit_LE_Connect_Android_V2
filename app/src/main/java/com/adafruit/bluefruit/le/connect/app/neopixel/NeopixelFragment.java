@@ -200,17 +200,7 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
 
             mRotationViewGroup = view.findViewById(R.id.rotationViewGroup);
             mCustomPanningView = view.findViewById(R.id.customPanningView);
-            /*
-            mCustomPanningView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                                                                                   @Override
-                                                                                   public void onGlobalLayout() {
-                                                                                       mCustomPanningView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
-
-                                                                                   }
-                                                                               }
-            );
-*/
             setupGestures();
 
             // Tooltip
@@ -234,7 +224,7 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
         }
 
         // Setup
-        if (context != null && mUartManager == null) {      //Don't setup if already init (because fragment was recreated)
+        if (context != null && mUartManager == null) {      // Don't setup if already init (because fragment was recreated)
             // UartManager
             mUartManager = new UartPacketManager(context, null, false, null);
             start();

@@ -26,7 +26,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
-import com.adafruit.bluefruit.le.connect.ble.central.BleScanner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -181,7 +180,6 @@ public class GattServer implements PeripheralService.Listener {
     }
 
     // region Local Name
-
     public String getLocalBluetoothName() {
         String name = null;
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -489,7 +487,7 @@ public class GattServer implements PeripheralService.Listener {
         @Override
         public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
             super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
-            Log.d(TAG, "GattServer: onCharacteristicWriteRequest characteristic: " + characteristic.getUuid().toString() + " requestId: " + requestId + " preparedWrite: " + Boolean.toString(preparedWrite) + " responseNeeded: " + Boolean.toString(responseNeeded) + " offset: " + offset);
+            Log.d(TAG, "GattServer: onCharacteristicWriteRequest characteristic: " + characteristic.getUuid().toString() + " requestId: " + requestId + " preparedWrite: " + preparedWrite + " responseNeeded: " + responseNeeded + " offset: " + offset);
 
             final UUID serviceUuid = characteristic.getService().getUuid();
             for (PeripheralService peripheralService : mPeripheralServices) {
@@ -515,7 +513,7 @@ public class GattServer implements PeripheralService.Listener {
         public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
             super.onExecuteWrite(device, requestId, execute);
 
-            Log.d(TAG, "GattServer: onExecuteWrite requestId: " + requestId + " execute: " + Boolean.toString(execute));
+            Log.d(TAG, "GattServer: onExecuteWrite requestId: " + requestId + " execute: " + execute);
 
             if (execute) {
                 for (ServiceCharacteristicKey key : mPreparedWrites.keySet()) {
@@ -573,7 +571,7 @@ public class GattServer implements PeripheralService.Listener {
         @Override
         public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
             super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded, offset, value);
-            Log.d(TAG, "GattServer: onDescriptorWriteRequest : " + descriptor.getUuid().toString() + " requestId: " + requestId + " preparedWrite: " + Boolean.toString(preparedWrite) + " responseNeeded: " + Boolean.toString(responseNeeded) + " offset: " + offset);
+            Log.d(TAG, "GattServer: onDescriptorWriteRequest : " + descriptor.getUuid().toString() + " requestId: " + requestId + " preparedWrite: " + preparedWrite + " responseNeeded: " + responseNeeded + " offset: " + offset);
 
             // Check if is enabling notification
             if (descriptor.getUuid().equals(BlePeripheral.kClientCharacteristicConfigUUID)) {

@@ -22,12 +22,9 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.peripheral.DeviceInformationPeripheralService;
 import com.adafruit.bluefruit.le.connect.models.DeviceInformationServiceViewModel;
-import com.squareup.leakcanary.RefWatcher;
 
 public class DeviceInformationServiceFragment extends Fragment {
     // Log

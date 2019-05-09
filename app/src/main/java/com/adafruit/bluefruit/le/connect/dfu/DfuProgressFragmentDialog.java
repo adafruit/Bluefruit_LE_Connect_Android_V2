@@ -63,7 +63,7 @@ public class DfuProgressFragmentDialog extends ProgressFragmentDialog {
             mListener = (Listener) getTargetFragment();
         } else if (getTargetFragment() != null && getTargetFragment().getActivity() instanceof Listener) {
             mListener = (Listener) getTargetFragment().getActivity();
-        } */else {
+        } */ else {
             throw new RuntimeException(context.toString() + " must implement Listener");
         }
     }
@@ -114,6 +114,7 @@ public class DfuProgressFragmentDialog extends ProgressFragmentDialog {
             setMessage(R.string.dfu_status_starting);
 
         }
+
         @Override
         public void onEnablingDfuMode(final String deviceAddress) {
             Log.d(TAG, "onEnablingDfuMode");
@@ -173,8 +174,7 @@ public class DfuProgressFragmentDialog extends ProgressFragmentDialog {
             Log.d(TAG, "onError: " + message);
             if (mListener != null) {
                 mListener.onError(deviceAddress, error, errorType, message);
-            }
-            else {
+            } else {
                 Log.w(TAG, "onError with no listener");
             }
         }
