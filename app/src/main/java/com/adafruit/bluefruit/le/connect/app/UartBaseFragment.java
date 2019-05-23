@@ -673,7 +673,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         } else {
             // Export format dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            builder.setTitle(R.string.uart_export_format_title);
+            builder.setTitle(R.string.uart_export_format_subtitle);
 
             final String[] formats = {"txt", "csv", "json"};
             builder.setItems(formats, (dialog, which) -> {
