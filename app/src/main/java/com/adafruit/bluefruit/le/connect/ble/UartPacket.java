@@ -11,7 +11,7 @@ public class UartPacket {
 
 
     public UartPacket(String peripheralId, int mode, byte[] data) {
-        this(peripheralId, 0, mode, data);
+        this(peripheralId, System.currentTimeMillis(), mode, data);
     }
 
     public UartPacket(String peripheralId, long timestamp, int mode, byte[] data) {

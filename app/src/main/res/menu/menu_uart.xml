@@ -18,7 +18,6 @@
         app:showAsAction="always" />
 
     <group android:id="@+id/uartControls">
-
         <item
             android:id="@+id/action_displaymode"
             android:title="@string/uart_settings_displayMode_text"
@@ -102,6 +101,13 @@
                         app:showAsAction="never" />
                 </group>
             </menu>
+        </item>
+
+        <item
+            android:id="@+id/action_export"
+            android:title="@string/uart_settings_export_title"
+            app:showAsAction="never">
+
         </item>
     </group>
 </menu>

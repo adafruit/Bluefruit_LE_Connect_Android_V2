@@ -1,6 +1,8 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -352,6 +354,8 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         }
         MenuItem selectedEolCharacterMenuItem = eolModeSubMenu.findItem(selectedEolCharactersSubMenuId);
         selectedEolCharacterMenuItem.setChecked(true);
+
+
     }
 
 
@@ -455,6 +459,11 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             case R.id.action_eolmode_rn: {
                 mEolCharactersId = 3;
                 activity.invalidateOptionsMenu();
+                return true;
+            }
+
+            case R.id.action_export: {
+                export();
                 return true;
             }
 
@@ -568,6 +577,28 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         updateBytesUI();
     }
 
+
+    private void onUartPacketText(UartPacket packet) {
+        if (mIsEchoEnabled || packet.getMode() == UartPacket.TRANSFERMODE_RX) {
+            final int color = colorForPacket(packet);
+            final boolean isBold = isFontBoldForPacket(packet);
+            final byte[] bytes = packet.getData();
+            final String formattedData = mShowDataInHexFormat ? BleUtils.bytesToHex2(bytes) : BleUtils.bytesToText(bytes, true);
+            addTextToSpanBuffer(mTextSpanBuffer, formattedData, color, isBold);
+        }
+    }
+
+    private static SpannableString stringFromPacket(UartPacket packet, boolean useHexMode, int color, boolean isBold) {
+        final byte[] bytes = packet.getData();
+        final String formattedData = useHexMode ? BleUtils.bytesToHex2(bytes) : BleUtils.bytesToText(bytes, true);
+        final SpannableString formattedString = new SpannableString(formattedData);
+        formattedString.setSpan(new ForegroundColorSpan(color), 0, formattedString.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (isBold) {
+            formattedString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, formattedString.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return formattedString;
+    }
+
     // endregion
 
     // region Mqtt UI
@@ -633,27 +664,62 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
     // endregion
 
-    // region UI
+    // region Export
 
-    private void onUartPacketText(UartPacket packet) {
-        if (mIsEchoEnabled || packet.getMode() == UartPacket.TRANSFERMODE_RX) {
-            final int color = colorForPacket(packet);
-            final boolean isBold = isFontBoldForPacket(packet);
-            final byte[] bytes = packet.getData();
-            final String formattedData = mShowDataInHexFormat ? BleUtils.bytesToHex2(bytes) : BleUtils.bytesToText(bytes, true);
-            addTextToSpanBuffer(mTextSpanBuffer, formattedData, color, isBold);
+    private void export() {
+        List<UartPacket> packets = mUartData.getPacketsCache();
+        if (packets.isEmpty()) {
+            showDialogWarningNoTextToExport();
+        } else {
+            // Export format dialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle(R.string.uart_export_format_title);
+
+            final String[] formats = {"txt", "csv", "json"};
+            builder.setItems(formats, (dialog, which) -> {
+                switch (which) {
+                    case 0: { // txt
+                        String result = UartDataExport.packetsAsText(packets, mShowDataInHexFormat);
+                        exportText(result);
+                        break;
+                    }
+                    case 1: { // csv
+                        String result = UartDataExport.packetsAsCsv(packets, mShowDataInHexFormat);
+                        exportText(result);
+                        break;
+                    }
+                    case 2: { // json
+                        String result = UartDataExport.packetsAsJson(packets, mShowDataInHexFormat);
+                        exportText(result);
+                        break;
+                    }
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
     }
 
-    private static SpannableString stringFromPacket(UartPacket packet, boolean useHexMode, int color, boolean isBold) {
-        final byte[] bytes = packet.getData();
-        final String formattedData = useHexMode ? BleUtils.bytesToHex2(bytes) : BleUtils.bytesToText(bytes, true);
-        final SpannableString formattedString = new SpannableString(formattedData);
-        formattedString.setSpan(new ForegroundColorSpan(color), 0, formattedString.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        if (isBold) {
-            formattedString.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, formattedString.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    private void exportText(@Nullable String text) {
+        if (text != null && !text.isEmpty()) {
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+            sendIntent.setType("text/plain");
+            startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.uart_export_format_title)));
+        } else {
+            showDialogWarningNoTextToExport();
         }
-        return formattedString;
+    }
+
+
+    private void showDialogWarningNoTextToExport() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        //builder.setTitle(R.string.);
+        builder.setMessage(R.string.uart_export_nodata);
+        builder.setPositiveButton(android.R.string.ok, null);
+        builder.show();
     }
 
     // endregion
