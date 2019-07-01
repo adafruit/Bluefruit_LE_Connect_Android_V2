@@ -4,8 +4,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.nio.charset.Charset;
 import java.util.UUID;
@@ -17,9 +18,10 @@ public class BleUtils {
     public static final int STATUS_BLUETOOTH_NOT_AVAILABLE = 1;
     public static final int STATUS_BLE_NOT_AVAILABLE = 2;
     public static final int STATUS_BLUETOOTH_DISABLED = 3;
-/*
-    private static ResetBluetoothAdapter sResetHelper;
-*/
+
+    /*
+        private static ResetBluetoothAdapter sResetHelper;
+    */
     // Use this check to determine whether BLE is supported on the device.  Then you can  selectively disable BLE-related features.
     public static int getBleStatus(Context context) {
         if (!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -206,7 +208,8 @@ public class BleUtils {
         return stringBuffer.toString();
     }
 
-    public static @NonNull String bytesToText(byte[] bytes, boolean simplifyNewLine) {
+    public static @NonNull
+    String bytesToText(byte[] bytes, boolean simplifyNewLine) {
         String text = new String(bytes, Charset.forName("UTF-8"));
         if (simplifyNewLine) {
             text = text.replaceAll("(\\r\\n|\\r)", "\n");
@@ -259,7 +262,8 @@ public class BleUtils {
     }
 
     @SuppressWarnings("unused")
-    static @Nullable String uuidToString(@Nullable UUID uuid, boolean shorten) {
+    static @Nullable
+    String uuidToString(@Nullable UUID uuid, boolean shorten) {
         if (uuid == null) return null;
 
         String uppercaseUuidString = uuid.toString().toUpperCase();

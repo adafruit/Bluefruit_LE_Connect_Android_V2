@@ -1,10 +1,11 @@
 package com.adafruit.bluefruit.le.connect.utils;
 
 import android.app.Dialog;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+
 import android.view.Window;
 import android.view.WindowManager;
 

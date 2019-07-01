@@ -1,8 +1,8 @@
 package com.adafruit.bluefruit.le.connect.models;
 
 import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 
 import com.adafruit.bluefruit.le.connect.ble.peripheral.DeviceInformationPeripheralService;
 

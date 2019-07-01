@@ -2,24 +2,21 @@ package com.adafruit.bluefruit.le.connect.app.neopixel;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatDialog;
-import android.support.v7.app.AppCompatDialogFragment;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDialog;
+import androidx.appcompat.app.AppCompatDialogFragment;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.R;
 import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.SVBar;
-import com.squareup.leakcanary.RefWatcher;
 
 public class NeopixelColorPickerFragment extends AppCompatDialogFragment implements ColorPicker.OnColorChangedListener {
     // Log

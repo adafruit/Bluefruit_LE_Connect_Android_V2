@@ -6,10 +6,10 @@
     android:layout_height="match_parent"
     android:background="@color/background"
     android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".app.ThermalCameraFragment">
 
     <LinearLayout
@@ -27,8 +27,8 @@
             android:id="@+id/colorModeRadioGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="20dp"
             android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -69,8 +69,8 @@
             android:id="@+id/magnificationRadioGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="20dp"
             android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -100,11 +100,11 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <android.support.percent.PercentRelativeLayout
+        <androidx.percentlayout.widget.PercentRelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="10dp"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:background="@drawable/border_white">
 
             <ImageView
@@ -113,7 +113,7 @@
                 android:layout_height="0dp"
                 app:layout_aspectRatio="100%"
                 app:layout_widthPercent="100%" />
-        </android.support.percent.PercentRelativeLayout>
+        </androidx.percentlayout.widget.PercentRelativeLayout>
 
 
         <TextView
@@ -157,8 +157,8 @@
                 android:id="@+id/thermalScaleView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1" />
 
             <TextView

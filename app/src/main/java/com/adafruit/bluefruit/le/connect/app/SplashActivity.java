@@ -2,7 +2,8 @@ package com.adafruit.bluefruit.le.connect.app;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 // based on: https://www.bignerdranch.com/blog/splash-screens-the-right-way/
 public class SplashActivity extends AppCompatActivity {

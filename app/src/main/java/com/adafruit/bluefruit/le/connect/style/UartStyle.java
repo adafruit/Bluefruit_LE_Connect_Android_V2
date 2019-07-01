@@ -2,7 +2,7 @@ package com.adafruit.bluefruit.le.connect.style;
 
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public class UartStyle {
     public static @NonNull

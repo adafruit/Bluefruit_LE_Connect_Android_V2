@@ -1,7 +1,7 @@
 package com.adafruit.bluefruit.le.connect.dfu;
 
 import android.net.Uri;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import org.w3c.dom.Document;

@@ -496,6 +496,23 @@
 	<string name="thermalcamera_temprange_title">Temperature Range:</string>
 
 
+	<!-- Image Transfer -->
+	<string name="imagetransfer_tab_title">Image Transfer</string>
+	<string name="imagetransfer_navigation_title_format" formatted="false">Image Transfer - %s</string>
+
+	<string name="imagetransfer_selectimage_action">Select image</string>
+	<string name="imagetransfer_imagepicker_camera">Take photo</string>
+	<string name="imagetransfer_imagepicker_cameraroll">Camera roll</string>
+	<string name="imagetransfer_imagepicker_photolibrary">Photo library</string>
+	<string name="imagetransfer_imageorigin_camera">Camera</string>
+	<string name="imagetransfer_imageorigin_cameraroll">Camera roll</string>
+	<string name="imagetransfer_imageorigin_photolibrary">Photo library</string>
+	<string name="imagetransfer_imageorigin_other">Other</string>
+	<string name="imagetransfer_imageorigin_default">Default</string>
+
+
+
+
 
 	<!-- Common -->
 	<string name="dialog_ok">OK</string>

@@ -1,6 +1,6 @@
 package com.adafruit.bluefruit.le.connect.app;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 import com.adafruit.bluefruit.le.connect.ble.UartPacket;

@@ -32,7 +32,7 @@
             android:layout_weight="1"
             android:text="@string/neopixelcomponentselector_speed_400khz" />
 
-        <android.support.v7.widget.SwitchCompat
+        <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/mode400HhzSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
@@ -45,7 +45,7 @@
         android:text="@string/neopixelcomponentselector_speed_title"
         android:textAllCaps="true" />
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/standardComponentsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

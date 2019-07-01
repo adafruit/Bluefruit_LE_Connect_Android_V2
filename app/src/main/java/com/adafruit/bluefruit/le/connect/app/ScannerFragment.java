@@ -3,7 +3,6 @@ package com.adafruit.bluefruit.le.connect.app;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.AlertDialog;
-import android.arch.lifecycle.ViewModelProviders;
 import android.bluetooth.le.ScanCallback;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -12,21 +11,6 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SimpleItemAnimator;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -44,8 +28,24 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
@@ -59,6 +59,7 @@ import com.adafruit.bluefruit.le.connect.style.StyledSnackBar;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
 import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
 import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
 
@@ -166,7 +167,10 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             peripheralsRecyclerView.setLayoutManager(peripheralsLayoutManager);
 
             // Disable update animation
-            ((SimpleItemAnimator) peripheralsRecyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
+            SimpleItemAnimator animator = (SimpleItemAnimator) peripheralsRecyclerView.getItemAnimator();
+            if (animator != null) {
+                animator.setSupportsChangeAnimations(false);
+            }
 
             // Adapter
             mBlePeripheralsAdapter = new BlePeripheralsAdapter(context, blePeripheral -> {
@@ -701,7 +705,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         mScannerViewModel.stop();
 
         FragmentActivity activity = getActivity();
-        if (activity != null && activity instanceof MainActivity) {
+        if (activity instanceof MainActivity) {
             MainActivity mainActivity = (MainActivity) activity;
             mainActivity.startUpdate(blePeripheral, firmwareInfo);
         }

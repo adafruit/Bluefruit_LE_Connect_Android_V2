@@ -3,13 +3,6 @@ package com.adafruit.bluefruit.le.connect.app.neopixel;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatDialog;
-import android.support.v7.app.AppCompatDialogFragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,11 +12,16 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatDialog;
+import androidx.appcompat.app.AppCompatDialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.utils.FileUtils;
-import com.squareup.leakcanary.RefWatcher;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -59,7 +57,7 @@ public class NeopixelBoardSelectorFragment extends AppCompatDialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Remove title
-        AppCompatDialog dialog = (AppCompatDialog)getDialog();
+        AppCompatDialog dialog = (AppCompatDialog) getDialog();
         dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
 
         // Inflate the layout for this fragment
@@ -78,7 +76,7 @@ public class NeopixelBoardSelectorFragment extends AppCompatDialogFragment {
         if (context != null) {
             RecyclerView standardSizesRecyclerView = view.findViewById(R.id.standardSizesRecyclerView);
             standardSizesRecyclerView.setHasFixedSize(true);
-            standardSizesRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+            standardSizesRecyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
             RecyclerView.Adapter standardBoardSizesAdapter = new StandardBoardSizesAdapter(context, index -> {
                 mListener.onBoardIndexSelected(index);
                 dismiss();

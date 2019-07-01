@@ -2,15 +2,6 @@ package com.adafruit.bluefruit.le.connect.app;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.MainThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,13 +15,20 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttManager;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttSettings;
 import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
-import com.squareup.leakcanary.RefWatcher;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 

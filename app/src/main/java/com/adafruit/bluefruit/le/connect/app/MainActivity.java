@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.arch.lifecycle.ViewModelProviders;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,15 +13,17 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.adafruit.bluefruit.le.connect.BluefruitApplication;
 import com.adafruit.bluefruit.le.connect.R;
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
                     .commit();
 
         } else {
-            hasUserAlreadyBeenAskedAboutBluetoothStatus=savedInstanceState.getBoolean("hasUserAlreadyBeenAskedAboutBluetoothStatus");
+            hasUserAlreadyBeenAskedAboutBluetoothStatus = savedInstanceState.getBoolean("hasUserAlreadyBeenAskedAboutBluetoothStatus");
             mMainFragment = (MainFragment) fragmentManager.findFragmentByTag("Main");
         }
 
@@ -462,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             public void onDownloadFailed() {
                 dismissDfuProgressDialog();
 
-                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainActivity.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle(R.string.dfu_status_error).setMessage(R.string.dfu_download_error_message)
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
@@ -493,7 +494,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     @Override
     public void onDfuCompleted(String deviceAddress) {
         dismissDfuProgressDialog();
-        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dfu_status_completed).setMessage(R.string.dfu_updatecompleted_message)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
@@ -503,7 +504,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     public void onDfuAborted(String deviceAddress) {
         dismissDfuProgressDialog();
 
-        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dfu_status_error).setMessage(R.string.dfu_updateaborted_message)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
@@ -513,7 +514,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     public void onError(String deviceAddress, int error, int errorType, String message) {
         dismissDfuProgressDialog();
 
-        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.dfu_status_error).setMessage(message)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();

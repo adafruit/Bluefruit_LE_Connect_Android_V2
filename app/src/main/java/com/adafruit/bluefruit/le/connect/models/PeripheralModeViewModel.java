@@ -1,11 +1,12 @@
 package com.adafruit.bluefruit.le.connect.models;
 
 import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.LiveData;
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
 
 import com.adafruit.bluefruit.le.connect.ble.peripheral.GattServer;
 import com.adafruit.bluefruit.le.connect.ble.peripheral.PeripheralService;

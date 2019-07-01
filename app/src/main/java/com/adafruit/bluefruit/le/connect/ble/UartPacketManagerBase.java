@@ -4,8 +4,8 @@ import android.bluetooth.BluetoothGatt;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheralUart;

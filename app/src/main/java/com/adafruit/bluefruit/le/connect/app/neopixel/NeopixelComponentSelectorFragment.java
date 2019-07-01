@@ -2,23 +2,21 @@ package com.adafruit.bluefruit.le.connect.app.neopixel;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatDialog;
-import android.support.v7.app.AppCompatDialogFragment;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 
-import com.adafruit.bluefruit.le.connect.BluefruitApplication;
-import com.adafruit.bluefruit.le.connect.BuildConfig;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDialog;
+import androidx.appcompat.app.AppCompatDialogFragment;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.adafruit.bluefruit.le.connect.R;
-import com.squareup.leakcanary.RefWatcher;
 
 public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
     // Log
@@ -61,7 +59,7 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Remove title
-        AppCompatDialog dialog = (AppCompatDialog)getDialog();
+        AppCompatDialog dialog = (AppCompatDialog) getDialog();
         dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
 
         // Inflate the layout for this fragment
@@ -80,7 +78,7 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
         if (context != null) {
             RecyclerView standardComponentsRecyclerView = view.findViewById(R.id.standardComponentsRecyclerView);
             standardComponentsRecyclerView.setHasFixedSize(true);
-            standardComponentsRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+            standardComponentsRecyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
             RecyclerView.Adapter standardBoardSizesAdapter = new StandardComponentsAdapter(mSelectedComponent, components -> {
                 mSelectedComponent = components;
                 if (mListener != null) {

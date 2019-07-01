@@ -1,6 +1,6 @@
 package com.adafruit.bluefruit.le.connect.app.neopixel;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 @SuppressWarnings("WeakerAccess")
