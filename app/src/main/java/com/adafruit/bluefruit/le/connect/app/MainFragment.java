@@ -93,6 +93,11 @@ public class MainFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
     // endregion
 
     // region Fragments
@@ -165,7 +170,7 @@ public class MainFragment extends Fragment {
             // Start or stop advertising when the selected fragment is navigation_peripheral
             if (navigationSelectedItem == R.id.navigation_peripheral) {
                 Log.d(TAG, "Start Advertising");
-                final boolean result = mPeripheralModeViewModel.start(context);
+                final boolean result = mPeripheralModeViewModel.start(context.getApplicationContext());
                 if (!result) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                     AlertDialog dialog = builder.setTitle(R.string.dialog_error).setMessage(R.string.bluetooth_advertising_start_error)
@@ -175,7 +180,7 @@ public class MainFragment extends Fragment {
                 }
             } else {
                 Log.d(TAG, "Stop Advertising");
-                mPeripheralModeViewModel.stop(context);
+                mPeripheralModeViewModel.stop(context.getApplicationContext());
             }
         }
 
@@ -209,14 +214,14 @@ public class MainFragment extends Fragment {
     // endregion
 
     // region Actions
-    public void startScanning() {
+    void startScanning() {
         // Send the message to the peripheral mode fragment, or ignore it if is not selected
         if (getCurrentFragment() instanceof ScannerFragment) {
             ((ScannerFragment) getCurrentFragment()).startScanning();
         }
     }
 
-    public void disconnectAllPeripherals() {
+    void disconnectAllPeripherals() {
         // Send the message to the peripheral mode fragment, or ignore it if is not selected
         if (getCurrentFragment() instanceof ScannerFragment) {
             ((ScannerFragment) getCurrentFragment()).disconnectAllPeripherals();

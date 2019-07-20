@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.SharedPreferences;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -12,7 +13,6 @@ import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -30,9 +30,9 @@ public class PeripheralService {
     }
 
     // Data
-    protected String mName;
-    protected boolean mIsEnabled = true;
-    protected BluetoothGattService mService;
+    String mName;
+    private boolean mIsEnabled = true;
+    BluetoothGattService mService;
     private Map<UUID, Set<BluetoothDevice>> mSubscribedCharacteristics = new HashMap<>();
     protected Listener mListener;
 
@@ -66,7 +66,7 @@ public class PeripheralService {
 
     // region Actions
 
-    public BluetoothGattCharacteristic getCharacteristic(@NonNull UUID uuid) {
+    BluetoothGattCharacteristic getCharacteristic(@NonNull UUID uuid) {
         return mService.getCharacteristic(uuid);
     }
 
@@ -74,7 +74,7 @@ public class PeripheralService {
         characteristic.setValue(value);
     }
 
-    public void subscribe(@NonNull UUID characteristicUuid, @NonNull BluetoothDevice device) {
+    void subscribe(@NonNull UUID characteristicUuid, @NonNull BluetoothDevice device) {
         Set<BluetoothDevice> existingSubscribedCharacteristic = mSubscribedCharacteristics.get(characteristicUuid);
         if (existingSubscribedCharacteristic != null) {
             existingSubscribedCharacteristic.add(device);
@@ -85,20 +85,20 @@ public class PeripheralService {
         }
     }
 
-    public void unsubscribe(@NonNull UUID characteristicUuid, @NonNull BluetoothDevice device) {
+    void unsubscribe(@NonNull UUID characteristicUuid, @NonNull BluetoothDevice device) {
         Set<BluetoothDevice> existingSubscribedCharacteristic = mSubscribedCharacteristics.get(characteristicUuid);
         if (existingSubscribedCharacteristic != null) {
             existingSubscribedCharacteristic.remove(device);
         }
     }
 
-    public @Nullable
+    @Nullable
     BluetoothDevice[] getDevicesSubscribedToCharacteristic(@NonNull UUID characteristicUuid) {
         BluetoothDevice[] devices = null;
 
         Set<BluetoothDevice> existingSubscribedCharacteristic = mSubscribedCharacteristics.get(characteristicUuid);
         if (existingSubscribedCharacteristic != null) {
-            devices = existingSubscribedCharacteristic.toArray(new BluetoothDevice[existingSubscribedCharacteristic.size()]);
+            devices = existingSubscribedCharacteristic.toArray(new BluetoothDevice[0]);
         }
 
         return devices;
@@ -113,7 +113,7 @@ public class PeripheralService {
     public void saveValues(Context context) {
         SharedPreferences.Editor preferencesEditor = context.getSharedPreferences(kPreferences, MODE_PRIVATE).edit();
         preferencesEditor.putBoolean(mService.getUuid().toString() + "_isEnabled", mIsEnabled);
-        List<BluetoothGattCharacteristic> characteristics = mService.getCharacteristics();
+        //List<BluetoothGattCharacteristic> characteristics = mService.getCharacteristics();
         preferencesEditor.apply();
     }
     // endregion

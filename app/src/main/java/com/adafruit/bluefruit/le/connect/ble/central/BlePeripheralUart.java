@@ -2,10 +2,12 @@ package com.adafruit.bluefruit.le.connect.ble.central;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.os.Handler;
 import android.os.ParcelUuid;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Log;
 
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 
@@ -13,6 +15,7 @@ import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BlePeripheralUart {
     // Log
@@ -24,7 +27,7 @@ public class BlePeripheralUart {
     private static final UUID kUartRxCharacteristicUUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
 
     private static final int kUartTxMaxBytes = 20;
-    public static final int kUartReplyDefaultTimeout = 2000;       // in millis
+    private static final int kUartReplyDefaultTimeout = 2000;       // in millis
 
     // Interfaces
     public interface UartRxHandler {
@@ -117,7 +120,7 @@ public class BlePeripheralUart {
     // endregion
 
     // region Send
-    public void uartSend(@NonNull byte[] data, @Nullable BlePeripheral.CompletionHandler completionHandler) {
+    void uartSend(@NonNull byte[] data, @Nullable BlePeripheral.CompletionHandler completionHandler) {
         if (mUartTxCharacteristic == null) {
             Log.e(TAG, "Command Error: characteristic no longer valid");
             if (completionHandler != null) {
@@ -128,6 +131,8 @@ public class BlePeripheralUart {
 
         // Split data in kUartTxMaxBytes bytes packets
         int offset = 0;
+        AtomicInteger worseStatus = new AtomicInteger(BluetoothGatt.GATT_SUCCESS);
+
         do {
             final int packetSize = Math.min(data.length - offset, kUartTxMaxBytes);
             final byte[] packet = Arrays.copyOfRange(data, offset, offset + packetSize);
@@ -135,26 +140,83 @@ public class BlePeripheralUart {
 
             final int finalOffset = offset;
             mBlePeripheral.writeCharacteristic(mUartTxCharacteristic, mUartTxCharacteristicWriteType, packet, status -> {
+                //Log.d(TAG, "next offset:"+finalOffset);
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     Log.d(TAG, "uart tx write (hex): " + BleUtils.bytesToHex2(packet));
                 } else {
-                    Log.w(TAG, "Error " + status + " writing packet at offset: " + finalOffset);
+                    worseStatus.set(status);
+                    Log.w(TAG, "Error " + status + " writing packet");
                 }
 
                 if (finalOffset >= data.length && completionHandler != null) {
-                    completionHandler.completion(status);
+                    completionHandler.completion(worseStatus.get());
                 }
             });
 
         } while (offset < data.length);
     }
 
+    /*
+       Sends each packet on the MainThread. Useful if the UI should be updated between packets
+    */
+    private boolean mIsSendSequentiallyCancelled = false;
 
-    public void uartSendAndWaitReply(@NonNull byte[] data, @Nullable BlePeripheral.CompletionHandler writeCompletionHandler, @NonNull BlePeripheral.CaptureReadCompletionHandler readCompletionHandler) {
+    void sendEachPacketSequentiallyInThread(@NonNull Handler handler, @NonNull byte[] data, int delayBetweenPackets, BlePeripheral.ProgressHandler progressHandler, BlePeripheral.CompletionHandler completionHandler) {
+        if (mUartTxCharacteristic == null) {
+            Log.e(TAG, "Command Error: characteristic no longer valid");
+            if (completionHandler != null) {
+                completionHandler.completion(BluetoothGatt.GATT_FAILURE);
+            }
+            return;
+        }
+
+        mIsSendSequentiallyCancelled = false;
+
+        uartSendPacket(handler, data, 0, mUartTxCharacteristic, mUartTxCharacteristicWriteType, delayBetweenPackets, progressHandler, completionHandler);
+    }
+
+    void cancelOngoingSendPacketSequentiallyInThread() {
+        mIsSendSequentiallyCancelled = true;
+    }
+
+    private void uartSendPacket(@NonNull Handler handler, @NonNull byte[] data, int offset, BluetoothGattCharacteristic uartTxCharacteristic, int uartTxCharacteristicWriteType, int delayBetweenPackets, BlePeripheral.ProgressHandler progressHandler, BlePeripheral.CompletionHandler completionHandler) {
+        final int packetSize = Math.min(data.length - offset, kUartTxMaxBytes);
+        final byte[] packet = Arrays.copyOfRange(data, offset, offset + packetSize);
+        final int writeStartingOffset = offset;
+
+        mBlePeripheral.writeCharacteristic(uartTxCharacteristic, uartTxCharacteristicWriteType, packet, status -> {
+            int writtenSize = writeStartingOffset;
+
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                Log.w(TAG, "Error " + status + " writing packet at offset" + writeStartingOffset + " Error: " + status);
+            } else {
+                Log.d(TAG, "write packet at offset " + writeStartingOffset + ": " + BleUtils.bytesToHex2(packet));
+
+                writtenSize += packet.length;
+
+                if (!mIsSendSequentiallyCancelled && writtenSize < data.length) {
+                    int finalWrittenSize = writtenSize;
+                    handler.postDelayed(() -> uartSendPacket(handler, data, finalWrittenSize, uartTxCharacteristic, uartTxCharacteristicWriteType, delayBetweenPackets, progressHandler, completionHandler), delayBetweenPackets);
+                }
+            }
+
+            if (mIsSendSequentiallyCancelled) {
+                completionHandler.completion(BluetoothGatt.GATT_SUCCESS);
+            } else if (writtenSize >= data.length) {
+                progressHandler.progress(1);
+                completionHandler.completion(status);
+            } else {
+                progressHandler.progress(writtenSize / (float) data.length);
+            }
+        });
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    void uartSendAndWaitReply(@NonNull byte[] data, @Nullable BlePeripheral.CompletionHandler writeCompletionHandler, @NonNull BlePeripheral.CaptureReadCompletionHandler readCompletionHandler) {
         uartSendAndWaitReply(data, writeCompletionHandler, kUartReplyDefaultTimeout, readCompletionHandler);
     }
 
-    public void uartSendAndWaitReply(@NonNull byte[] data, @Nullable BlePeripheral.CompletionHandler writeCompletionHandler, int readTimeout, @NonNull BlePeripheral.CaptureReadCompletionHandler readCompletionHandler) {
+    void uartSendAndWaitReply(@NonNull byte[] data, @Nullable BlePeripheral.CompletionHandler writeCompletionHandler, int readTimeout, @NonNull BlePeripheral.CaptureReadCompletionHandler readCompletionHandler) {
         if (mUartTxCharacteristic == null || mUartRxCharacteristic == null) {
             Log.e(TAG, "Error: uart characteristics no longer valid");
             if (writeCompletionHandler != null) {
@@ -177,7 +239,7 @@ public class BlePeripheralUart {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     Log.d(TAG, "uart tx writeAndWait (hex): " + BleUtils.bytesToHex2(packet));
                 } else {
-                    Log.w(TAG, "Error " + status + " writing packet at offset: " + finalOffset);
+                    Log.w(TAG, "Error " + status + " writing packet");
                 }
 
                 if (finalOffset >= data.length && writeCompletionHandler != null) {

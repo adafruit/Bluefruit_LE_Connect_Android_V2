@@ -233,7 +233,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
 
     }
 
-    // region DfuFilePickerFragment.OnFragmentInteractionListener
+    // region DfuFilePickerFragment.OnImageCropListener
     @Override
     public void onDfuFilePickerStartUpdate(@NonNull ReleasesParser.BasicVersionInfo versionInfo) {
         startUpdate(versionInfo);

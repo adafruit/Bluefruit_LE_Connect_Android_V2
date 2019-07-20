@@ -390,7 +390,7 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
     // endregion
 
 
-    // region MqttSettingsCodeReaderFragment.OnFragmentInteractionListener
+    // region MqttSettingsCodeReaderFragment.OnImageCropListener
     @Override
     public void onPasswordUpdated(String password) {
         mPasswordEditText.setText(password);

@@ -284,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
 
         // Check Bluetooth HW status
         int errorMessageId = 0;
-        final int bleStatus = BleUtils.getBleStatus(getBaseContext());
+        final int bleStatus = BleUtils.getBleStatus(getApplicationContext());
         switch (bleStatus) {
             case BleUtils.STATUS_BLE_NOT_AVAILABLE:
                 errorMessageId = R.string.bluetooth_unsupported;

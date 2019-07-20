@@ -86,6 +86,12 @@ dependencies {
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.3'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
 
+    // FileProvider
+    implementation 'com.commonsware.cwac:provider:0.5.1'
+
+    // Image Crop
+    implementation "com.naver.android.helloyako:imagecropview:1.2.3"
+
     //
     testImplementation 'junit:junit:4.12'
 }

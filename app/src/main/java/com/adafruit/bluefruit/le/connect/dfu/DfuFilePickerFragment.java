@@ -120,7 +120,7 @@ public class DfuFilePickerFragment extends AppCompatDialogFragment {
         } else if (getTargetFragment() instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) getTargetFragment();
         } else {
-            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
+            throw new RuntimeException(context.toString() + " must implement OnImageCropListener");
         }
     }
 

@@ -34,7 +34,8 @@ public class UartPeripheralService extends PeripheralService {
     private BluetoothGattDescriptor mRxConfigDescriptor = new BluetoothGattDescriptor(BlePeripheral.kClientCharacteristicConfigUUID, BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
 
     // Data
-    private WeakReference<UartRXListener> mWeakRxListener;
+    //private WeakReference<UartRXListener> mWeakRxListener;
+    private UartRXListener mRxListener;
 
     //
     public UartPeripheralService(Context context) {
@@ -65,10 +66,10 @@ public class UartPeripheralService extends PeripheralService {
         return mTxCharacteristic.getValue();
     }
 
-    public void setTx(byte[] data) {
+    private void setTx(byte[] data) {
         mTxCharacteristic.setValue(data);
 
-        UartRXListener rxListener = mWeakRxListener.get();
+        UartRXListener rxListener = mRxListener;//mWeakRxListener.get();
         if (rxListener != null) {
             rxListener.onRxDataReceived(data);
         }
@@ -78,7 +79,7 @@ public class UartPeripheralService extends PeripheralService {
         return mRxCharacteristic.getValue();
     }
 
-    public void setRx(byte[] data) {
+    void setRx(byte[] data) {
         mRxCharacteristic.setValue(data);
 
         if (mListener != null) {
@@ -90,6 +91,7 @@ public class UartPeripheralService extends PeripheralService {
     }
 
     public void uartEnable(@Nullable UartRXListener listener) {
-        mWeakRxListener = new WeakReference<>(listener);
+        //mWeakRxListener = new WeakReference<>(listener);
+        mRxListener = listener;
     }
 }

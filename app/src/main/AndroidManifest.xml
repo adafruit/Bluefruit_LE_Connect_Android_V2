@@ -2,9 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.adafruit.bluefruit.le.connect">
 
+    <!-- BluetoothLe Required -->
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
+
+    <!-- Image Transfer take pic (optional) -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <!-- Bluetooth Permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -17,7 +23,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- Barcode reading -->
+    <!-- Barcode reading & Image Transfer -->
     <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- App -->
@@ -63,5 +69,16 @@
         <!-- DFU Notification -->
         <activity android:name=".dfu.NotificationActivity" />
 
+
+        <!-- FileProvider -->
+        <provider
+            android:name=".utils.LegacyCompatFileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
     </application>
 </manifest>

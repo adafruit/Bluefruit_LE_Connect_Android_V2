@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatDialogFragment;
 
 public class ProgressFragmentDialog extends AppCompatDialogFragment {
     // Params
-    protected final static String kParamMessage = "message";
+    final static String kParamMessage = "message";
 
     // UI
     private ProgressDialog mDialog;

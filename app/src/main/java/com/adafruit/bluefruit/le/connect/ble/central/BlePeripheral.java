@@ -10,13 +10,12 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import android.util.Log;
 
 import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
@@ -57,7 +56,6 @@ public class BlePeripheral {
 
     public static UUID kClientCharacteristicConfigUUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
-    private final static boolean kForceWriteWithResponse = false;                    // Possible Android bug?: writing without response still calls onCharacteristicWrite
     private final static boolean kForceWriteWithoutResponse = true;                  // Force without response, or take into account that write response (onCharacteristicWrite) could be reported AFTER onCharacteristicChanged on expecting a response
     private static boolean kHackToAvoidProblemsWhenWriteIsReceivedBeforeChangedOnWriteWithResponse = true;   // On Android when writing on a characteristic with writetype WRITE_TYPE_DEFAULT, onCharacteristicChanged (when a response is expected) can be called before onCharacteristicWrite. This weird behaviour has to be taken into account!!
 
@@ -137,7 +135,7 @@ public class BlePeripheral {
                 if (kHackToAvoidProblemsWhenWriteIsReceivedBeforeChangedOnWriteWithResponse) {
                     Log.d(TAG, "onCharacteristicWrite. Ignored");
                     // TODO: fixit
-                    // This is not totally correct. If onCharacteristicChanged arrives before onCharacteristicWrite, onCharacteristicChanged should not finishExecutingCommand and wait should be executed when this funtion is called
+                    // This is not totally correct. If onCharacteristicChanged arrives before onCharacteristicWrite, onCharacteristicChanged should not finishExecutingCommand and wait should be executed when this function is called
                 } else {
                     Log.d(TAG, "onCharacteristicWrite. Waiting for reponse");
                     final String identifier = getCharacteristicIdentifier(characteristic);
@@ -150,7 +148,14 @@ public class BlePeripheral {
                     Log.d(TAG, "onCharacteristicWrite: add captureReadHandler");
                     mCaptureReadHandlers.add(captureReadHandler);
                 }
-            } else {
+            }
+            /*
+            else if (command != null && command.mType == BleCommand.BLECOMMANDTYPE_WRITECHARACTERISTIC && characteristic.getWriteType() == BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) {
+                // Note on Android bluetooth stack: https://stackoverflow.com/questions/43741849/oncharacteristicwrite-and-onnotificationsent-are-being-called-too-fast-how-to/43744888
+                // TODO: use this instead of simulating a response for WRITE_TYPE_NO_RESPONSE
+                Log.w(TAG, "onCharacteristicWrite received for WRITE_TYPE_NO_RESPONSE");
+            }*/
+            else {
                 Log.d(TAG, "onCharacteristicWrite. Finished");
                 finishExecutingCommand(status);
             }
@@ -266,6 +271,7 @@ public class BlePeripheral {
         @Override
         public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
             super.onMtuChanged(gatt, mtu, status);
+            Log.d(TAG, "Mtu changed: " + mtu);
         }
     };
 
@@ -674,9 +680,7 @@ public class BlePeripheral {
                     int selectedWriteType;
                     if (kForceWriteWithoutResponse) {
                         selectedWriteType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE;
-                    } else if (kForceWriteWithResponse) {
-                        selectedWriteType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT;
-                    } else {
+                    }  else {
                         selectedWriteType = writeType;
                     }
 
@@ -686,9 +690,11 @@ public class BlePeripheral {
                     if (success) {
 
                         // Simulate response if needed
+                        // Android: no need to simulate response: https://stackoverflow.com/questions/43741849/oncharacteristicwrite-and-onnotificationsent-are-being-called-too-fast-how-to/43744888
+                        /*
                         if (selectedWriteType == BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) {
                             finishExecutingCommand(BluetoothGatt.GATT_SUCCESS);
-                        }
+                        }*/
                     } else {
                         Log.w(TAG, "writeCharacteristic could not be initiated");
                         finishExecutingCommand(BluetoothGatt.GATT_FAILURE);
@@ -713,7 +719,7 @@ public class BlePeripheral {
                 if (mBluetoothGatt != null) {
                     Log.d(TAG, "writeCharacteristicAndCaptureNotify");
                     // Write value
-                    characteristic.setWriteType(kForceWriteWithResponse ? BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT : writeType);
+                    characteristic.setWriteType(writeType);
                     characteristic.setValue(data);
                     final boolean success = mBluetoothGatt.writeCharacteristic(characteristic);
                     if (success) {
@@ -777,6 +783,10 @@ public class BlePeripheral {
 
     public interface CompletionHandler {
         void completion(int status);
+    }
+
+    public interface ProgressHandler {
+        void progress(float progress);
     }
 
     public interface NotifyHandler {
@@ -908,6 +918,7 @@ public class BlePeripheral {
             mExtra = extra;
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         boolean isCancelled() {
             return mIsCancelled;
         }
@@ -971,6 +982,7 @@ public class BlePeripheral {
             }
         }
 
+        @SuppressWarnings("SameParameterValue")
         boolean containsCommandType(int type) {
             synchronized (mQueue) {
                 int i = 0;
