@@ -2,7 +2,6 @@ package com.adafruit.bluefruit.le.connect.ble.central;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.os.Handler;
 import android.os.ParcelUuid;
 import android.util.Log;
 
@@ -40,7 +39,8 @@ public class BlePeripheralUart {
     private BluetoothGattCharacteristic mUartTxCharacteristic;
     private BluetoothGattCharacteristic mUartRxCharacteristic;
     private int mUartTxCharacteristicWriteType;
-
+    private boolean mIsSendSequentiallyCancelled = false;
+    
     // region Initialization
     public BlePeripheralUart(@NonNull BlePeripheral blePeripheral) {
         super();
@@ -156,12 +156,7 @@ public class BlePeripheralUart {
         } while (offset < data.length);
     }
 
-    /*
-       Sends each packet on the MainThread. Useful if the UI should be updated between packets
-    */
-    private boolean mIsSendSequentiallyCancelled = false;
-
-    void sendEachPacketSequentiallyInThread(@NonNull Handler handler, @NonNull byte[] data, int delayBetweenPackets, BlePeripheral.ProgressHandler progressHandler, BlePeripheral.CompletionHandler completionHandler) {
+    void sendEachPacketSequentially(@NonNull byte[] data, int withResponseEveryPacketCount, BlePeripheral.ProgressHandler progressHandler, BlePeripheral.CompletionHandler completionHandler) {
         if (mUartTxCharacteristic == null) {
             Log.e(TAG, "Command Error: characteristic no longer valid");
             if (completionHandler != null) {
@@ -172,17 +167,20 @@ public class BlePeripheralUart {
 
         mIsSendSequentiallyCancelled = false;
 
-        uartSendPacket(handler, data, 0, mUartTxCharacteristic, mUartTxCharacteristicWriteType, delayBetweenPackets, progressHandler, completionHandler);
+
+        uartSendPacket(data, 0, mUartTxCharacteristic, withResponseEveryPacketCount, withResponseEveryPacketCount, progressHandler, completionHandler);
     }
 
     void cancelOngoingSendPacketSequentiallyInThread() {
         mIsSendSequentiallyCancelled = true;
     }
 
-    private void uartSendPacket(@NonNull Handler handler, @NonNull byte[] data, int offset, BluetoothGattCharacteristic uartTxCharacteristic, int uartTxCharacteristicWriteType, int delayBetweenPackets, BlePeripheral.ProgressHandler progressHandler, BlePeripheral.CompletionHandler completionHandler) {
+    private void uartSendPacket(@NonNull byte[] data, int offset, BluetoothGattCharacteristic uartTxCharacteristic, int withResponseEveryPacketCount, int numPacketsRemainingForDelay, BlePeripheral.ProgressHandler progressHandler, BlePeripheral.CompletionHandler completionHandler) {
         final int packetSize = Math.min(data.length - offset, kUartTxMaxBytes);
         final byte[] packet = Arrays.copyOfRange(data, offset, offset + packetSize);
         final int writeStartingOffset = offset;
+        final int uartTxCharacteristicWriteType = numPacketsRemainingForDelay <= 0 ? BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT : BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE;          // Send a packet WRITE_TYPE_DEFAULT to force wait until receive response and avoid dropping packets if the peripheral is not processing them fast enough
+
 
         mBlePeripheral.writeCharacteristic(uartTxCharacteristic, uartTxCharacteristicWriteType, packet, status -> {
             int writtenSize = writeStartingOffset;
@@ -195,8 +193,9 @@ public class BlePeripheralUart {
                 writtenSize += packet.length;
 
                 if (!mIsSendSequentiallyCancelled && writtenSize < data.length) {
-                    int finalWrittenSize = writtenSize;
-                    handler.postDelayed(() -> uartSendPacket(handler, data, finalWrittenSize, uartTxCharacteristic, uartTxCharacteristicWriteType, delayBetweenPackets, progressHandler, completionHandler), delayBetweenPackets);
+                    //int finalWrittenSize = writtenSize;
+                    //handler.postDelayed(() -> uartSendPacket(handler, data, finalWrittenSize, uartTxCharacteristic, uartTxCharacteristicWriteType, delayBetweenPackets, progressHandler, completionHandler), delayBetweenPackets);
+                    uartSendPacket(data, writtenSize, uartTxCharacteristic, withResponseEveryPacketCount, numPacketsRemainingForDelay <= 0 ? withResponseEveryPacketCount : numPacketsRemainingForDelay - 1, progressHandler, completionHandler);
                 }
             }
 

@@ -644,7 +644,8 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         final byte[] crcData = BlePeripheralUart.appendCrc(data);
 
-        mUartManager.sendEachPacketSequentiallyInThread(mMainHandler, mBlePeripheralUart, crcData, 0, progress -> {
+        final int kPacketWithResponseEveryPacketCount = 1;      // Note: dont use bigger number or it will drop packets for big enough images
+        mUartManager.sendEachPacketSequentially(mBlePeripheralUart, crcData, kPacketWithResponseEveryPacketCount, progress -> {
             if (mProgressDialog != null) {
                 //Log.d(TAG, "progress: " + ((int) (progress * 100)));
                 mProgressDialog.setProgress((int) (progress * 100));

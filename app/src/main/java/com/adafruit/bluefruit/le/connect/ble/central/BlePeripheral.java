@@ -56,7 +56,7 @@ public class BlePeripheral {
 
     public static UUID kClientCharacteristicConfigUUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
-    private final static boolean kForceWriteWithoutResponse = true;                  // Force without response, or take into account that write response (onCharacteristicWrite) could be reported AFTER onCharacteristicChanged on expecting a response
+    private final static boolean kForceWriteWithoutResponse = false;//true;                  // Force without response, or take into account that write response (onCharacteristicWrite) could be reported AFTER onCharacteristicChanged on expecting a response
     private static boolean kHackToAvoidProblemsWhenWriteIsReceivedBeforeChangedOnWriteWithResponse = true;   // On Android when writing on a characteristic with writetype WRITE_TYPE_DEFAULT, onCharacteristicChanged (when a response is expected) can be called before onCharacteristicWrite. This weird behaviour has to be taken into account!!
 
     // Data
@@ -680,7 +680,7 @@ public class BlePeripheral {
                     int selectedWriteType;
                     if (kForceWriteWithoutResponse) {
                         selectedWriteType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE;
-                    }  else {
+                    } else {
                         selectedWriteType = writeType;
                     }
 

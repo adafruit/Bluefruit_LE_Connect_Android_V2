@@ -83,9 +83,9 @@ public class UartPacketManager extends UartPacketManagerBase {
         }
     }
 
-    public void sendEachPacketSequentiallyInThread(@NonNull Handler handler, @NonNull BlePeripheralUart uartPeripheral, @NonNull byte[] data, int delayBetweenPackets, BlePeripheral.ProgressHandler progressHandler, BlePeripheral.CompletionHandler completionHandler) {
+    public void sendEachPacketSequentially(@NonNull BlePeripheralUart uartPeripheral, @NonNull byte[] data, int withResponseEveryPacketCount, BlePeripheral.ProgressHandler progressHandler, BlePeripheral.CompletionHandler completionHandler) {
         mSentBytes += data.length;
-        uartPeripheral.sendEachPacketSequentiallyInThread(handler, data, delayBetweenPackets, progressHandler, completionHandler);
+        uartPeripheral.sendEachPacketSequentially(data, withResponseEveryPacketCount, progressHandler, completionHandler);
     }
 
     public void cancelOngoingSendPacketSequentiallyInThread(@NonNull BlePeripheralUart uartPeripheral) {
