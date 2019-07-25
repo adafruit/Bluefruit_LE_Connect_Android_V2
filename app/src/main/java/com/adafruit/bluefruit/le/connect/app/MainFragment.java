@@ -31,13 +31,13 @@ public class MainFragment extends Fragment {
     private final static String TAG = MainFragment.class.getSimpleName();
 
     // UI
-    private BottomNavigationView mNavigationView;
+    //private BottomNavigationView mNavigationView;
 
     // Data
     private WeakReference<Fragment> mCurrentFragmentReference;
     private int selectedFragmentId = 0;
-    private PeripheralModeViewModel mPeripheralModeViewModel;
-    private boolean mIsInitialNavigationItemSelected = false;
+    //private PeripheralModeViewModel mPeripheralModeViewModel;
+    //private boolean mIsInitialNavigationItemSelected = false;
 
     // region Fragment Lifecycle
     public MainFragment() {
@@ -66,10 +66,14 @@ public class MainFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        /*
         // Setup bottom navigation view
         mNavigationView = view.findViewById(R.id.navigation);
         mNavigationView.setOnNavigationItemSelectedListener(this::selectFragment);
         updateActionBarTitle(mNavigationView.getSelectedItemId());       // Restore title (i.e. when a fragment is popped)
+        */
+
+        selectFragment(R.id.navigation_central);
     }
 
     @Override
@@ -79,17 +83,18 @@ public class MainFragment extends Fragment {
         FragmentActivity activity = getActivity();
         if (activity != null) {
             // ViewModels
-            mPeripheralModeViewModel = ViewModelProviders.of(activity).get(PeripheralModeViewModel.class);   // Note: shares viewModel with Activity
+            //mPeripheralModeViewModel = ViewModelProviders.of(activity).get(PeripheralModeViewModel.class);   // Note: shares viewModel with Activity
 
             // update options menu with current values
             activity.invalidateOptionsMenu();
 
+            /*
             // Setup when activity is created for the first time
             if (!mIsInitialNavigationItemSelected) {
                 // Set initial value
                 mNavigationView.setSelectedItemId(R.id.navigation_central);
                 mIsInitialNavigationItemSelected = true;
-            }
+            }*/
         }
     }
 
@@ -105,9 +110,14 @@ public class MainFragment extends Fragment {
         return mCurrentFragmentReference == null ? null : mCurrentFragmentReference.get();
     }
 
+    /*
     private boolean selectFragment(@NonNull MenuItem item) {
-
         final int navigationSelectedItem = item.getItemId();
+        return selectFragment(navigationSelectedItem);
+    }*/
+
+
+    private boolean selectFragment(int navigationSelectedItem) {
 
         // Check errors
         if (navigationSelectedItem == R.id.navigation_peripheral) {
@@ -165,6 +175,7 @@ public class MainFragment extends Fragment {
             }
         }
 
+        /*
         Context context = getContext();
         if (context != null) {
             // Start or stop advertising when the selected fragment is navigation_peripheral
@@ -182,7 +193,7 @@ public class MainFragment extends Fragment {
                 Log.d(TAG, "Stop Advertising");
                 mPeripheralModeViewModel.stop(context.getApplicationContext());
             }
-        }
+        }*/
 
         return isFragmentChanged;
     }

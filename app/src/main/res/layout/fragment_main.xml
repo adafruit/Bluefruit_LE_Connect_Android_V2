@@ -16,6 +16,7 @@
         android:src="@drawable/scanner_adaflower"
         tools:ignore="ContentDescription" />
 
+    <!--
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/navigation"
         android:layout_width="match_parent"
@@ -26,12 +27,18 @@
         app:itemIconTint="@color/main_bottomnavigationbar"
         app:itemTextColor="@color/main_bottomnavigationbar"
         app:menu="@menu/navigation" />
-
     <FrameLayout
         android:id="@+id/navigationContentLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/navigation">
+    </FrameLayout>
+-->
+
+    <FrameLayout
+        android:id="@+id/navigationContentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
     </FrameLayout>
 
 </RelativeLayout>
