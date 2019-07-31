@@ -75,6 +75,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private final static String kPreferences = "ImageTransferFragment_prefs";
     private final static String kPreferences_resolutionWidth = "resolution_width";
     private final static String kPreferences_resolutionHeight = "resolution_height";
+    private final static String kPreferences_withoutResponse = "without_response";
 
     private Size kDefaultResolution = new Size(64, 64);
     private Size[] kAcceptedResolutions = {
@@ -105,6 +106,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private Button mResolutionButton;
     private ViewGroup mResolutionViewGroup;
     private ViewGroup mResolutionContainerViewGroup;
+    private Button mTransferModeButton;
 
     // Data
     private UartPacketManager mUartManager;
@@ -112,6 +114,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private BlePeripheralUart mBlePeripheralUart;
     private Size mResolution;
     private float mImageRotationDegrees;
+    private boolean mIsTransformModewithoutResponse;
     private Bitmap mBitmap;
     private ProgressFragmentDialog mProgressDialog;
 
@@ -154,6 +157,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         final int resolutionWidth = preferences.getInt(kPreferences_resolutionWidth, kDefaultResolution.getWidth());
         final int resolutionHeight = preferences.getInt(kPreferences_resolutionHeight, kDefaultResolution.getHeight());
         mResolution = new Size(resolutionWidth, resolutionHeight);
+        mIsTransformModewithoutResponse = preferences.getBoolean(kPreferences_withoutResponse, false);
 
         // UI
         mUartWaitingTextView = view.findViewById(R.id.uartWaitingTextView);
@@ -166,6 +170,18 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         mResolutionButton.setOnClickListener(v -> chooseResolution());
         Button imageButton = view.findViewById(R.id.imageButton);
         imageButton.setOnClickListener(v -> chooseImage());
+
+        mTransferModeButton = view.findViewById(R.id.transferModeButton);
+        mTransferModeButton.setOnClickListener(v -> {
+            mIsTransformModewithoutResponse = !mIsTransformModewithoutResponse;
+            updateTransferModeUI();
+
+            // Save selected mode
+            SharedPreferences settings = context.getSharedPreferences(kPreferences, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean(kPreferences_withoutResponse, mIsTransformModewithoutResponse);
+            editor.apply();
+        });
 
         ImageButton rotateLeftButton = view.findViewById(R.id.rotateLeftButton);
         rotateLeftButton.setOnClickListener(v -> {
@@ -180,8 +196,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         });
 
         Button sendButton = view.findViewById(R.id.sendButton);
-        sendButton.setOnClickListener(view1 -> sendImage());
-
+        sendButton.setOnClickListener(view1 -> sendImage(mIsTransformModewithoutResponse));
 
         mResolutionContainerViewGroup.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -190,6 +205,8 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                 updateImage(mResolution, mImageRotationDegrees);
             }
         });
+
+        updateTransferModeUI();
 
         // Setup
         if (mUartManager == null) {      // Don't setup if already init (because fragment was recreated)
@@ -283,6 +300,10 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     // endregion
 
     // region UI
+    private void updateTransferModeUI() {
+        mTransferModeButton.setText(mIsTransformModewithoutResponse ? R.string.imagetransfer_transfermode_value_withoutresponse : R.string.imagetransfer_transfermode_value_withresponse);
+    }
+
 
     private void updateResolutionUI() {
         final String text = String.format(Locale.US, "%d x %d", mResolution.getWidth(), mResolution.getHeight());
@@ -600,7 +621,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     // region Send Image
 
-    private void sendImage() {
+    private void sendImage(boolean transferWithoutResponse) {
         Bitmap bitmap = ((BitmapDrawable) mCameraImageView.getDrawable()).getBitmap();
         //Bitmap bitmap = mBitmapDrawable.getBitmap();
 
@@ -646,12 +667,13 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         buffer.put(rgbBytes);
 
         byte[] result = buffer.array();
-        sendCrcData(result);
+        final int packetWithResponseEveryPacketCount = transferWithoutResponse ? Integer.MAX_VALUE : 1;
+        sendCrcData(result, packetWithResponseEveryPacketCount);
 
         rgbaBytes = null;
     }
 
-    private void sendCrcData(byte[] data) {
+    private void sendCrcData(byte[] data, int packetWithResponseEveryPacketCount) {
         Context context = getContext();
         if (context == null) return;
 
@@ -677,8 +699,8 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         final byte[] crcData = BlePeripheralUart.appendCrc(data);
 
-        final int kPacketWithResponseEveryPacketCount = 1;      // Note: dont use bigger number or it will drop packets for big enough images
-        mUartManager.sendEachPacketSequentially(mBlePeripheralUart, crcData, kPacketWithResponseEveryPacketCount, progress -> {
+        //final int kPacketWithResponseEveryPacketCount = 1;      // Note: dont use bigger number or it will drop packets for big enough images
+        mUartManager.sendEachPacketSequentially(mBlePeripheralUart, crcData, packetWithResponseEveryPacketCount, progress -> {
             if (mProgressDialog != null) {
                 //Log.d(TAG, "progress: " + ((int) (progress * 100)));
                 mProgressDialog.setProgress((int) (progress * 100));

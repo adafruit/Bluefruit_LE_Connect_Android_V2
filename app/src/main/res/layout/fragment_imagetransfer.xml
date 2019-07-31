@@ -32,8 +32,8 @@
                 android:id="@+id/resolutionButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:minWidth="130dp"
+                android:layout_marginStart="10dp"
+                android:minWidth="165dp"
                 android:text="@string/imagetransfer_resolution_value_default" />
 
         </LinearLayout>
@@ -54,9 +54,31 @@
                 android:id="@+id/imageButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:minWidth="130dp"
+                android:layout_marginStart="10dp"
+                android:minWidth="165dp"
                 android:text="@string/imagetransfer_imageorigin_choose" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/imagetransfer_transfermode_title"
+                android:textColor="@color/infotext" />
+
+            <Button
+                android:id="@+id/transferModeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:minWidth="165dp"
+                android:text="@string/imagetransfer_transfermode_value_withoutresponse" />
 
         </LinearLayout>
     </LinearLayout>
