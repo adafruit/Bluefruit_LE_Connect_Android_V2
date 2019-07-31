@@ -188,7 +188,7 @@ public class BlePeripheralUart {
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 Log.w(TAG, "Error " + status + " writing packet at offset" + writeStartingOffset + " Error: " + status);
             } else {
-                Log.d(TAG, "write packet at offset " + writeStartingOffset + ": " + BleUtils.bytesToHex2(packet));
+                Log.d(TAG, "uart tx " + (uartTxCharacteristicWriteType == BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE ? "withoutResponse" : "withResponse") + " offset " + writeStartingOffset + ": " + BleUtils.bytesToHex2(packet));
 
                 writtenSize += packet.length;
 

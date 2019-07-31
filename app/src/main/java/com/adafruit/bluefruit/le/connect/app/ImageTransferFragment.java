@@ -1,6 +1,7 @@
 package com.adafruit.bluefruit.le.connect.app;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothGatt;
@@ -36,9 +37,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -71,6 +74,8 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private static final int kActivityRequestCode_pickFromGallery = 1;
     private static final int kActivityRequestCode_takePicture = 2;
     private static final int kActivityRequestCode_cropPicture = 3;
+    private static final int kActivityRequestCode_requestCameraPermission = 4;
+    private static final int kActivityRequestCode_requestReadExternalStoragePermission = 5;
 
     private final static String kPreferences = "ImageTransferFragment_prefs";
     private final static String kPreferences_resolutionWidth = "resolution_width";
@@ -367,10 +372,10 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         Size fitResolution;
         if (heightRatio < widthRatio) {
-            float width = (resolution.getHeight() / (float) image.getHeight()) * image.getWidth();
+            float width = Math.round((resolution.getHeight() / (float) image.getHeight()) * image.getWidth());
             fitResolution = new Size((int) (width), resolution.getHeight());
         } else {
-            float height = (resolution.getWidth() / (float) image.getWidth()) * image.getHeight();
+            float height = Math.round((resolution.getWidth() / (float) image.getWidth()) * image.getHeight());
             fitResolution = new Size(resolution.getWidth(), (int) (height));
         }
 
@@ -457,6 +462,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         dialog.show();
     }
 
+
     private void chooseImage() {
         Context context = getContext();
         if (context == null) return;
@@ -487,47 +493,75 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                     boolean isCameraSelected = which == 0 && finalIsCameraAvailable;
 
                     if (isCameraSelected) {     // Get image from camera
-                        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                        if (takePictureIntent.resolveActivity(packageManager) != null) {
-
-                            File photoFile = null;
-                            try {
-                                photoFile = createImageFile(context);
-                            } catch (IOException ex) {
-                                // Error occurred while creating the File
-                                Log.w(TAG, "Could not create file to save picture");
-                                new AlertDialog.Builder(context)
-                                        .setMessage(R.string.imagetransfer_cameranotavailable)
-                                        .setPositiveButton(android.R.string.ok, null)
-                                        .show();
-                            }
-                            // Continue only if the File was successfully created
-                            if (photoFile != null) {
-                                final String authority = context.getApplicationContext().getPackageName() + kAuthorityField;
-                                Uri photoUri = FileProvider.getUriForFile(context.getApplicationContext(), authority, photoFile);
-                                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-
-                                Log.d(TAG, "Start takePictureIntent");
-                                startActivityForResult(takePictureIntent, kActivityRequestCode_takePicture);
-                                Log.d(TAG, "Started takePictureIntent");
-                            }
-
-                        } else {
-                            Log.w(TAG, "Image capture not available");
-                        }
+                        chooseFromCameraAskingPermissionIfNeeded(context);
                     } else {            // Get image from gallery
-                        Intent intent = new Intent();
-                        intent.setType("image/*");
-                        intent.setAction(Intent.ACTION_GET_CONTENT);
-                        Intent pickPictureIntent = Intent.createChooser(intent, getString(R.string.imagetransfer_imageorigin_choose));
-                        if (pickPictureIntent.resolveActivity(context.getPackageManager()) != null) {
-                            startActivityForResult(pickPictureIntent, kActivityRequestCode_pickFromGallery);
-                        } else {
-                            Log.w(TAG, "There is no photo picker available");
-                        }
+                        chooseFromLibraryAskingPermissionIfNeeded(context);
                     }
                 });
         builder.show();
+    }
+
+    private void chooseFromCameraAskingPermissionIfNeeded(@NonNull Context context) {
+        int rc = ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA);
+        if (rc == PackageManager.PERMISSION_GRANTED) {
+            chooseFromCamera(context);
+        } else {
+            requestCameraPermission();
+        }
+    }
+
+    private void chooseFromCamera(@NonNull Context context) {
+        PackageManager packageManager = context.getPackageManager();
+
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(packageManager) != null) {
+
+            File photoFile = null;
+            try {
+                photoFile = createImageFile(context);
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                Log.w(TAG, "Could not create file to save picture");
+                new AlertDialog.Builder(context)
+                        .setMessage(R.string.imagetransfer_cameranotavailable)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                final String authority = context.getApplicationContext().getPackageName() + kAuthorityField;
+                Uri photoUri = FileProvider.getUriForFile(context.getApplicationContext(), authority, photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+
+                Log.d(TAG, "Start takePictureIntent");
+                startActivityForResult(takePictureIntent, kActivityRequestCode_takePicture);
+                Log.d(TAG, "Started takePictureIntent");
+            }
+
+        } else {
+            Log.w(TAG, "Image capture not available");
+        }
+    }
+
+    private void chooseFromLibraryAskingPermissionIfNeeded(@NonNull Context context) {
+        int rc = ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
+        if (rc == PackageManager.PERMISSION_GRANTED) {
+            chooseFromLibrary(context);
+        } else {
+            requestExternalReadPermission();
+        }
+    }
+
+    private void chooseFromLibrary(@NonNull Context context) {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        Intent pickPictureIntent = Intent.createChooser(intent, getString(R.string.imagetransfer_imageorigin_choose));
+        if (pickPictureIntent.resolveActivity(context.getPackageManager()) != null) {
+            startActivityForResult(pickPictureIntent, kActivityRequestCode_pickFromGallery);
+        } else {
+            Log.w(TAG, "There is no photo picker available");
+        }
     }
 
     private void setImage(Bitmap bitmap) {
@@ -597,6 +631,84 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     }
     // endregion
 
+
+    // region Permissions
+    private void requestCameraPermission() {
+        FragmentActivity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+
+        Log.w(TAG, "Camera permission is not granted. Requesting permission");
+
+        final String[] permissions = new String[]{Manifest.permission.CAMERA};
+
+        if (!shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+            requestPermissions(permissions, kActivityRequestCode_requestCameraPermission);
+            return;
+        }
+
+        Toast.makeText(activity, R.string.imagetransfer_cameraneeded, Toast.LENGTH_LONG).show();
+    }
+
+    private void requestExternalReadPermission() {
+        FragmentActivity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+
+        Log.w(TAG, "External read permission is not granted. Requesting permission");
+
+        final String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+
+        if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            requestPermissions(permissions, kActivityRequestCode_requestReadExternalStoragePermission);
+            return;
+        }
+
+        Toast.makeText(activity, R.string.imagetransfer_readexternalneeded, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        Context context = getContext();
+        if (context == null) return;
+
+        if (requestCode == kActivityRequestCode_requestCameraPermission) {
+            if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "Camera permission granted - initialize the camera source");
+                chooseFromCamera(context);
+                return;
+            }
+
+            Log.e(TAG, "Permission not granted: results len = " + grantResults.length + " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage(R.string.imagetransfer_cameraneeded)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+        } else if (requestCode == kActivityRequestCode_requestReadExternalStoragePermission) {
+            if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "External read permission granted - initialize the camera source");
+                chooseFromLibrary(context);
+                return;
+            }
+
+            Log.e(TAG, "Permission not granted: results len = " + grantResults.length + " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage(R.string.imagetransfer_readexternalneeded)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+        } else {
+            Log.d(TAG, "Got unexpected permission result: " + requestCode);
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    // endregion
 
     // region Transform Image
 

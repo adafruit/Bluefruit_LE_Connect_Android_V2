@@ -533,9 +533,8 @@
 	<string name="imagetransfer_crop_action">Crop image</string>
 	<string name="imagetransfer_crop_error">Error cropping image </string>
 
-
-
-
+	<string name="imagetransfer_cameraneeded">Access to the camera is needed to take pictures</string>
+	<string name="imagetransfer_readexternalneeded">Access to the media library is needed to choose picture</string>
 
 
 

@@ -223,8 +223,7 @@ public class MqttSettingsCodeReaderFragment extends Fragment implements BarcodeG
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Multitracker sample")
-                .setMessage(R.string.mqttcodereader_nocamerapermission)
+        builder.setMessage(R.string.mqttcodereader_nocamerapermission)
                 .setPositiveButton(android.R.string.ok, listener)
                 .show();
     }
