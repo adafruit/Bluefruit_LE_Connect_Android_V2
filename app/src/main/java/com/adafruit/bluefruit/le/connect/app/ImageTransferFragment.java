@@ -24,6 +24,9 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -37,7 +40,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheralUart;
@@ -186,15 +191,12 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
             }
         });
 
-
         // Setup
         if (mUartManager == null) {      // Don't setup if already init (because fragment was recreated)
             // UartManager
             mUartManager = new UartPacketManager(context, null, false, null);
             start();
         }
-
-
     }
 
     @Override
@@ -203,6 +205,37 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         stop();
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_help, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        FragmentActivity activity = getActivity();
+
+        switch (item.getItemId()) {
+            case R.id.action_help:
+                if (activity != null) {
+                    FragmentManager fragmentManager = activity.getSupportFragmentManager();
+                    if (fragmentManager != null) {
+                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.imagetransfer_help_title), getString(R.string.imagetransfer_help_text));
+                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                                .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                                .replace(R.id.contentLayout, helpFragment, "Help");
+                        fragmentTransaction.addToBackStack(null);
+                        fragmentTransaction.commit();
+                    }
+                }
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
 
     // region Uart
     private void start() {
