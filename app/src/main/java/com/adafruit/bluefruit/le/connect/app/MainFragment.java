@@ -202,7 +202,7 @@ public class MainFragment extends Fragment {
         int titleId = 0;
         switch (navigationSelectedItem) {
             case R.id.navigation_central:
-                titleId = R.string.main_tabbar_centralmode;
+                titleId = R.string.main_tabbar_singlemode;//R.string.main_tabbar_centralmode;
                 break;
             case R.id.navigation_peripheral:
                 titleId = R.string.main_tabbar_peripheralmode;

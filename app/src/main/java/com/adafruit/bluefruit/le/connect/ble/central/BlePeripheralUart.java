@@ -40,7 +40,7 @@ public class BlePeripheralUart {
     private BluetoothGattCharacteristic mUartRxCharacteristic;
     private int mUartTxCharacteristicWriteType;
     private boolean mIsSendSequentiallyCancelled = false;
-    
+
     // region Initialization
     public BlePeripheralUart(@NonNull BlePeripheral blePeripheral) {
         super();
