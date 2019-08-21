@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.os.ParcelUuid;
 import android.util.Log;
 
+import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -25,7 +26,7 @@ public class BlePeripheralUart {
     private static final UUID kUartTxCharacteristicUUID = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
     private static final UUID kUartRxCharacteristicUUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
 
-    private static final int kUartTxMaxBytes = 20;
+    //private static final int kUartTxMaxBytes = 20;
     private static final int kUartReplyDefaultTimeout = 2000;       // in millis
 
     // Interfaces
@@ -117,6 +118,10 @@ public class BlePeripheralUart {
         return mBlePeripheral.getName();
     }
 
+    public void requestMtu(@IntRange(from = 23, to = 517) int mtuSize, BlePeripheral.CompletionHandler completionHandler) {
+        mBlePeripheral.requestMtu(mtuSize, completionHandler);
+    }
+
     // endregion
 
     // region Send
@@ -134,7 +139,7 @@ public class BlePeripheralUart {
         AtomicInteger worseStatus = new AtomicInteger(BluetoothGatt.GATT_SUCCESS);
 
         do {
-            final int packetSize = Math.min(data.length - offset, kUartTxMaxBytes);
+            final int packetSize = Math.min(data.length - offset, mBlePeripheral.getMaxPacketLength());
             final byte[] packet = Arrays.copyOfRange(data, offset, offset + packetSize);
             offset += packetSize;
 
@@ -167,7 +172,6 @@ public class BlePeripheralUart {
 
         mIsSendSequentiallyCancelled = false;
 
-
         uartSendPacket(data, 0, mUartTxCharacteristic, withResponseEveryPacketCount, withResponseEveryPacketCount, progressHandler, completionHandler);
     }
 
@@ -176,11 +180,10 @@ public class BlePeripheralUart {
     }
 
     private void uartSendPacket(@NonNull byte[] data, int offset, BluetoothGattCharacteristic uartTxCharacteristic, int withResponseEveryPacketCount, int numPacketsRemainingForDelay, BlePeripheral.ProgressHandler progressHandler, BlePeripheral.CompletionHandler completionHandler) {
-        final int packetSize = Math.min(data.length - offset, kUartTxMaxBytes);
+        final int packetSize = Math.min(data.length - offset, mBlePeripheral.getMaxPacketLength());
         final byte[] packet = Arrays.copyOfRange(data, offset, offset + packetSize);
         final int writeStartingOffset = offset;
         final int uartTxCharacteristicWriteType = numPacketsRemainingForDelay <= 0 ? BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT : BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE;          // Send a packet WRITE_TYPE_DEFAULT to force wait until receive response and avoid dropping packets if the peripheral is not processing them fast enough
-
 
         mBlePeripheral.writeCharacteristic(uartTxCharacteristic, uartTxCharacteristicWriteType, packet, status -> {
             int writtenSize = writeStartingOffset;
@@ -229,7 +232,7 @@ public class BlePeripheralUart {
         // Split data in kUartTxMaxBytes bytes packets
         int offset = 0;
         do {
-            final int packetSize = Math.min(data.length - offset, kUartTxMaxBytes);
+            final int packetSize = Math.min(data.length - offset, mBlePeripheral.getMaxPacketLength());
             final byte[] packet = Arrays.copyOfRange(data, offset, offset + packetSize);
             offset += packetSize;
 
@@ -267,7 +270,7 @@ public class BlePeripheralUart {
     // endregion
 
     // region Utils
-
+    @SuppressWarnings("unused")
     public static boolean isUartAdvertised(@NonNull BlePeripheral blePeripheral) {
         List<ParcelUuid> serviceUuids = blePeripheral.getScanRecord().getServiceUuids();
         boolean found = false;

@@ -68,6 +68,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private final static String TAG = ImageTransferFragment.class.getSimpleName();
 
     // Config
+    private static final int kPreferredMtuSize = 517;
     private static final String kAuthorityField = ".fileprovider";          // Same as the authority field on the manifest provider
 
     // Constants
@@ -119,7 +120,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private BlePeripheralUart mBlePeripheralUart;
     private Size mResolution;
     private float mImageRotationDegrees;
-    private boolean mIsTransformModewithoutResponse;
+    private boolean mIsTransformModeWithoutResponse;
     private Bitmap mBitmap;
     private ProgressFragmentDialog mProgressDialog;
 
@@ -162,7 +163,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         final int resolutionWidth = preferences.getInt(kPreferences_resolutionWidth, kDefaultResolution.getWidth());
         final int resolutionHeight = preferences.getInt(kPreferences_resolutionHeight, kDefaultResolution.getHeight());
         mResolution = new Size(resolutionWidth, resolutionHeight);
-        mIsTransformModewithoutResponse = preferences.getBoolean(kPreferences_withoutResponse, false);
+        mIsTransformModeWithoutResponse = preferences.getBoolean(kPreferences_withoutResponse, false);
 
         // UI
         mUartWaitingTextView = view.findViewById(R.id.uartWaitingTextView);
@@ -178,13 +179,13 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         mTransferModeButton = view.findViewById(R.id.transferModeButton);
         mTransferModeButton.setOnClickListener(v -> {
-            mIsTransformModewithoutResponse = !mIsTransformModewithoutResponse;
+            mIsTransformModeWithoutResponse = !mIsTransformModeWithoutResponse;
             updateTransferModeUI();
 
             // Save selected mode
             SharedPreferences settings = context.getSharedPreferences(kPreferences, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = settings.edit();
-            editor.putBoolean(kPreferences_withoutResponse, mIsTransformModewithoutResponse);
+            editor.putBoolean(kPreferences_withoutResponse, mIsTransformModeWithoutResponse);
             editor.apply();
         });
 
@@ -201,7 +202,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         });
 
         Button sendButton = view.findViewById(R.id.sendButton);
-        sendButton.setOnClickListener(view1 -> sendImage(mIsTransformModewithoutResponse));
+        sendButton.setOnClickListener(view1 -> sendImage(mIsTransformModeWithoutResponse));
 
         mResolutionContainerViewGroup.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -238,6 +239,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     public boolean onOptionsItemSelected(MenuItem item) {
         FragmentActivity activity = getActivity();
 
+        //noinspection SwitchStatementWithTooFewBranches
         switch (item.getItemId()) {
             case R.id.action_help:
                 if (activity != null) {
@@ -272,9 +274,9 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                 // Done
                 Log.d(TAG, "Uart enabled");
 
+                // Set the default image
                 Context context = getContext();
                 if (context != null) {
-//                    mCameraImageView.setImageResource(R.drawable.imagetransfer_default);
                     Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.imagetransfer_default);
                     setImage(bitmap);
                 }
@@ -298,6 +300,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     private void stop() {
         Log.d(TAG, "ImageTransfer stop");
+        dismissProgressDialog();
         mBlePeripheral.reset();
         mBlePeripheralUart = null;
     }
@@ -306,7 +309,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     // region UI
     private void updateTransferModeUI() {
-        mTransferModeButton.setText(mIsTransformModewithoutResponse ? R.string.imagetransfer_transfermode_value_withoutresponse : R.string.imagetransfer_transfermode_value_withresponse);
+        mTransferModeButton.setText(mIsTransformModeWithoutResponse ? R.string.imagetransfer_transfermode_value_withoutresponse : R.string.imagetransfer_transfermode_value_withresponse);
     }
 
 
@@ -779,8 +782,10 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         buffer.put(rgbBytes);
 
         byte[] result = buffer.array();
-        final int packetWithResponseEveryPacketCount = transferWithoutResponse ? Integer.MAX_VALUE : 1;
-        sendCrcData(result, packetWithResponseEveryPacketCount);
+
+        // Increase MTU packet size
+        final int packetWithResponseEveryPacketCount = transferWithoutResponse ? Integer.MAX_VALUE : 0;
+        mBlePeripheralUart.requestMtu(kPreferredMtuSize, status1 -> mMainHandler.post(() -> sendCrcData(result, packetWithResponseEveryPacketCount)));          // Note: requestMtu only affects to WriteWithoutResponse
 
         rgbaBytes = null;
     }
@@ -811,7 +816,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         final byte[] crcData = BlePeripheralUart.appendCrc(data);
 
-        //final int kPacketWithResponseEveryPacketCount = 1;      // Note: dont use bigger number or it will drop packets for big enough images
+        //final int kPacketWithResponseEveryPacketCount = 1;      // Note: don't use a bigger number or it will drop packets for big enough images
         mUartManager.sendEachPacketSequentially(mBlePeripheralUart, crcData, packetWithResponseEveryPacketCount, progress -> {
             if (mProgressDialog != null) {
                 //Log.d(TAG, "progress: " + ((int) (progress * 100)));
@@ -835,7 +840,9 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     // region Progress
 
     private void cancelCurrentSendCommand() {
-        mUartManager.cancelOngoingSendPacketSequentiallyInThread(mBlePeripheralUart);
+        if (mBlePeripheralUart != null) {     // mBlePeripheralUart could be null if the peripheral disconnected
+            mUartManager.cancelOngoingSendPacketSequentiallyInThread(mBlePeripheralUart);
+        }
     }
 
     private void dismissProgressDialog() {

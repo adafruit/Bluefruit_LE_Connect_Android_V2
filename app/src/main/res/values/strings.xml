@@ -502,7 +502,7 @@
 	<string name="imagetransfer_navigation_title_format" formatted="false">Image Transfer - %s</string>
 
 	<string name="imagetransfer_help_title">Image Transfer</string>
-	<string name="imagetransfer_help_text">The Image Transfer module sends the image of your choice to Bluefruit LE over UART. Each image sent begins with a single byte char “!” (0x21), image width (uint16 little endian, 2 bytes), height (uint16 little endian, 2 bytes), followed by pixel data encoded as RGB 24-bit and suffixed by a single byte CRC.\n\nFormat: [ ‘!’ ] [ uint16 width ] [ uint16 height ] [ r g b ] [ r g b ] [ r g b ] … [ CRC ]</string>
+	<string name="imagetransfer_help_text">The Image Transfer module sends the image of your choice to Bluefruit LE over UART. Each image sent begins with a single byte char “!” (0x21), single byte char \'I\' (0x49), image width (uint16 little endian, 2 bytes), height (uint16 little endian, 2 bytes), followed by pixel data encoded as RGB 24-bit and suffixed by a single byte CRC.\n\nFormat: [ ‘!I’ ] [ uint16 width ] [ uint16 height ] [ r g b ] [ r g b ] [ r g b ] … [ CRC ]</string>
 
 	<string name="imagetransfer_waitingforuart">Waiting for Uart&#8230;</string>
 	<string name="imagetransfer_resolution_title">Resolution:</string>
