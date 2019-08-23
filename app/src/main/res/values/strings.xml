@@ -512,6 +512,11 @@
 	<string name="imagetransfer_transfermode_title">Transfer mode:</string>
 	<string name="imagetransfer_transfermode_value_withresponse">With Response</string>
 	<string name="imagetransfer_transfermode_value_withoutresponse">Without Response</string>
+	<string name="imagetransfer_transfermode_value_interleaved">Interleaved</string>
+	<string name="imagetransfer_transfermode_value_interleaved_format" formatted="false">Interleaved [%d : 1]</string>
+	<string name="imagetransfer_transfermode_interleavedcount_title">Interleaved</string>
+	<string name="imagetransfer_transfermode_interleavedcount_message">Number of packets without response for each packet with response</string>
+	<string name="imagetransfer_transfermode_interleavedcount_hint">Enter number</string>
 
 	<string name="imagetransfer_selectimage_action">Select image</string>
 	<string name="imagetransfer_imagepicker_camera">Take photo</string>

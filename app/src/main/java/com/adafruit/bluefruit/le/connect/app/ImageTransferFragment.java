@@ -1,14 +1,13 @@
 package com.adafruit.bluefruit.le.connect.app;
 
-
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothGatt;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -22,6 +21,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.text.InputType;
 import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
@@ -33,6 +33,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -41,6 +42,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.FragmentActivity;
@@ -68,6 +70,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private final static String TAG = ImageTransferFragment.class.getSimpleName();
 
     // Config
+    private static final boolean kShowInterleaveControls = true;
     private static final int kPreferredMtuSize = 517;
     private static final String kAuthorityField = ".fileprovider";          // Same as the authority field on the manifest provider
 
@@ -81,7 +84,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private final static String kPreferences = "ImageTransferFragment_prefs";
     private final static String kPreferences_resolutionWidth = "resolution_width";
     private final static String kPreferences_resolutionHeight = "resolution_height";
-    private final static String kPreferences_withoutResponse = "without_response";
+    private final static String kPreferences_interleavedWithoutResponseCount = "interleaved_withoutresponse_count";
 
     private Size kDefaultResolution = new Size(64, 64);
     private Size[] kAcceptedResolutions = {
@@ -120,7 +123,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private BlePeripheralUart mBlePeripheralUart;
     private Size mResolution;
     private float mImageRotationDegrees;
-    private boolean mIsTransformModeWithoutResponse;
+    private int mInterleavedWithoutResponseCount;
     private Bitmap mBitmap;
     private ProgressFragmentDialog mProgressDialog;
 
@@ -163,7 +166,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         final int resolutionWidth = preferences.getInt(kPreferences_resolutionWidth, kDefaultResolution.getWidth());
         final int resolutionHeight = preferences.getInt(kPreferences_resolutionHeight, kDefaultResolution.getHeight());
         mResolution = new Size(resolutionWidth, resolutionHeight);
-        mIsTransformModeWithoutResponse = preferences.getBoolean(kPreferences_withoutResponse, false);
+        mInterleavedWithoutResponseCount = preferences.getInt(kPreferences_interleavedWithoutResponseCount, 0);
 
         // UI
         mUartWaitingTextView = view.findViewById(R.id.uartWaitingTextView);
@@ -179,14 +182,86 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         mTransferModeButton = view.findViewById(R.id.transferModeButton);
         mTransferModeButton.setOnClickListener(v -> {
-            mIsTransformModeWithoutResponse = !mIsTransformModeWithoutResponse;
-            updateTransferModeUI();
-
-            // Save selected mode
             SharedPreferences settings = context.getSharedPreferences(kPreferences, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = settings.edit();
-            editor.putBoolean(kPreferences_withoutResponse, mIsTransformModeWithoutResponse);
-            editor.apply();
+
+            if (kShowInterleaveControls) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle(R.string.imagetransfer_transfermode_title);
+
+                String[] items = {getString(R.string.imagetransfer_transfermode_value_withoutresponse), getString(R.string.imagetransfer_transfermode_value_withresponse), getString(R.string.imagetransfer_transfermode_value_interleaved)};
+
+                builder.setItems(items, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            mInterleavedWithoutResponseCount = Integer.MAX_VALUE;
+                            updateTransferModeUI();
+
+                            // Save selected mode
+                            editor.putInt(kPreferences_interleavedWithoutResponseCount, mInterleavedWithoutResponseCount);
+                            editor.apply();
+                            break;
+
+                        case 1:
+                            mInterleavedWithoutResponseCount = 0;
+                            updateTransferModeUI();
+
+                            // Save selected mode
+                            editor.putInt(kPreferences_interleavedWithoutResponseCount, mInterleavedWithoutResponseCount);
+                            editor.apply();
+                            break;
+
+                        case 2: {
+
+                            AlertDialog.Builder alert = new AlertDialog.Builder(context);
+                            alert.setTitle(R.string.imagetransfer_transfermode_interleavedcount_title);
+                            final EditText input = new EditText(context);
+                            input.setHint(R.string.imagetransfer_transfermode_interleavedcount_hint);
+                            input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                            input.setRawInputType(Configuration.KEYBOARD_12KEY);
+                            alert.setView(input);
+                            alert.setPositiveButton(R.string.dialog_ok, (dialog2, whichButton) -> {
+                                String valueString = String.valueOf(input.getText());
+                                int value = 0;
+                                try {
+                                    value = Integer.parseInt(valueString);
+                                } catch (Exception e) {
+                                    Log.d(TAG, "Cannot parse value");
+                                }
+
+
+                                // Set selected value
+                                mInterleavedWithoutResponseCount = value;
+                                updateTransferModeUI();
+                                editor.putInt(kPreferences_interleavedWithoutResponseCount, mInterleavedWithoutResponseCount);
+                                editor.apply();
+
+                            });
+                            alert.setNegativeButton(android.R.string.cancel, (dialog2, whichButton) -> {
+                            });
+                            alert.show();
+
+                            break;
+                        }
+                    }
+                    dialog.dismiss();
+                });
+
+                builder.setNegativeButton(R.string.dialog_cancel, null);
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
+            } else {
+                mInterleavedWithoutResponseCount = mInterleavedWithoutResponseCount == 0 ? Integer.MAX_VALUE : 0;
+                updateTransferModeUI();
+
+                // Save selected mode
+                editor.putInt(kPreferences_interleavedWithoutResponseCount, mInterleavedWithoutResponseCount);
+                editor.apply();
+            }
+
+
         });
 
         ImageButton rotateLeftButton = view.findViewById(R.id.rotateLeftButton);
@@ -202,7 +277,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         });
 
         Button sendButton = view.findViewById(R.id.sendButton);
-        sendButton.setOnClickListener(view1 -> sendImage(mIsTransformModeWithoutResponse));
+        sendButton.setOnClickListener(view1 -> sendImage(mInterleavedWithoutResponseCount));
 
         mResolutionContainerViewGroup.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -309,7 +384,18 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     // region UI
     private void updateTransferModeUI() {
-        mTransferModeButton.setText(mIsTransformModeWithoutResponse ? R.string.imagetransfer_transfermode_value_withoutresponse : R.string.imagetransfer_transfermode_value_withresponse);
+        String text;
+
+        if (mInterleavedWithoutResponseCount == 0) {
+            text = getString(R.string.imagetransfer_transfermode_value_withresponse);
+        } else if (mInterleavedWithoutResponseCount == Integer.MAX_VALUE) {
+            text = getString(R.string.imagetransfer_transfermode_value_withoutresponse);
+
+        } else {
+            text = String.format(getString(R.string.imagetransfer_transfermode_value_interleaved_format), mInterleavedWithoutResponseCount);
+        }
+
+        mTransferModeButton.setText(text);
     }
 
 
@@ -451,13 +537,6 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
             updateImage(resolution, mImageRotationDegrees);
             dialog.dismiss();
         });
-        /*
-        builder.setPositiveButton(R.string.dialog_ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-            }
-        });*/
 
         builder.setNegativeButton(R.string.dialog_cancel, null);
 
@@ -736,7 +815,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     // region Send Image
 
-    private void sendImage(boolean transferWithoutResponse) {
+    private void sendImage(int packetWithResponseEveryPacketCount) {
         Bitmap bitmap = ((BitmapDrawable) mCameraImageView.getDrawable()).getBitmap();
         //Bitmap bitmap = mBitmapDrawable.getBitmap();
 
@@ -784,7 +863,6 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         byte[] result = buffer.array();
 
         // Increase MTU packet size
-        final int packetWithResponseEveryPacketCount = transferWithoutResponse ? Integer.MAX_VALUE : 0;
         mBlePeripheralUart.requestMtu(kPreferredMtuSize, status1 -> mMainHandler.post(() -> sendCrcData(result, packetWithResponseEveryPacketCount)));          // Note: requestMtu only affects to WriteWithoutResponse
 
         rgbaBytes = null;
