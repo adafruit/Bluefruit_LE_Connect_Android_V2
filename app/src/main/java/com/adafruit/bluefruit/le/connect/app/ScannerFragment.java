@@ -51,7 +51,6 @@ import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 import com.adafruit.bluefruit.le.connect.ble.central.BleManager;
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
-import com.adafruit.bluefruit.le.connect.dfu.DfuUpdater;
 import com.adafruit.bluefruit.le.connect.dfu.ReleasesParser;
 import com.adafruit.bluefruit.le.connect.models.DfuViewModel;
 import com.adafruit.bluefruit.le.connect.models.ScannerViewModel;
@@ -423,28 +422,34 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
         // Connection
         mScannerViewModel.getNumDevicesConnected().observe(this, numConnectedDevices -> {
-            final int numDevices = numConnectedDevices != null ? numConnectedDevices : 0;
-            final String message = String.format(Locale.ENGLISH, LocalizationManager.getInstance().getString(getContext(), numDevices == 1 ? "multiconnect_connecteddevices_single_format" : "multiconnect_connecteddevices_multiple_format"), numConnectedDevices);
-            mMultiConnectConnectedDevicesTextView.setText(message);
-            mMultiConnectStartButton.setEnabled(numDevices >= 2);
+            Context context = getContext();
+            if (context != null) {
+                final int numDevices = numConnectedDevices != null ? numConnectedDevices : 0;
+                final String message = String.format(Locale.ENGLISH, LocalizationManager.getInstance().getString(context, numDevices == 1 ? "multiconnect_connecteddevices_single_format" : "multiconnect_connecteddevices_multiple_format"), numConnectedDevices);
+                mMultiConnectConnectedDevicesTextView.setText(message);
+                mMultiConnectStartButton.setEnabled(numDevices >= 2);
+            }
         });
 
         // Filtered-out peripherals
         mScannerViewModel.getNumPeripheralsFilteredOut().observe(this, numPeripheralsFilteredOutInteger -> {
-            final int numPeripheralsFilteredOut = numPeripheralsFilteredOutInteger != null ? numPeripheralsFilteredOutInteger : 0;
-            Integer numPeripheralsFilteredInteger = mScannerViewModel.getNumPeripheralsFiltered().getValue();
-            final int numPeripheralsFiltered = numPeripheralsFilteredInteger != null ? numPeripheralsFilteredInteger : 0;
+            Context context = getContext();
+            if (context != null) {
+                final int numPeripheralsFilteredOut = numPeripheralsFilteredOutInteger != null ? numPeripheralsFilteredOutInteger : 0;
+                Integer numPeripheralsFilteredInteger = mScannerViewModel.getNumPeripheralsFiltered().getValue();
+                final int numPeripheralsFiltered = numPeripheralsFilteredInteger != null ? numPeripheralsFilteredInteger : 0;
 
-            boolean isFilteredPeripheralCountLabelHidden = numPeripheralsFiltered > 0 || numPeripheralsFilteredOut == 0;
-            mFilteredPeripheralsCountTextView.setVisibility(isFilteredPeripheralCountLabelHidden ? View.GONE : View.VISIBLE);
-            String message = String.format(Locale.ENGLISH, LocalizationManager.getInstance().getString(getContext(), numPeripheralsFilteredOut == 1 ? "scanner_filteredoutinfo_single_format" : "scanner_filteredoutinfo_multiple_format"), numPeripheralsFilteredOut);
-            mFilteredPeripheralsCountTextView.setText(message);
+                boolean isFilteredPeripheralCountLabelHidden = numPeripheralsFiltered > 0 || numPeripheralsFilteredOut == 0;
+                mFilteredPeripheralsCountTextView.setVisibility(isFilteredPeripheralCountLabelHidden ? View.GONE : View.VISIBLE);
+                String message = String.format(Locale.ENGLISH, LocalizationManager.getInstance().getString(context, numPeripheralsFilteredOut == 1 ? "scanner_filteredoutinfo_single_format" : "scanner_filteredoutinfo_multiple_format"), numPeripheralsFilteredOut);
+                mFilteredPeripheralsCountTextView.setText(message);
+            }
         });
 
         // Dfu Update
         mDfuViewModel.getDfuCheckResult().observe(this, dfuCheckResult -> {
             if (dfuCheckResult != null) {
-                onDfuUpdateCheckResultReceived(dfuCheckResult.blePeripheral, dfuCheckResult.isUpdateAvailable, dfuCheckResult.dfuInfo, dfuCheckResult.firmwareInfo);
+                onDfuUpdateCheckResultReceived(dfuCheckResult.blePeripheral, dfuCheckResult.isUpdateAvailable, /*dfuCheckResult.dfuInfo,*/ dfuCheckResult.firmwareInfo);
             }
         });
     }
@@ -489,11 +494,11 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     // endregion
 
     // region Actions
-    public void startScanning() {
+    void startScanning() {
         mScannerViewModel.start();
     }
 
-    public void disconnectAllPeripherals() {
+    void disconnectAllPeripherals() {
         mScannerViewModel.disconnectAllPeripherals();
     }
 
@@ -664,7 +669,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
     // region Dfu
     @MainThread
-    private void onDfuUpdateCheckResultReceived(@NonNull BlePeripheral blePeripheral, boolean isUpdateAvailable, @NonNull DfuUpdater.DeviceDfuInfo deviceDfuInfo, @Nullable ReleasesParser.FirmwareInfo latestRelease) {
+    private void onDfuUpdateCheckResultReceived(@NonNull BlePeripheral blePeripheral, boolean isUpdateAvailable, /*@NonNull DfuUpdater.DeviceDfuInfo deviceDfuInfo,*/ @Nullable ReleasesParser.FirmwareInfo latestRelease) {
         Log.d(TAG, "Update available: " + isUpdateAvailable);
         removeConnectionStateDialog();
 
@@ -675,9 +680,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             new AlertDialog.Builder(context)
                     .setTitle(R.string.autoupdate_title)
                     .setMessage(message)
-                    .setPositiveButton(R.string.autoupdate_startupdate, (dialog, which) -> {
-                        startFirmwareUpdate(blePeripheral, latestRelease);
-                    })
+                    .setPositiveButton(R.string.autoupdate_startupdate, (dialog, which) -> startFirmwareUpdate(blePeripheral, latestRelease))
                     .setNeutralButton(R.string.autoupdate_later, (dialog, which) -> {
                         if (mListener != null) {
                             mListener.startPeripheralModules(blePeripheral.getIdentifier());

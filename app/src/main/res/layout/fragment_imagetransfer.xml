@@ -25,6 +25,28 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:text="@string/imagetransfer_image_title"
+                android:textColor="@color/infotext" />
+
+            <Button
+                android:id="@+id/imageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:minWidth="@dimen/imagetransfer_values_minwidth"
+                android:text="@string/imagetransfer_imageorigin_choose" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="@string/imagetransfer_resolution_title"
                 android:textColor="@color/infotext" />
 
@@ -33,7 +55,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
-                android:minWidth="165dp"
+                android:minWidth="@dimen/imagetransfer_values_minwidth"
                 android:text="@string/imagetransfer_resolution_value_default" />
 
         </LinearLayout>
@@ -47,18 +69,19 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/imagetransfer_image_title"
+                android:text="@string/imagetransfer_colorspace_title"
                 android:textColor="@color/infotext" />
 
             <Button
-                android:id="@+id/imageButton"
+                android:id="@+id/colorSpaceButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
-                android:minWidth="165dp"
-                android:text="@string/imagetransfer_imageorigin_choose" />
+                android:minWidth="@dimen/imagetransfer_values_minwidth"
+                android:text="@string/imagetransfer_colorspace_16bit" />
 
         </LinearLayout>
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -77,7 +100,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
-                android:minWidth="165dp"
+                android:minWidth="@dimen/imagetransfer_values_minwidth"
                 android:text="@string/imagetransfer_transfermode_value_withoutresponse" />
 
         </LinearLayout>

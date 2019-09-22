@@ -41,8 +41,8 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
     private final static String TAG = PeripheralModulesFragment.class.getSimpleName();
 
     // Fragment parameters
-    public final static int CONNECTIONMODE_SINGLEPERIPHERAL = 0;
-    public final static int CONNECTIONMODE_MULTIPLEPERIPHERAL = 1;
+    private final static int CONNECTIONMODE_SINGLEPERIPHERAL = 0;
+    private final static int CONNECTIONMODE_MULTIPLEPERIPHERAL = 1;
 
     // Constants
     private final static int MODULE_INFO = 0;
@@ -63,7 +63,7 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
     private ModulesAdapter mModulesAdapter;
 
     // region Fragment Lifecycle
-    public static PeripheralModulesFragment newInstance(@Nullable String singlePeripheralIdentifier) {      // if singlePeripheralIdentifier is null, uses multiconnect
+    public static PeripheralModulesFragment newInstance(@Nullable String singlePeripheralIdentifier) {      // if singlePeripheralIdentifier is null, uses multi-connect
         PeripheralModulesFragment fragment = new PeripheralModulesFragment();
         fragment.setArguments(createFragmentArgs(singlePeripheralIdentifier));
         return fragment;

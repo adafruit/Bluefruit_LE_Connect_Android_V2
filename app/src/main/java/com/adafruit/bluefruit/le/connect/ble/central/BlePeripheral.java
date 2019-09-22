@@ -16,6 +16,7 @@ import androidx.annotation.IntRange;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.adafruit.bluefruit.le.connect.BuildConfig;
@@ -37,6 +38,11 @@ import no.nordicsemi.android.support.v18.scanner.ScanResult;
 public class BlePeripheral {
     // Log
     private final static String TAG = BlePeripheral.class.getSimpleName();
+
+    // Config
+    private final static boolean kSetPreferredMtuSize = true;
+    private static final int kPreferredMtuSize = 517;
+    private final static boolean kSetPhy_2M = true;
 
     // Constants
     public static final int STATE_DISCONNECTED = BluetoothProfile.STATE_DISCONNECTED;
@@ -78,16 +84,6 @@ public class BlePeripheral {
 
     // region BluetoothGattCallback
     private BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
-        /*
-        @Override
-        public void onPhyUpdate(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
-            super.onPhyUpdate(gatt, txPhy, rxPhy, status);
-        }
-
-        @Override
-        public void onPhyRead(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
-            super.onPhyRead(gatt, txPhy, rxPhy, status);
-        }*/
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -96,6 +92,20 @@ public class BlePeripheral {
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 mConnectionState = STATE_CONNECTED;
+
+                // Phy
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && kSetPhy_2M) {
+                    Log.d(TAG, "Set Phy to 2M");
+                    gatt.setPreferredPhy(BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED);
+                    //setPreferredPhy(BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED, null);
+                    //gatt.readPhy();
+                }
+
+                // MTU
+                if (kSetPreferredMtuSize) {
+                    // Increase MTU packet size
+                    requestMtu(kPreferredMtuSize, null);          // Note: requestMtu only affects to WriteWithoutResponse
+                }
 
                 localBroadcastUpdate(kBlePeripheral_OnConnected, getIdentifier());
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -279,12 +289,30 @@ public class BlePeripheral {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mMtuSize = mtu;
                 Log.d(TAG, "Mtu changed: " + mtu);
-            }
-            else {
+            } else {
                 Log.d(TAG, "Error changing mtu to: " + mtu + " status: " + status);
 
             }
-            finishExecutingCommand(status);
+
+            // Check that the MTU changed callback was called in response to a command
+            BleCommand command = mCommmandQueue.first();
+            if (command.mType == BleCommand.BLECOMMANDTYPE_REQUESTMTU) {
+                finishExecutingCommand(status);
+            }
+        }
+
+        @Override
+        public void onPhyUpdate(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
+            super.onPhyUpdate(gatt, txPhy, rxPhy, status);
+
+            Log.d(TAG, "onPhyUpdate -> tx: " + txPhy + " rx: " + rxPhy + " status: " + status);
+        }
+
+        @Override
+        public void onPhyRead(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
+            super.onPhyRead(gatt, txPhy, rxPhy, status);
+
+            Log.d(TAG, "onPhyRead -> tx: " + txPhy + " rx: " + rxPhy + " status: " + status);
         }
     };
 
@@ -421,13 +449,14 @@ public class BlePeripheral {
 
         BleManager.getInstance().cancelDiscovery();        // Always cancel discovery before connecting
 
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mBluetoothGatt = device.connectGatt(context, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
         } else {
             mBluetoothGatt = device.connectGatt(context, false, mGattCallback);
         }
 
-         if (mBluetoothGatt == null) {
+        if (mBluetoothGatt == null) {
             Log.e(TAG, "connectGatt Error. Returns null");
         }
     }
@@ -811,15 +840,29 @@ public class BlePeripheral {
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                     Log.d(TAG, "Request mtu change");
                     mBluetoothGatt.requestMtu(mtuSize);
-                }
-                else {
-                    Log.w(TAG, "change mtu size not recommened on Android < 7.0");      // https://issuetracker.google.com/issues/37101017
+                } else {
+                    Log.w(TAG, "change mtu size not recommended on Android < 7.0");      // https://issuetracker.google.com/issues/37101017
                     finishExecutingCommand(BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED);
                 }
             }
         };
         mCommmandQueue.add(command);
     }
+
+    /*
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void setPreferredPhy(int txPhy, int rxPhy, int phyOptions, CompletionHandler completionHandler) {
+        final String identifier = null;
+        BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_SETPREFERREDPHY, identifier, completionHandler) {
+            @Override
+            public void execute() {
+                Log.d(TAG, "Set preferred Phy");
+                mBluetoothGatt.setPreferredPhy(txPhy, rxPhy, phyOptions);
+            }
+        };
+        mCommmandQueue.add(command);
+    }*/
+
 
     public interface CompletionHandler {
         void completion(int status);
@@ -939,6 +982,7 @@ public class BlePeripheral {
         static final int BLECOMMANDTYPE_WRITECHARACTERISTICANDWAITNOTIFY = 5;
         static final int BLECOMMANDTYPE_READDESCRIPTOR = 6;
         static final int BLECOMMANDTYPE_REQUESTMTU = 7;
+        static final int BLECOMMANDTYPE_SETPREFERREDPHY = 8;
 
         // Data
         private int mType;

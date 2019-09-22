@@ -71,7 +71,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     // Config
     private static final boolean kShowInterleaveControls = true;
-    private static final int kPreferredMtuSize = 517;
+    private static final int kDefaultInterlavedWithoutResponseCount = 50;
     private static final String kAuthorityField = ".fileprovider";          // Same as the authority field on the manifest provider
 
     // Constants
@@ -85,6 +85,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private final static String kPreferences_resolutionWidth = "resolution_width";
     private final static String kPreferences_resolutionHeight = "resolution_height";
     private final static String kPreferences_interleavedWithoutResponseCount = "interleaved_withoutresponse_count";
+    private final static String kPreferences_isColorSpace24Bits = "is_color_space_24_bits";
 
     private Size kDefaultResolution = new Size(64, 64);
     private Size[] kAcceptedResolutions = {
@@ -116,6 +117,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private ViewGroup mResolutionViewGroup;
     private ViewGroup mResolutionContainerViewGroup;
     private Button mTransferModeButton;
+    private Button mColorSpaceButton;
 
     // Data
     private UartPacketManager mUartManager;
@@ -124,6 +126,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private Size mResolution;
     private float mImageRotationDegrees;
     private int mInterleavedWithoutResponseCount;
+    private boolean mIsColorSpace24Bits;
     private Bitmap mBitmap;
     private ProgressFragmentDialog mProgressDialog;
 
@@ -166,7 +169,8 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         final int resolutionWidth = preferences.getInt(kPreferences_resolutionWidth, kDefaultResolution.getWidth());
         final int resolutionHeight = preferences.getInt(kPreferences_resolutionHeight, kDefaultResolution.getHeight());
         mResolution = new Size(resolutionWidth, resolutionHeight);
-        mInterleavedWithoutResponseCount = preferences.getInt(kPreferences_interleavedWithoutResponseCount, 0);
+        mInterleavedWithoutResponseCount = preferences.getInt(kPreferences_interleavedWithoutResponseCount, kDefaultInterlavedWithoutResponseCount);
+        mIsColorSpace24Bits = preferences.getBoolean(kPreferences_isColorSpace24Bits, false);
 
         // UI
         mUartWaitingTextView = view.findViewById(R.id.uartWaitingTextView);
@@ -264,6 +268,19 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         });
 
+        mColorSpaceButton = view.findViewById(R.id.colorSpaceButton);
+        updateColorSpaceUI();
+        mColorSpaceButton.setOnClickListener(v -> {
+            mIsColorSpace24Bits = !mIsColorSpace24Bits;
+            updateColorSpaceUI();
+
+            // Save to preferences
+            SharedPreferences settings = context.getSharedPreferences(kPreferences, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean(kPreferences_isColorSpace24Bits, mIsColorSpace24Bits);
+            editor.apply();
+        });
+
         ImageButton rotateLeftButton = view.findViewById(R.id.rotateLeftButton);
         rotateLeftButton.setOnClickListener(v -> {
             final float rotation = (mImageRotationDegrees - 90) % 360;
@@ -277,7 +294,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         });
 
         Button sendButton = view.findViewById(R.id.sendButton);
-        sendButton.setOnClickListener(view1 -> sendImage(mInterleavedWithoutResponseCount));
+        sendButton.setOnClickListener(view1 -> sendImage(mInterleavedWithoutResponseCount, mIsColorSpace24Bits));
 
         mResolutionContainerViewGroup.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -305,7 +322,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_help, menu);
     }
@@ -319,14 +336,12 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
             case R.id.action_help:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.imagetransfer_help_title), getString(R.string.imagetransfer_help_text));
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                                .replace(R.id.contentLayout, helpFragment, "Help");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.imagetransfer_help_title), getString(R.string.imagetransfer_help_text));
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                            .replace(R.id.contentLayout, helpFragment, "Help");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
                 return true;
 
@@ -358,17 +373,20 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
             } else {
                 Log.d(TAG, "Uart error");
-                WeakReference<BlePeripheralUart> weakBlePeripheralUart = new WeakReference<>(mBlePeripheralUart);
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                AlertDialog dialog = builder.setMessage(R.string.uart_error_peripheralinit)
-                        .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
-                            BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
-                            if (strongBlePeripheralUart != null) {
-                                strongBlePeripheralUart.disconnect();
-                            }
-                        })
-                        .show();
-                DialogUtils.keepDialogOnOrientationChanges(dialog);
+                Context context = getContext();
+                if (context != null) {
+                    WeakReference<BlePeripheralUart> weakBlePeripheralUart = new WeakReference<>(mBlePeripheralUart);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    AlertDialog dialog = builder.setMessage(R.string.uart_error_peripheralinit)
+                            .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
+                                BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
+                                if (strongBlePeripheralUart != null) {
+                                    strongBlePeripheralUart.disconnect();
+                                }
+                            })
+                            .show();
+                    DialogUtils.keepDialogOnOrientationChanges(dialog);
+                }
             }
         }));
     }
@@ -398,6 +416,9 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         mTransferModeButton.setText(text);
     }
 
+    private void updateColorSpaceUI() {
+        mColorSpaceButton.setText(mIsColorSpace24Bits ? R.string.imagetransfer_colorspace_24bit : R.string.imagetransfer_colorspace_16bit);
+    }
 
     private void updateResolutionUI() {
         final String text = String.format(Locale.US, "%d x %d", mResolution.getWidth(), mResolution.getHeight());
@@ -815,7 +836,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     // region Send Image
 
-    private void sendImage(int packetWithResponseEveryPacketCount) {
+    private void sendImage(int packetWithResponseEveryPacketCount, boolean isColorSpace24Bits) {
         Bitmap bitmap = ((BitmapDrawable) mCameraImageView.getDrawable()).getBitmap();
         //Bitmap bitmap = mBitmapDrawable.getBitmap();
 
@@ -827,7 +848,6 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         Paint paint = new Paint();
         canvas.drawBitmap(bitmap, 0, 0, paint);
 
-
         // get bytes
         final int rgbaSize = rgbaBitmap.getRowBytes() * rgbaBitmap.getHeight();
         ByteBuffer byteBuffer = ByteBuffer.allocate(rgbaSize);
@@ -837,25 +857,54 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         //bitmap.recycle();
         byteBuffer = null;
 
-        // get 24bits bytes
-        final int rgbSize = width * height * 3;
-        byte[] rgbBytes = new byte[rgbSize];
-        int k = 0;
-        for (int i = 0; i < rgbaSize; i++) {
-            if (i % 4 != 3) {
-                rgbBytes[k++] = rgbaBytes[i];
+        int rgbSize;
+        byte[] rgbBytes;
+        if (isColorSpace24Bits) {
+            // Convert 32bit color data to 24bit (888)
+            rgbSize = width * height * 3;
+            rgbBytes = new byte[rgbSize];
+            int k = 0;
+            for (int i = 0; i < rgbaSize; i++) {
+                if (i % 4 != 3) {
+                    rgbBytes[k++] = rgbaBytes[i];
+                }
+            }
+        } else {
+            // Convert 32bit color data to 16bit (655)
+            byte r = 0, g = 0;
+            rgbSize = width * height * 2;
+            rgbBytes = new byte[rgbSize];
+            int k = 0;
+            for (int i = 0; i < rgbaSize; i++) {
+                int j = i % 4;
+                if (j == 0) {
+                    r = rgbaBytes[i];
+                } else if (j == 1) {
+                    g = rgbaBytes[i];
+
+                } else if (j == 2) {
+
+                    byte b = rgbaBytes[i];
+                    int rgb16 = (((short) (r & 0xF8)) << 8) | (((short) (g & 0xFC)) << 3) | (short) (b >> 3);
+
+                    byte high = (byte) (rgb16 >> 8);
+                    byte low = (byte) (rgb16 & 0xff);
+
+                    rgbBytes[k++] = high;
+                    rgbBytes[k++] = low;
+                }
             }
         }
 
         rgbaBitmap.recycle();
 
-
         // Send command
-        ByteBuffer buffer = ByteBuffer.allocate(2 + 2 + 2 + rgbSize).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer buffer = ByteBuffer.allocate(2 + 1 + 2 + 2 + rgbSize).order(java.nio.ByteOrder.LITTLE_ENDIAN);
 
         // Command: '!I'
         String prefix = "!I";
         buffer.put(prefix.getBytes());
+        buffer.put((byte) (isColorSpace24Bits ? 24 : 16));
         buffer.putShort((short) width);
         buffer.putShort((short) height);
         buffer.put(rgbBytes);
@@ -863,7 +912,8 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         byte[] result = buffer.array();
 
         // Increase MTU packet size
-        mBlePeripheralUart.requestMtu(kPreferredMtuSize, status1 -> mMainHandler.post(() -> sendCrcData(result, packetWithResponseEveryPacketCount)));          // Note: requestMtu only affects to WriteWithoutResponse
+//        mBlePeripheralUart.requestMtu(kPreferredMtuSize, status1 -> mMainHandler.post(() -> sendCrcData(result, packetWithResponseEveryPacketCount)));          // Note: requestMtu only affects to WriteWithoutResponse
+        sendCrcData(result, packetWithResponseEveryPacketCount);
 
         rgbaBytes = null;
     }
