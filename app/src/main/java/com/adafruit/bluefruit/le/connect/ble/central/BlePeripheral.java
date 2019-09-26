@@ -96,9 +96,7 @@ public class BlePeripheral {
                 // Phy
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && kSetPhy_2M) {
                     Log.d(TAG, "Set Phy to 2M");
-                    gatt.setPreferredPhy(BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED);
-                    //setPreferredPhy(BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED, null);
-                    //gatt.readPhy();
+                    setPreferredPhy(BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED);
                 }
 
                 // MTU
@@ -494,8 +492,15 @@ public class BlePeripheral {
         return mBluetoothGatt != null && mBluetoothGatt.readRemoteRssi();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void setPreferredPhy(int txPhy, int rxPhy, int phyOptions) {
+        if (mBluetoothGatt != null) {
+            Log.d(TAG, "setPreferredPhy");
+            mBluetoothGatt.setPreferredPhy(txPhy, rxPhy, phyOptions);
+            //mBluetoothGatt.readPhy();
+        }
+    }
     // endregion
-
 
     // region CommandQueue
 
@@ -982,7 +987,7 @@ public class BlePeripheral {
         static final int BLECOMMANDTYPE_WRITECHARACTERISTICANDWAITNOTIFY = 5;
         static final int BLECOMMANDTYPE_READDESCRIPTOR = 6;
         static final int BLECOMMANDTYPE_REQUESTMTU = 7;
-        static final int BLECOMMANDTYPE_SETPREFERREDPHY = 8;
+        //static final int BLECOMMANDTYPE_SETPREFERREDPHY = 8;
 
         // Data
         private int mType;

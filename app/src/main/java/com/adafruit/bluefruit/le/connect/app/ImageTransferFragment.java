@@ -228,7 +228,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
                             // Add horizontal margin (https://stackoverflow.com/questions/27774414/add-bigger-margin-to-edittext-in-android-alertdialog)
                             FrameLayout container = new FrameLayout(context);
-                            FrameLayout.LayoutParams params = new  FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                             params.leftMargin = getResources().getDimensionPixelSize(R.dimen.alertview_embedded_edittext_horizontalmargin);
                             params.rightMargin = params.leftMargin;
                             input.setLayoutParams(params);
@@ -897,8 +897,8 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                     byte b = rgbaBytes[i];
 
                     int rShort = (r & 0xF8) & 0xffff;
-                    int gShort =  (g & 0xFC) & 0xffff;
-                    int bShort =  b & 0xff;
+                    int gShort = (g & 0xFC) & 0xffff;
+                    int bShort = b & 0xff;
                     int rgb16 = (rShort << 8) | (gShort << 3) | (bShort >>> 3);
 
                     byte high = (byte) ((rgb16 >> 8) & 0xff);
