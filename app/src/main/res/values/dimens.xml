@@ -9,4 +9,6 @@
 
     <dimen name="imagetransfer_values_minwidth">170dp</dimen>
 
+    <dimen name="alertview_embedded_edittext_horizontalmargin">20dp</dimen>
+
 </resources>

@@ -34,6 +34,7 @@ import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -219,11 +220,21 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
                             AlertDialog.Builder alert = new AlertDialog.Builder(context);
                             alert.setTitle(R.string.imagetransfer_transfermode_interleavedcount_title);
+                            alert.setMessage(R.string.imagetransfer_transfermode_interleavedcount_message);
                             final EditText input = new EditText(context);
                             input.setHint(R.string.imagetransfer_transfermode_interleavedcount_hint);
                             input.setInputType(InputType.TYPE_CLASS_NUMBER);
                             input.setRawInputType(Configuration.KEYBOARD_12KEY);
-                            alert.setView(input);
+
+                            // Add horizontal margin (https://stackoverflow.com/questions/27774414/add-bigger-margin-to-edittext-in-android-alertdialog)
+                            FrameLayout container = new FrameLayout(context);
+                            FrameLayout.LayoutParams params = new  FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                            params.leftMargin = getResources().getDimensionPixelSize(R.dimen.alertview_embedded_edittext_horizontalmargin);
+                            params.rightMargin = params.leftMargin;
+                            input.setLayoutParams(params);
+                            container.addView(input);
+
+                            alert.setView(container);
                             alert.setPositiveButton(R.string.dialog_ok, (dialog2, whichButton) -> {
                                 String valueString = String.valueOf(input.getText());
                                 int value = 0;
@@ -870,7 +881,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                 }
             }
         } else {
-            // Convert 32bit color data to 16bit (655)
+            // Convert 32bit color data to 16bit (565)
             byte r = 0, g = 0;
             rgbSize = width * height * 2;
             rgbBytes = new byte[rgbSize];
@@ -883,15 +894,19 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                     g = rgbaBytes[i];
 
                 } else if (j == 2) {
-
                     byte b = rgbaBytes[i];
-                    int rgb16 = (((short) (r & 0xF8)) << 8) | (((short) (g & 0xFC)) << 3) | (short) (b >> 3);
 
-                    byte high = (byte) (rgb16 >> 8);
+                    int rShort = (r & 0xF8) & 0xffff;
+                    int gShort =  (g & 0xFC) & 0xffff;
+                    int bShort =  b & 0xff;
+                    int rgb16 = (rShort << 8) | (gShort << 3) | (bShort >>> 3);
+
+                    byte high = (byte) ((rgb16 >> 8) & 0xff);
                     byte low = (byte) (rgb16 & 0xff);
 
-                    rgbBytes[k++] = high;
+                    // Add as little endian
                     rgbBytes[k++] = low;
+                    rgbBytes[k++] = high;
                 }
             }
         }
@@ -911,8 +926,6 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         byte[] result = buffer.array();
 
-        // Increase MTU packet size
-//        mBlePeripheralUart.requestMtu(kPreferredMtuSize, status1 -> mMainHandler.post(() -> sendCrcData(result, packetWithResponseEveryPacketCount)));          // Note: requestMtu only affects to WriteWithoutResponse
         sendCrcData(result, packetWithResponseEveryPacketCount);
 
         rgbaBytes = null;
