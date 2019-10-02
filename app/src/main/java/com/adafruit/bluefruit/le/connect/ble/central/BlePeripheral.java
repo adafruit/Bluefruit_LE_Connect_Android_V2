@@ -500,6 +500,13 @@ public class BlePeripheral {
             //mBluetoothGatt.readPhy();
         }
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void readPhy() {
+        if (mBluetoothGatt != null) {
+            mBluetoothGatt.readPhy();
+        }
+    }
     // endregion
 
     // region CommandQueue

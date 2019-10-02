@@ -2,12 +2,14 @@ package com.adafruit.bluefruit.le.connect.ble.central;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 
@@ -120,6 +122,11 @@ public class BlePeripheralUart {
 
     public void requestMtu(@IntRange(from = 23, to = 517) int mtuSize, BlePeripheral.CompletionHandler completionHandler) {
         mBlePeripheral.requestMtu(mtuSize, completionHandler);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void readPhy() {
+        mBlePeripheral.readPhy();
     }
 
     // endregion

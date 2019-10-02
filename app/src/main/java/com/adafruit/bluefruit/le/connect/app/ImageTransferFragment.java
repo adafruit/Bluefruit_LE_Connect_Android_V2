@@ -16,6 +16,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -939,6 +940,11 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
             return;
         }
 
+        /*
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mBlePeripheral.readPhy();
+        }*/
+
         // Progress fragment
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager != null) {
@@ -957,7 +963,6 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         final byte[] crcData = BlePeripheralUart.appendCrc(data);
 
-        //final int kPacketWithResponseEveryPacketCount = 1;      // Note: don't use a bigger number or it will drop packets for big enough images
         mUartManager.sendEachPacketSequentially(mBlePeripheralUart, crcData, packetWithResponseEveryPacketCount, progress -> {
             if (mProgressDialog != null) {
                 //Log.d(TAG, "progress: " + ((int) (progress * 100)));
