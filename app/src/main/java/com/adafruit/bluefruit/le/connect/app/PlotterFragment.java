@@ -348,7 +348,16 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
 
         if (mLastDataSetModified != null && mIsAutoScrollEnabled) {
             final List<Entry> values = mLastDataSetModified.getValues();
-            final float xOffset = (values != null && values.size() > 0 ? values.get(values.size() - 1).getX() : 0) - (mVisibleInterval - 1);
+
+            float x = 0;
+            if (values != null && values.size() > 0) {
+                Entry value = values.get(values.size() - 1);
+                if (value != null) {
+                    x = value.getX();
+                }
+            }
+
+            final float xOffset = x - (mVisibleInterval - 1);
             mChart.moveViewToX(xOffset);
         }
     }
