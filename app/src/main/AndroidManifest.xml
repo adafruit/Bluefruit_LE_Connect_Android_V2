@@ -15,8 +15,7 @@
     <!-- Bluetooth Permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />    <!-- Scanning: Needed for bluetooth scanning -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />      <!-- Controller: Client must have ACCESS_FINE_LOCATION permission to request PRIORITY_HIGH_ACCURACY location -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />      <!-- Scanning: Needed for bluetooth scanning (FINE needed on Android 10) --> <!-- Controller: Client must have ACCESS_FINE_LOCATION permission to request PRIORITY_HIGH_ACCURACY location -->
 
     <!-- Downloads Permissions -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />

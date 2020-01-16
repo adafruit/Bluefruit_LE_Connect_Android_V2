@@ -50,8 +50,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     private final static boolean kAvoidPoppingFragmentsWhileOnDfu = false;
 
     // Permission requests
-    private final static int PERMISSION_REQUEST_COARSE_LOCATION = 1;
-    public final static int PERMISSION_REQUEST_FINE_LOCATION = 2;
+    private final static int PERMISSION_REQUEST_FINE_LOCATION = 1;
 
     // Activity request codes (used for onActivityResult)
     private static final int kActivityRequestCode_EnableBluetooth = 1;
@@ -101,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         }
     }
 
-    protected void onSaveInstanceState(Bundle savedInstanceState) {
+    protected void onSaveInstanceState(@NonNull Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putBoolean("hasUserAlreadyBeenAskedAboutBluetoothStatus", hasUserAlreadyBeenAskedAboutBluetoothStatus);
     }
@@ -164,14 +163,12 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
                 return true;
             case R.id.action_about:
                 FragmentManager fragmentManager = getSupportFragmentManager();
-                if (fragmentManager != null) {
-                    AboutFragment fragment = AboutFragment.newInstance();
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                            .replace(R.id.contentLayout, fragment, "About");
-                    fragmentTransaction.addToBackStack(null);
-                    fragmentTransaction.commit();
-                }
+                AboutFragment fragment = AboutFragment.newInstance();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                        .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                        .replace(R.id.contentLayout, fragment, "About");
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -199,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
 
                 if (isBluetoothEnabled) {
                     // Request Bluetooth scanning permissions
-                    final boolean isLocationPermissionGranted = requestCoarseLocationPermissionIfNeeded();
+                    final boolean isLocationPermissionGranted = requestFineLocationPermissionIfNeeded();
 
                     if (isLocationPermissionGranted) {
                         // All good. Start Scanning
@@ -232,17 +229,17 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    private boolean requestCoarseLocationPermissionIfNeeded() {
+    private boolean requestFineLocationPermissionIfNeeded() {       // Starting with Android 10, Bluetooth scanning needs Location FINE Permission
         boolean permissionGranted = true;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Android Marshmallow Permission check 
-            if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 permissionGranted = false;
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 mRequestLocationDialog = builder.setTitle(R.string.bluetooth_locationpermission_title)
                         .setMessage(R.string.bluetooth_locationpermission_text)
                         .setPositiveButton(android.R.string.ok, null)
-                        .setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION))
+                        .setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION))
                         .show();
             }
         }
@@ -255,7 +252,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
-            case PERMISSION_REQUEST_COARSE_LOCATION: {
+            case PERMISSION_REQUEST_FINE_LOCATION: {
                 if (grantResults.length >= 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, "Location permission granted");
 
@@ -343,10 +340,8 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         if (isLastConnectedPeripheral && (!kAvoidPoppingFragmentsWhileOnDfu || !isIsDfuInProgress())) {
             Log.d(TAG, "No peripherals connected. Pop all fragments");
             FragmentManager fragmentManager = getSupportFragmentManager();
-            if (fragmentManager != null) {
-                fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                fragmentManager.executePendingTransactions();
-            }
+            fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            fragmentManager.executePendingTransactions();
         }
     }
     // endregion
@@ -357,19 +352,17 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     }
 
     public void scannerRequestLocationPermissionIfNeeded() {
-        requestCoarseLocationPermissionIfNeeded();
+        requestFineLocationPermissionIfNeeded();
     }
 
     public void startPeripheralModules(String peripheralIdentifier) {
         PeripheralModulesFragment fragment = PeripheralModulesFragment.newInstance(peripheralIdentifier);
         FragmentManager fragmentManager = getSupportFragmentManager();
-        if (fragmentManager != null) {
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                    .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                    .replace(R.id.contentLayout, fragment, "Modules");
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.commit();
-        }
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                .replace(R.id.contentLayout, fragment, "Modules");
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
     }
 
     // endregion
@@ -378,13 +371,11 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     @Override
     public void startModuleFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
-        if (fragmentManager != null) {
-            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                    .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                    .replace(R.id.contentLayout, fragment, "Module");
-            fragmentTransaction.addToBackStack(null);
-            fragmentTransaction.commit();
-        }
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                .replace(R.id.contentLayout, fragment, "Module");
+        fragmentTransaction.addToBackStack(null);
+        fragmentTransaction.commit();
     }
 
     // endregion
