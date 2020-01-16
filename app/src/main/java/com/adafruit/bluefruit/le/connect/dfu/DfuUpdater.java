@@ -31,7 +31,6 @@ import java.util.UUID;
 
 import no.nordicsemi.android.dfu.DfuServiceController;
 import no.nordicsemi.android.dfu.DfuServiceInitiator;
-import no.nordicsemi.android.dfu.DfuSettingsConstants;
 
 public class DfuUpdater {
     // Log
@@ -319,75 +318,71 @@ public class DfuUpdater {
             sDownloadTask.setListener(null);
         }
 
-        if (NetworkUtils.isNetworkAvailable(context)) {
-            Log.d(TAG, "Downloading " + versionInfo.hexFileUrl);
+        Log.d(TAG, "Downloading " + versionInfo.hexFileUrl);
 
-            sDownloadTask = new DownloadTask(context, kDownloadOperation_Software_Hex, new DownloadTask.Listener() {
-                @Override
-                public void onDownloadProgress(int operationId, int progress) {
-                    downloadStateListener.onDownloadProgress(progress);
-                }
+        sDownloadTask = new DownloadTask(context, kDownloadOperation_Software_Hex, new DownloadTask.Listener() {
+            @Override
+            public void onDownloadProgress(int operationId, int progress) {
+                downloadStateListener.onDownloadProgress(progress);
+            }
 
-                @Override
-                public void onDownloadCompleted(int operationId, @NonNull Uri uri, @Nullable ByteArrayOutputStream result) {
-                    if (result != null) {
-                        File file = writeSoftwareDownload(context, uri, result, kDefaultHexFilename);
-                        final boolean success = file != null;
-                        if (success) {
-                            // Check if we also need to download an ini file, or we are good
-                            if (versionInfo.iniFileUrl == null) {
-                                // No init file so, go to install firmware
-                                install(context, blePeripheral, file.getAbsolutePath(), null);
-                                sDownloadTask = null;
-                            } else {
-                                // We have to download the ini file too
-                                Log.d(TAG, "Downloading " + versionInfo.iniFileUrl);
-                                sDownloadTask = new DownloadTask(context, kDownloadOperation_Software_Ini, new DownloadTask.Listener() {
-                                    @Override
-                                    public void onDownloadProgress(int operationId, int progress) {
-                                        downloadStateListener.onDownloadProgress(progress);
-                                    }
+            @Override
+            public void onDownloadCompleted(int operationId, @NonNull Uri uri, @Nullable ByteArrayOutputStream result) {
+                if (result != null) {
+                    File file = writeSoftwareDownload(context, uri, result, kDefaultHexFilename);
+                    final boolean success = file != null;
+                    if (success) {
+                        // Check if we also need to download an ini file, or we are good
+                        if (versionInfo.iniFileUrl == null) {
+                            // No init file so, go to install firmware
+                            install(context, blePeripheral, file.getAbsolutePath(), null);
+                            sDownloadTask = null;
+                        } else {
+                            // We have to download the ini file too
+                            Log.d(TAG, "Downloading " + versionInfo.iniFileUrl);
+                            sDownloadTask = new DownloadTask(context, kDownloadOperation_Software_Ini, new DownloadTask.Listener() {
+                                @Override
+                                public void onDownloadProgress(int operationId, int progress) {
+                                    downloadStateListener.onDownloadProgress(progress);
+                                }
 
-                                    @Override
-                                    public void onDownloadCompleted(int operationId, @NonNull Uri uri, @Nullable ByteArrayOutputStream result) {
-                                        if (result != null) {
-                                            File file = writeSoftwareDownload(context, uri, result, kDefaultIniFilename);
-                                            final boolean success = file != null;
-                                            if (success) {
-                                                // We already had the hex file downloaded, and now we also have the ini file. Let's go
-                                                String hexLocalFile = new File(context.getCacheDir(), kDefaultHexFilename).getAbsolutePath();          // get path from the previously downloaded hex file
-                                                install(context, blePeripheral, hexLocalFile, file.getAbsolutePath());
-                                            } else {
-                                                downloadStateListener.onDownloadFailed();
-                                                sDownloadTask = null;
-                                            }
+                                @Override
+                                public void onDownloadCompleted(int operationId, @NonNull Uri uri, @Nullable ByteArrayOutputStream result) {
+                                    if (result != null) {
+                                        File file = writeSoftwareDownload(context, uri, result, kDefaultIniFilename);
+                                        final boolean success = file != null;
+                                        if (success) {
+                                            // We already had the hex file downloaded, and now we also have the ini file. Let's go
+                                            String hexLocalFile = new File(context.getCacheDir(), kDefaultHexFilename).getAbsolutePath();          // get path from the previously downloaded hex file
+                                            install(context, blePeripheral, hexLocalFile, file.getAbsolutePath());
                                         } else {
                                             downloadStateListener.onDownloadFailed();
+                                            sDownloadTask = null;
                                         }
+                                    } else {
+                                        downloadStateListener.onDownloadFailed();
                                     }
-                                });
+                                }
+                            });
 
-                                downloadStateListener.onDownloadStarted(kDownloadOperation_Software_Ini);
-                                sDownloadTask.execute(versionInfo.iniFileUrl);
-                            }
-                        } else {
-                            downloadStateListener.onDownloadFailed();
-                            sDownloadTask = null;
+                            downloadStateListener.onDownloadStarted(kDownloadOperation_Software_Ini);
+                            sDownloadTask.execute(versionInfo.iniFileUrl);
                         }
-
                     } else {
                         downloadStateListener.onDownloadFailed();
+                        sDownloadTask = null;
                     }
+
+                } else {
+                    downloadStateListener.onDownloadFailed();
                 }
-            });
+            }
+        });
 
-            downloadStateListener.onDownloadStarted(kDownloadOperation_Software_Hex);
-            sDownloadTask.execute(versionInfo.hexFileUrl);
+        downloadStateListener.onDownloadStarted(kDownloadOperation_Software_Hex);
+        sDownloadTask.execute(versionInfo.hexFileUrl);
 
-        } else {
-            Log.w(TAG, "Can't install latest version. Internet connection not found");
-            downloadStateListener.onDownloadFailed();
-        }
+
     }
 
     private DfuServiceController mDfuServiceController;

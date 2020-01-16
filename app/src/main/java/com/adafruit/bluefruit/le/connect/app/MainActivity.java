@@ -455,7 +455,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
                 dismissDfuProgressDialog();
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle(R.string.dfu_status_error).setMessage(R.string.dfu_download_error_message)
+                builder.setTitle(R.string.dialog_error).setMessage(R.string.dfu_download_error_message)
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
             }
