@@ -4,7 +4,7 @@ android {
     compileSdkVersion 29
     defaultConfig {
         applicationId "com.adafruit.bluefruit.le.connect"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 29
         versionCode 40
         versionName "3.3.0"
@@ -63,7 +63,7 @@ dependencies {
 
     // Nordic
     implementation 'no.nordicsemi.android.support.v18:scanner:1.4.3'
-    implementation 'no.nordicsemi.android:dfu:1.6.1'
+    implementation 'no.nordicsemi.android:dfu:1.9.1'
 
     //  Architecture Components
     implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'

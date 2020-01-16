@@ -122,7 +122,7 @@ class DownloadTask extends AsyncTask<Uri, Integer, ByteArrayOutputStream> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        // take CPU lock to prevent CPU from going off if the user  presses the power button during download
+        // take CPU lock to prevent CPU from going off if the user presses the power button during download
         PowerManager powerManager = (PowerManager) mWeakContext.get().getSystemService(Context.POWER_SERVICE);
         if (powerManager != null) {
             mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, getClass().getName());

@@ -313,21 +313,6 @@ public class DfuUpdater {
     }
 
     public void downloadAndInstall(@NonNull Context context, @NonNull BlePeripheral blePeripheral, @NonNull ReleasesParser.BasicVersionInfo versionInfo, @NonNull DownloadStateListener downloadStateListener) {
-        /*
-        boolean useHexOnly = false;
-
-        ReleasesParser.BasicVersionInfo release;
-        if (useHexOnly) {
-            // Copy minimum fields required (and don't use the init file)
-            release = new ReleasesParser.BasicVersionInfo();
-            release.fileType = versionInfo.fileType;
-            release.hexFileUrl = versionInfo.hexFileUrl;
-        } else {
-            release = versionInfo;
-        }*/
-
-        ReleasesParser.BasicVersionInfo release = versionInfo;
-
         // Cancel previous download task if still running
         if (sDownloadTask != null) {
             sDownloadTask.cancel(true);
@@ -335,7 +320,7 @@ public class DfuUpdater {
         }
 
         if (NetworkUtils.isNetworkAvailable(context)) {
-            Log.d(TAG, "Downloading " + release.hexFileUrl);
+            Log.d(TAG, "Downloading " + versionInfo.hexFileUrl);
 
             sDownloadTask = new DownloadTask(context, kDownloadOperation_Software_Hex, new DownloadTask.Listener() {
                 @Override
@@ -350,13 +335,13 @@ public class DfuUpdater {
                         final boolean success = file != null;
                         if (success) {
                             // Check if we also need to download an ini file, or we are good
-                            if (release.iniFileUrl == null) {
+                            if (versionInfo.iniFileUrl == null) {
                                 // No init file so, go to install firmware
                                 install(context, blePeripheral, file.getAbsolutePath(), null);
                                 sDownloadTask = null;
                             } else {
                                 // We have to download the ini file too
-                                Log.d(TAG, "Downloading " + release.iniFileUrl);
+                                Log.d(TAG, "Downloading " + versionInfo.iniFileUrl);
                                 sDownloadTask = new DownloadTask(context, kDownloadOperation_Software_Ini, new DownloadTask.Listener() {
                                     @Override
                                     public void onDownloadProgress(int operationId, int progress) {
@@ -383,7 +368,7 @@ public class DfuUpdater {
                                 });
 
                                 downloadStateListener.onDownloadStarted(kDownloadOperation_Software_Ini);
-                                sDownloadTask.execute(release.iniFileUrl);
+                                sDownloadTask.execute(versionInfo.iniFileUrl);
                             }
                         } else {
                             downloadStateListener.onDownloadFailed();

@@ -1,13 +1,16 @@
 package com.adafruit.bluefruit.le.connect.dfu;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 
 import com.adafruit.bluefruit.le.connect.R;
+import com.adafruit.bluefruit.le.connect.utils.ScreenUtils;
 
 import no.nordicsemi.android.dfu.DfuProgressListener;
 import no.nordicsemi.android.dfu.DfuProgressListenerAdapter;
@@ -56,7 +59,7 @@ public class DfuProgressFragmentDialog extends ProgressFragmentDialog {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof Listener) {
             mListener = (Listener) context;
@@ -80,14 +83,33 @@ public class DfuProgressFragmentDialog extends ProgressFragmentDialog {
         super.onResume();
 
         assert (mBlePeripheralAddress != null);
-        DfuServiceListenerHelper.registerProgressListener(getContext(), mDfuProgressListener, mBlePeripheralAddress);
+        Context context = getContext();
+        if (context != null) {
+            DfuServiceListenerHelper.registerProgressListener(context, mDfuProgressListener, mBlePeripheralAddress);
+        }
+
+        // Keep screen on
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            ScreenUtils.keepScreenOn(activity, true);
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
-        DfuServiceListenerHelper.unregisterProgressListener(getContext(), mDfuProgressListener);
+        Context context = getContext();
+        if (context != null) {
+            DfuServiceListenerHelper.unregisterProgressListener(context, mDfuProgressListener);
+        }
+
+        // Disable keep screen on
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            ScreenUtils.keepScreenOn(activity, false);
+        }
+
     }
     // endregion
 
@@ -95,19 +117,19 @@ public class DfuProgressFragmentDialog extends ProgressFragmentDialog {
 
     private final DfuProgressListener mDfuProgressListener = new DfuProgressListenerAdapter() {
         @Override
-        public void onDeviceConnecting(final String deviceAddress) {
+        public void onDeviceConnecting(@NonNull final String deviceAddress) {
             Log.d(TAG, "onDeviceConnecting");
             setIndeterminate(true);
             setMessage(R.string.dfu_status_connecting);
         }
 
         @Override
-        public void onDeviceConnected(final String deviceAddress) {
+        public void onDeviceConnected(@NonNull final String deviceAddress) {
             Log.d(TAG, "onDeviceConnected");
         }
 
         @Override
-        public void onDfuProcessStarting(final String deviceAddress) {
+        public void onDfuProcessStarting(@NonNull final String deviceAddress) {
             Log.d(TAG, "onDfuProcessStarting");
 
             setIndeterminate(true);
@@ -117,14 +139,14 @@ public class DfuProgressFragmentDialog extends ProgressFragmentDialog {
         }
 
         @Override
-        public void onEnablingDfuMode(final String deviceAddress) {
+        public void onEnablingDfuMode(@NonNull final String deviceAddress) {
             Log.d(TAG, "onEnablingDfuMode");
 
             setMessage(R.string.dfu_status_switching_to_dfu);
         }
 
         @Override
-        public void onProgressChanged(final String deviceAddress, final int percent, final float speed, final float avgSpeed, final int currentPart, final int partsTotal) {
+        public void onProgressChanged(@NonNull final String deviceAddress, final int percent, final float speed, final float avgSpeed, final int currentPart, final int partsTotal) {
             Context context = getContext();
 
             //Log.d(TAG, "onProgressChanged: " + percent);
@@ -139,7 +161,7 @@ public class DfuProgressFragmentDialog extends ProgressFragmentDialog {
         }
 
         @Override
-        public void onFirmwareValidating(final String deviceAddress) {
+        public void onFirmwareValidating(@NonNull final String deviceAddress) {
             Log.d(TAG, "onFirmwareValidating");
             setMessage(R.string.dfu_status_validating);
         }
@@ -151,27 +173,27 @@ public class DfuProgressFragmentDialog extends ProgressFragmentDialog {
         }
 
         @Override
-        public void onDeviceDisconnected(final String deviceAddress) {
+        public void onDeviceDisconnected(@NonNull final String deviceAddress) {
             Log.d(TAG, "onDeviceDisconnected");
             mListener.onDeviceDisconnected(deviceAddress);
         }
 
         @Override
-        public void onDfuCompleted(final String deviceAddress) {
+        public void onDfuCompleted(@NonNull final String deviceAddress) {
             Log.d(TAG, "onDfuCompleted");
             setMessage(R.string.dfu_status_completed);
             mListener.onDfuCompleted(deviceAddress);
         }
 
         @Override
-        public void onDfuAborted(final String deviceAddress) {
+        public void onDfuAborted(@NonNull final String deviceAddress) {
             Log.d(TAG, "onDfuAborted");
             setMessage(R.string.dfu_status_aborted);
             mListener.onDfuAborted(deviceAddress);
         }
 
         @Override
-        public void onError(final String deviceAddress, final int error, final int errorType, final String message) {
+        public void onError(@NonNull final String deviceAddress, final int error, final int errorType, final String message) {
             Log.d(TAG, "onError: " + message);
             if (mListener != null) {
                 mListener.onError(deviceAddress, error, errorType, message);
