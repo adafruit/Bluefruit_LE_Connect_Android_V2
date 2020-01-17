@@ -51,6 +51,7 @@ import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -672,6 +673,15 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         if (packets.isEmpty()) {
             showDialogWarningNoTextToExport();
         } else {
+
+            final int maxPacketsToExport = 1000;        // exportText uses a parcelable to send the text. If the text is too big a TransactionTooLargeException is thrown
+            final int numPacketsToExport = Math.min(maxPacketsToExport, packets.size());
+            List<UartPacket> packetsToExport = new ArrayList<>(numPacketsToExport);
+            for (int i = Math.max(0, packets.size() - numPacketsToExport); i < packets.size(); i++) {
+                UartPacket packet = packets.get(i);
+                packetsToExport.add(new UartPacket(packet));
+            }
+
             // Export format dialog
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
             builder.setTitle(R.string.uart_export_format_subtitle);
@@ -680,17 +690,17 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             builder.setItems(formats, (dialog, which) -> {
                 switch (which) {
                     case 0: { // txt
-                        String result = UartDataExport.packetsAsText(packets, mShowDataInHexFormat);
+                        String result = UartDataExport.packetsAsText(packetsToExport, mShowDataInHexFormat);
                         exportText(result);
                         break;
                     }
                     case 1: { // csv
-                        String result = UartDataExport.packetsAsCsv(packets, mShowDataInHexFormat);
+                        String result = UartDataExport.packetsAsCsv(packetsToExport, mShowDataInHexFormat);
                         exportText(result);
                         break;
                     }
                     case 2: { // json
-                        String result = UartDataExport.packetsAsJson(packets, mShowDataInHexFormat);
+                        String result = UartDataExport.packetsAsJson(packetsToExport, mShowDataInHexFormat);
                         exportText(result);
                         break;
                     }
@@ -703,6 +713,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     }
 
     private void exportText(@Nullable String text) {
+        // Note: text is sent in a parcelable. It shouldn't be too big to avoid TransactionTooLargeException
         if (text != null && !text.isEmpty()) {
             Intent sendIntent = new Intent();
             sendIntent.setAction(Intent.ACTION_SEND);
