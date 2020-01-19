@@ -5,12 +5,17 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,11 +40,11 @@ public class FileHelper {
             out.flush();
             out.close();
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, "extractFileFromAssets: " + e);
         }
 
         Uri uri = Uri.parse("file://" + dir + "/" + outFilename);
-        Log.d(TAG, "pdf uri: " + uri);
+        Log.d(TAG, "uri: " + uri);
 
         return uri;
     }
@@ -52,6 +57,21 @@ public class FileHelper {
         }
     }
 
+
+    public static @Nullable Bitmap getBitmapFromAsset(@NonNull Context context, String filePath) {
+        AssetManager assetManager = context.getAssets();
+
+        InputStream istr;
+        Bitmap bitmap = null;
+        try {
+            istr = assetManager.open(filePath);
+            bitmap = BitmapFactory.decodeStream(istr);
+        } catch (IOException e) {
+            Log.e(TAG, "getBitmapFromAsset: " + e);
+        }
+
+        return bitmap;
+    }
 
     // region PathFromUri
     // http://stackoverflow.com/questions/19834842/android-gallery-on-kitkat-returns-different-uri-for-intent-action-get-content/20559418#20559418

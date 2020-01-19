@@ -56,6 +56,8 @@ import com.adafruit.bluefruit.le.connect.ble.central.UartPacketManager;
 import com.adafruit.bluefruit.le.connect.dfu.ProgressFragmentDialog;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
 import com.adafruit.bluefruit.le.connect.utils.FileHelper;
+import com.adafruit.bluefruit.le.connect.utils.ImageMagickUtils;
+import com.adafruit.bluefruit.le.connect.utils.ImageUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -164,6 +166,13 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         // Update ActionBar
         setActionBarTitle(R.string.imagetransfer_tab_title);
+
+
+        // set image cache temp directory in ImageMagick:
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            ImageMagickUtils.setCacheDir(activity);
+        }
 
         // Init Data
         SharedPreferences preferences = context.getSharedPreferences(kPreferences, Context.MODE_PRIVATE);
@@ -469,11 +478,11 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         }
         mResolutionViewGroup.requestLayout();
 
-
         // Calculate transformed image
         if (mBitmap != null) {
-            // Bitmap transformedBitmap = getResizedBitmap(mBitmap, width, height);
-            Bitmap transformedBitmap = scaleAndRotateImage(mBitmap, mResolution, mImageRotationDegrees, Color.BLACK);
+            Bitmap transformedBitmap = ImageUtils.scaleAndRotateImage(mBitmap, mResolution, mImageRotationDegrees, Color.BLACK);
+
+            transformedBitmap = ImageUtils.applyEInkModeToImage(context, transformedBitmap);
 
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), transformedBitmap);        // Create bitmap drawable to control filtering method
             bitmapDrawable.setFilterBitmap(false);
@@ -484,61 +493,6 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         //
         updateResolutionUI();
     }
-
-    @SuppressWarnings("SameParameterValue")
-    private Bitmap scaleAndRotateImage(Bitmap image, Size resolution, float rotationDegress, int backgroundColor) {
-        // Calculate resolution for fitted image
-        final float widthRatio = resolution.getWidth() / (float) image.getWidth();
-        final float heightRatio = resolution.getHeight() / (float) image.getHeight();
-
-        Size fitResolution;
-        if (heightRatio < widthRatio) {
-            float width = Math.round((resolution.getHeight() / (float) image.getHeight()) * image.getWidth());
-            fitResolution = new Size((int) (width), resolution.getHeight());
-        } else {
-            float height = Math.round((resolution.getWidth() / (float) image.getWidth()) * image.getHeight());
-            fitResolution = new Size(resolution.getWidth(), (int) (height));
-        }
-
-        Bitmap fitImage = getResizedBitmap(image, fitResolution.getWidth(), fitResolution.getHeight(), rotationDegress);
-
-        final int x = (resolution.getWidth() - fitImage.getWidth()) / 2;
-        final int y = (resolution.getHeight() - fitImage.getHeight()) / 2;
-
-        Bitmap newImage = Bitmap.createBitmap(resolution.getWidth(), resolution.getHeight(), fitImage.getConfig());
-        Canvas canvas = new Canvas(newImage);
-        canvas.drawColor(backgroundColor);
-        canvas.drawBitmap(fitImage, x, y, null);
-        return newImage;
-    }
-
-    private Bitmap getResizedBitmap(Bitmap bitmap, int newWidth, int newHeight, float rotationDegress) {
-        int width = bitmap.getWidth();
-        int height = bitmap.getHeight();
-        float scaleWidth = ((float) newWidth) / width;
-        float scaleHeight = ((float) newHeight) / height;
-
-        Matrix matrix = new Matrix();
-        matrix.postScale(scaleWidth, scaleHeight);
-        matrix.postRotate(rotationDegress);
-
-        return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, false);
-    }
-    /*
-
-
-        if (bitmap != null) {
-            // TODO
-            final int width = mResolution.getWidth();
-            final int height = mResolution.getHeight();
-            Bitmap resizedBitmap = getResizedBitmap(bitmap, width, height);
-//                bitmap.recycle();
-
-            // Bitmap resizedBitmap = bitmap;
-
-            setImage(resizedBitmap);
-        }
-     */
 
 
     // endregion
