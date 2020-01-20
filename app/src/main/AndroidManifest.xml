@@ -26,6 +26,9 @@
     <!-- Barcode reading & Image Transfer -->
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- Image Transfer -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <!-- App -->
     <application
         android:name=".BluefruitApplication"

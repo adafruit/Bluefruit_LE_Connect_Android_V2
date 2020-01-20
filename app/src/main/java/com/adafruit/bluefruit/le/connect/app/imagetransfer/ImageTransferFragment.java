@@ -37,7 +37,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -690,12 +689,15 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         final String[] permissions = new String[]{Manifest.permission.CAMERA};
 
+        requestPermissions(permissions, kActivityRequestCode_requestCameraPermission);
+
+        /* No need to explain rationale
         if (!shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
             requestPermissions(permissions, kActivityRequestCode_requestCameraPermission);
             return;
         }
-
         Toast.makeText(activity, R.string.imagetransfer_cameraneeded, Toast.LENGTH_LONG).show();
+         */
     }
 
     private void requestExternalReadPermission() {
@@ -707,13 +709,15 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         Log.w(TAG, "External read permission is not granted. Requesting permission");
 
         final String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+        requestPermissions(permissions, kActivityRequestCode_requestReadExternalStoragePermission);
 
+        /* No need to explain rationale
         if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
             requestPermissions(permissions, kActivityRequestCode_requestReadExternalStoragePermission);
             return;
         }
-
         Toast.makeText(activity, R.string.imagetransfer_readexternalneeded, Toast.LENGTH_LONG).show();
+        */
     }
 
     @Override
@@ -727,28 +731,27 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
             if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "Camera permission granted - initialize the camera source");
                 chooseFromCamera(context);
-                return;
+            } else {
+
+                Log.e(TAG, "Permission not granted: results len = " + grantResults.length + " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setMessage(R.string.imagetransfer_cameraneeded)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
             }
-
-            Log.e(TAG, "Permission not granted: results len = " + grantResults.length + " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setMessage(R.string.imagetransfer_cameraneeded)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show();
         } else if (requestCode == kActivityRequestCode_requestReadExternalStoragePermission) {
             if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "External read permission granted - initialize the camera source");
+                Log.d(TAG, "External read permission granted");
                 chooseFromLibrary(context);
-                return;
+            } else {
+                Log.e(TAG, "Permission not granted: results len = " + grantResults.length + " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setMessage(R.string.imagetransfer_readexternalneeded)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
             }
-
-            Log.e(TAG, "Permission not granted: results len = " + grantResults.length + " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setMessage(R.string.imagetransfer_readexternalneeded)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show();
         } else {
             Log.d(TAG, "Got unexpected permission result: " + requestCode);
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
