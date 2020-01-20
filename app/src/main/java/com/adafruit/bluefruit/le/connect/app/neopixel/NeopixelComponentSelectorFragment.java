@@ -102,7 +102,7 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof NeopixelComponentSelectorFragmentListener) {
             mListener = (NeopixelComponentSelectorFragmentListener) context;

@@ -7,8 +7,12 @@
     <dimen name="fragment_mqtt_edit_longtitle_width">120dp</dimen>
 
 
+    <!-- Image Transfer -->
     <dimen name="imagetransfer_values_minwidth">170dp</dimen>
-
     <dimen name="alertview_embedded_edittext_horizontalmargin">20dp</dimen>
+
+    <dimen name="imagetransfer_resolutiondialog_width">340dp</dimen>
+    <dimen name="imagetransfer_resolutiondialog_height">500dp</dimen>
+
 
 </resources>

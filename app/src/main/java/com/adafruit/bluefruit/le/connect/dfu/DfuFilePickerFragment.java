@@ -113,7 +113,7 @@ public class DfuFilePickerFragment extends AppCompatDialogFragment {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
@@ -157,7 +157,7 @@ public class DfuFilePickerFragment extends AppCompatDialogFragment {
         }
     }
 
-    public String getFilenameFromUri(@NonNull Context context, @Nullable Uri uri) {
+    private String getFilenameFromUri(@NonNull Context context, @Nullable Uri uri) {
         String result = null;
 
         // Based on: https://stackoverflow.com/questions/5568874/how-to-extract-the-file-name-from-uri-returned-from-intent-action-get-content

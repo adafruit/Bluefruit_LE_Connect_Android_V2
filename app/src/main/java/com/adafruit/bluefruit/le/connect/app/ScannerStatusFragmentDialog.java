@@ -20,8 +20,8 @@ import com.adafruit.bluefruit.le.connect.R;
 
 public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
     // Params
-    protected final static String kParamMessage = "message";
-    protected final static String kParamBlePeripheralId = "blePeripheralIdentifier";
+    private final static String kParamMessage = "message";
+    private final static String kParamBlePeripheralId = "blePeripheralIdentifier";
 
     // Inteface
     interface onScannerStatusCancelListener {
@@ -103,7 +103,7 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof onScannerStatusCancelListener) {
             mCancelListener = (onScannerStatusCancelListener) context;
@@ -123,7 +123,7 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
     }
 
     @Override
-    public void onCancel(DialogInterface dialog) {
+    public void onCancel(@NonNull DialogInterface dialog) {
         super.onCancel(dialog);
 
         mCancelListener.scannerStatusCancelled(mBlePeripheralIdentifier);

@@ -10,14 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -33,6 +25,14 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.R;
@@ -138,9 +138,7 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
         // UI
         mStatusTextView = view.findViewById(R.id.statusTextView);
         mColorPickerWComponentView = view.findViewById(R.id.colorPickerWComponentView);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mColorPickerWComponentView.setElevation(1000);          // Is a view that should appear above the button. Take into account that buttons have elevation from API21
-        }
+        mColorPickerWComponentView.setElevation(1000);          // Is a view that should appear above the button. Take into account that buttons have elevation from API21
         mConnectButton = view.findViewById(R.id.connectButton);
         mConnectButton.setEnabled(false);
         mConnectButton.setOnClickListener(view12 -> onClickConnect());
@@ -153,11 +151,9 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
             FragmentActivity activity = getActivity();
             if (activity != null) {
                 FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                if (fragmentManager != null) {
-                    NeopixelColorPickerFragment colorPickerFragment = NeopixelColorPickerFragment.newInstance(mCurrentColor, mColorW, mComponents.getNumComponents() == 4);
-                    colorPickerFragment.setTargetFragment(this, 0);
-                    colorPickerFragment.show(fragmentManager, "ColorPicker");
-                }
+                NeopixelColorPickerFragment colorPickerFragment = NeopixelColorPickerFragment.newInstance(mCurrentColor, mColorW, mComponents.getNumComponents() == 4);
+                colorPickerFragment.setTargetFragment(this, 0);
+                colorPickerFragment.show(fragmentManager, "ColorPicker");
             }
         });
 
@@ -242,7 +238,7 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_neopixel, menu);
     }
@@ -255,36 +251,30 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
             case R.id.action_boardSelector:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        NeopixelBoardSelectorFragment boardSelectorFragment = NeopixelBoardSelectorFragment.newInstance();
-                        boardSelectorFragment.setTargetFragment(this, 0);
-                        boardSelectorFragment.show(fragmentManager, "BoardSelector");
-                    }
+                    NeopixelBoardSelectorFragment boardSelectorFragment = NeopixelBoardSelectorFragment.newInstance();
+                    boardSelectorFragment.setTargetFragment(this, 0);
+                    boardSelectorFragment.show(fragmentManager, "BoardSelector");
                 }
                 return true;
 
             case R.id.action_boardComponentsSelector:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        NeopixelComponentSelectorFragment boardComponentSelectorFragment = NeopixelComponentSelectorFragment.newInstance(mComponents.getType(), mIs400HzEnabled);
-                        boardComponentSelectorFragment.setTargetFragment(this, 0);
-                        boardComponentSelectorFragment.show(fragmentManager, "BoardComponentSelector");
-                    }
+                    NeopixelComponentSelectorFragment boardComponentSelectorFragment = NeopixelComponentSelectorFragment.newInstance(mComponents.getType(), mIs400HzEnabled);
+                    boardComponentSelectorFragment.setTargetFragment(this, 0);
+                    boardComponentSelectorFragment.show(fragmentManager, "BoardComponentSelector");
                 }
                 return true;
 
             case R.id.action_help:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.neopixel_help_title), getString(R.string.neopixel_help_text));
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                                .replace(R.id.contentLayout, helpFragment, "Help");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.neopixel_help_title), getString(R.string.neopixel_help_text));
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                            .replace(R.id.contentLayout, helpFragment, "Help");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
                 return true;
 
@@ -637,7 +627,7 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
         });
     }
 
-    void resetBoard() {
+    private void resetBoard() {
         mBoard = null;
     }
 

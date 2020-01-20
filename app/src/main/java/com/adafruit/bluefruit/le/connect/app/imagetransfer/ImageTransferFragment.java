@@ -1,4 +1,4 @@
-package com.adafruit.bluefruit.le.connect.app;
+package com.adafruit.bluefruit.le.connect.app.imagetransfer;
 
 import android.Manifest;
 import android.app.Activity;
@@ -12,7 +12,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
@@ -31,7 +30,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -51,6 +49,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.adafruit.bluefruit.le.connect.R;
+import com.adafruit.bluefruit.le.connect.app.CommonHelpFragment;
+import com.adafruit.bluefruit.le.connect.app.ConnectedPeripheralFragment;
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheralUart;
 import com.adafruit.bluefruit.le.connect.ble.central.UartPacketManager;
 import com.adafruit.bluefruit.le.connect.dfu.ProgressFragmentDialog;
@@ -68,7 +68,7 @@ import java.util.Date;
 import java.util.Locale;
 
 
-public class ImageTransferFragment extends ConnectedPeripheralFragment implements ImageCropFragment.OnImageCropListener {
+public class ImageTransferFragment extends ConnectedPeripheralFragment implements ImageCropFragment.OnImageCropListener, ImageTransferFormatSelectorDialogFragment.FormatSelectorListener {
     // Log
     private final static String TAG = ImageTransferFragment.class.getSimpleName();
 
@@ -89,29 +89,9 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private final static String kPreferences_resolutionHeight = "resolution_height";
     private final static String kPreferences_interleavedWithoutResponseCount = "interleaved_withoutresponse_count";
     private final static String kPreferences_isColorSpace24Bits = "is_color_space_24_bits";
+    private final static String kPreferences_isEInkModeEnabled = "is_eink_mode_enabled";
 
     private Size kDefaultResolution = new Size(64, 64);
-    private Size[] kAcceptedResolutions = {
-            new Size(4, 4),
-            new Size(8, 8),
-            new Size(16, 16),
-            new Size(32, 32),
-            new Size(64, 64),
-            new Size(128, 128),
-            new Size(128, 160),
-            new Size(160, 80),
-            new Size(168, 144),
-            new Size(212, 104),
-            new Size(240, 240),
-            new Size(250, 122),
-            new Size(256, 256),
-            new Size(296, 128),
-            new Size(300, 400),
-            new Size(320, 240),
-            new Size(480, 320),
-            new Size(512, 512),
-            // new Size(1024, 1024),
-    };
 
     // UI
     private TextView mUartWaitingTextView;
@@ -130,6 +110,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private float mImageRotationDegrees;
     private int mInterleavedWithoutResponseCount;
     private boolean mIsColorSpace24Bits;
+    private boolean mIsEInkModeEnabled;
     private Bitmap mBitmap;
     private ProgressFragmentDialog mProgressDialog;
 
@@ -181,6 +162,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         mResolution = new Size(resolutionWidth, resolutionHeight);
         mInterleavedWithoutResponseCount = preferences.getInt(kPreferences_interleavedWithoutResponseCount, kDefaultInterlavedWithoutResponseCount);
         mIsColorSpace24Bits = preferences.getBoolean(kPreferences_isColorSpace24Bits, false);
+        mIsEInkModeEnabled = preferences.getBoolean(kPreferences_isEInkModeEnabled, false);
 
         // UI
         mUartWaitingTextView = view.findViewById(R.id.uartWaitingTextView);
@@ -304,13 +286,13 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         ImageButton rotateLeftButton = view.findViewById(R.id.rotateLeftButton);
         rotateLeftButton.setOnClickListener(v -> {
             final float rotation = (mImageRotationDegrees - 90) % 360;
-            updateImage(mResolution, rotation);
+            updateImage(mResolution, mIsEInkModeEnabled, rotation);
         });
 
         ImageButton rotateRightButton = view.findViewById(R.id.rotateRightButton);
         rotateRightButton.setOnClickListener(v -> {
             final float rotation = (mImageRotationDegrees + 90) % 360;
-            updateImage(mResolution, rotation);
+            updateImage(mResolution, mIsEInkModeEnabled, rotation);
         });
 
         Button sendButton = view.findViewById(R.id.sendButton);
@@ -320,7 +302,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
             @Override
             public void onGlobalLayout() {
                 mResolutionContainerViewGroup.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                updateImage(mResolution, mImageRotationDegrees);
+                updateImage(mResolution, mIsEInkModeEnabled, mImageRotationDegrees);
             }
         });
 
@@ -441,15 +423,17 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     }
 
     private void updateResolutionUI() {
-        final String text = String.format(Locale.US, "%d x %d", mResolution.getWidth(), mResolution.getHeight());
+        final String format = mIsEInkModeEnabled ? getString(R.string.imagetransfer_resolution_einkprefix) + " " + "%d x %d" : "%d x %d";
+        final String text = String.format(Locale.US, format, mResolution.getWidth(), mResolution.getHeight());
         mResolutionButton.setText(text);
     }
 
-    private void updateImage(Size resolution, float rotation) {
+    private void updateImage(Size resolution, boolean isEInkModeEnabled, float rotation) {
         Context context = getContext();
         if (context == null) return;
 
         mResolution = resolution;
+        mIsEInkModeEnabled = isEInkModeEnabled;
         mImageRotationDegrees = rotation;
         final int width = mResolution.getWidth();
         final int height = mResolution.getHeight();
@@ -459,6 +443,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         SharedPreferences.Editor editor = settings.edit();
         editor.putInt(kPreferences_resolutionWidth, width);
         editor.putInt(kPreferences_resolutionHeight, height);
+        editor.putBoolean(kPreferences_isEInkModeEnabled, isEInkModeEnabled);
         editor.apply();
 
         // Change UI to adjust aspect ratio of the displayed image
@@ -482,7 +467,9 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         if (mBitmap != null) {
             Bitmap transformedBitmap = ImageUtils.scaleAndRotateImage(mBitmap, mResolution, mImageRotationDegrees, Color.BLACK);
 
-            transformedBitmap = ImageUtils.applyEInkModeToImage(context, transformedBitmap);
+            if (isEInkModeEnabled) {
+                transformedBitmap = ImageUtils.applyEInkModeToImage(context, transformedBitmap);
+            }
 
             BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), transformedBitmap);        // Create bitmap drawable to control filtering method
             bitmapDrawable.setFilterBitmap(false);
@@ -502,34 +489,13 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private void chooseResolution() {
         Context context = getContext();
         if (context == null) return;
+        FragmentManager fragmentManager = getFragmentManager();
+        if (fragmentManager == null) return;
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(R.string.imagetransfer_resolution_choose);
-
-        // add a radio button list
-        int checkedItem = 0;
-        final ArrayAdapter<String> resolutionsAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_singlechoice);
-        for (int i = 0; i < kAcceptedResolutions.length; i++) {
-            Size size = kAcceptedResolutions[i];
-            resolutionsAdapter.add(String.format(Locale.US, "%d x %d", size.getWidth(), size.getHeight()));
-
-            if (size.equals(mResolution)) {
-                checkedItem = i;
-            }
-        }
-
-        builder.setSingleChoiceItems(resolutionsAdapter, checkedItem, (dialog, which) -> {
-            Size resolution = kAcceptedResolutions[which];
-            updateImage(resolution, mImageRotationDegrees);
-            dialog.dismiss();
-        });
-
-        builder.setNegativeButton(R.string.dialog_cancel, null);
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        ImageTransferFormatSelectorDialogFragment dialogFragment = ImageTransferFormatSelectorDialogFragment.newInstance(mIsEInkModeEnabled, mResolution);
+        dialogFragment.setTargetFragment(this, 0);
+        dialogFragment.show(fragmentManager, ImageTransferFormatSelectorDialogFragment.class.getSimpleName());
     }
-
 
     private void chooseImage() {
         Context context = getContext();
@@ -635,7 +601,16 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private void setImage(Bitmap bitmap) {
         mImageRotationDegrees = 0;      // reset rotation
         mBitmap = bitmap;
-        updateImage(mResolution, mImageRotationDegrees);
+        updateImage(mResolution, mIsEInkModeEnabled, mImageRotationDegrees);
+    }
+    // endregion
+
+    // region FormatSelectorListener
+    @Override
+    public void onResolutionSelected(Size resolution, boolean isEInkMode) {
+        Log.d(TAG, "Resolution selected: " + resolution.getWidth() + ", " + resolution.getHeight() + " isEInk: " + isEInkMode);
+
+        updateImage(resolution, isEInkMode, mImageRotationDegrees);
     }
     // endregion
 

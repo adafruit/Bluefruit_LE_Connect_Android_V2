@@ -1,4 +1,4 @@
-package com.adafruit.bluefruit.le.connect.app;
+package com.adafruit.bluefruit.le.connect.app.imagetransfer;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -80,7 +80,7 @@ public class ImageCropFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof OnImageCropListener) {
             mListener = (OnImageCropListener) context;

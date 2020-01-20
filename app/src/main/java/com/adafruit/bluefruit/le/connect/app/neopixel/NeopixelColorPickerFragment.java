@@ -124,7 +124,7 @@ public class NeopixelColorPickerFragment extends AppCompatDialogFragment impleme
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         if (context instanceof NeopixelColorPickerFragmentListener) {
             mListener = (NeopixelColorPickerFragmentListener) context;
