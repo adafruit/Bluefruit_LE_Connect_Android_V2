@@ -49,3 +49,6 @@
 -keep class org.eclipse.paho.client.mqttv3.persist.** { *; }
 -dontwarn org.eclipse.paho.client.mqttv3.persist.**
 -keepattributes Exceptions, Signature, InnerClasses
+
+# ImageMagick
+-keep class magick.** { *; }
