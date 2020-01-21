@@ -30,6 +30,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -74,6 +75,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private final static String TAG = ImageTransferFragment.class.getSimpleName();
 
     // Config
+    private static final boolean kIsEInkAvailable = false;
     private static final boolean kShowInterleaveControls = true;
     private static final int kDefaultInterlavedWithoutResponseCount = 50;
     private static final String kAuthorityField = ".fileprovider";          // Same as the authority field on the manifest provider
@@ -151,9 +153,11 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
 
         // set image cache temp directory in ImageMagick:
-        FragmentActivity activity = getActivity();
-        if (activity != null) {
-            ImageMagickUtils.setCacheDir(activity);
+        if (kIsEInkAvailable) {
+            FragmentActivity activity = getActivity();
+            if (activity != null) {
+                ImageMagickUtils.setCacheDir(activity);
+            }
         }
 
         // Init Data
@@ -163,7 +167,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         mResolution = new Size(resolutionWidth, resolutionHeight);
         mInterleavedWithoutResponseCount = preferences.getInt(kPreferences_interleavedWithoutResponseCount, kDefaultInterlavedWithoutResponseCount);
         mIsColorSpace24Bits = preferences.getBoolean(kPreferences_isColorSpace24Bits, false);
-        mIsEInkModeEnabled = preferences.getBoolean(kPreferences_isEInkModeEnabled, false);
+        mIsEInkModeEnabled = kIsEInkAvailable && preferences.getBoolean(kPreferences_isEInkModeEnabled, false);
 
         // UI
         mUartWaitingTextView = view.findViewById(R.id.uartWaitingTextView);
@@ -490,12 +494,43 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private void chooseResolution() {
         Context context = getContext();
         if (context == null) return;
-        FragmentManager fragmentManager = getFragmentManager();
-        if (fragmentManager == null) return;
 
-        ImageTransferFormatSelectorDialogFragment dialogFragment = ImageTransferFormatSelectorDialogFragment.newInstance(mIsEInkModeEnabled, mResolution);
-        dialogFragment.setTargetFragment(this, 0);
-        dialogFragment.show(fragmentManager, ImageTransferFormatSelectorDialogFragment.class.getSimpleName());
+        if (kIsEInkAvailable) {
+            FragmentManager fragmentManager = getFragmentManager();
+            if (fragmentManager == null) return;
+
+            ImageTransferFormatSelectorDialogFragment dialogFragment = ImageTransferFormatSelectorDialogFragment.newInstance(mIsEInkModeEnabled, mResolution);
+            dialogFragment.setTargetFragment(this, 0);
+            dialogFragment.show(fragmentManager, ImageTransferFormatSelectorDialogFragment.class.getSimpleName());
+        }
+        else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(R.string.imagetransfer_resolution_choose);
+
+            // add a radio button list
+            int checkedItem = 0;
+            Size[] kAcceptedResolutions = ImageTransferFormatSelectorPageFragment.kStandardResolutions;
+            final ArrayAdapter<String> resolutionsAdapter = new ArrayAdapter<>(context, android.R.layout.select_dialog_singlechoice);
+            for (int i = 0; i < kAcceptedResolutions.length; i++) {
+                Size size = kAcceptedResolutions[i];
+                resolutionsAdapter.add(String.format(Locale.US, "%d x %d", size.getWidth(), size.getHeight()));
+
+                if (size.equals(mResolution)) {
+                    checkedItem = i;
+                }
+            }
+
+            builder.setSingleChoiceItems(resolutionsAdapter, checkedItem, (dialog, which) -> {
+                Size resolution = kAcceptedResolutions[which];
+                updateImage(resolution, mIsEInkModeEnabled, mImageRotationDegrees);
+                dialog.dismiss();
+            });
+
+            builder.setNegativeButton(R.string.dialog_cancel, null);
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
     }
 
     private void chooseImage() {

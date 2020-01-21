@@ -1,9 +1,7 @@
 package com.adafruit.bluefruit.le.connect.utils;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.util.Log;
@@ -13,10 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
-import magick.ColorspaceType;
 import magick.ImageInfo;
 import magick.MagickException;
 import magick.MagickImage;

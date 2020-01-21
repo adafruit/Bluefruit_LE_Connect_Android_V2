@@ -23,7 +23,7 @@ public class ImageTransferFormatSelectorPageFragment extends Fragment {
     private static final String ARG_PARAM_RESOLUTION_WIDTH = "resolutionWidth";
     private static final String ARG_PARAM_RESOLUTION_HEIGHT = "resolutionHeight";
 
-    private Size[] kStandardResolutions = {
+    public static Size[] kStandardResolutions = {
             new Size(4, 4),
             new Size(8, 8),
             new Size(16, 16),
@@ -46,7 +46,7 @@ public class ImageTransferFormatSelectorPageFragment extends Fragment {
     };
 
 
-    private Size[] kEInkResolutions = {
+    private static Size[] kEInkResolutions = {
             new Size(152, 152),
             new Size(168, 44),
             new Size(212, 104),
