@@ -3,6 +3,7 @@ package com.adafruit.bluefruit.le.connect.app.imagetransfer;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +73,11 @@ public class ImageCropFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         mImageCropView = view.findViewById(R.id.imageCropView);
-        mImageCropView.setImageFilePath(mImagePath);
+        try {
+            mImageCropView.setImageFilePath(mImagePath);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Error: " + e);
+        }
         mImageCropView.setAspectRatio(mImageWidth, mImageHeight);
 
         Button cropButton = view.findViewById(R.id.cropButton);

@@ -502,7 +502,7 @@
 	<string name="imagetransfer_navigation_title_format" formatted="false">Image Transfer - %s</string>
 
 	<string name="imagetransfer_help_title">Image Transfer</string>
-	<string name="imagetransfer_help_text">The Image Transfer module sends the image of your choice to Bluefruit LE over UART.\n\nFormat:\n- single byte char “!” (0x21)\n- single byte char \'I\' (0x49)\n- color space (uint8 16 for 16bits 565 or 24 for 24-bit 888)\n- image width (uint16 little endian, 2 bytes)\n- height (uint16 little endian, 2 bytes)\n- pixel data encoded as "RGB 16bit 565” or "RGB 24-bit 888" depending on the Color Space selected\n- single byte CRC\n\nTransfer mode:\nThis setting affects the speed of the data transfer. The recommended value is “Interleaved [50:1]”\nTake into account that data could be lost if the speed is too fast and your phone or the Bluefruit LE peripheral are not able to process it fast enough.\n\nThe possible values for Transfer mode are:\n- Without response: Send packets without waiting for acknowledgement. This is the fastest method.\n- With response: Send each packet waiting for acknowledgment. This is the slowest and safest method.\n- Interleaved: sends a number of packets without response for each packet with response.</string>
+	<string name="imagetransfer_help_text">The Image Transfer module sends the image of your choice to Bluefruit LE over UART.\n\nFormat:\n- single byte char “!” (0x21)\n- single byte char \'I\' (0x49)\n- bit depth (uint8 16 for 16bits 565 or 24 for 24-bit 888)\n- image width (uint16 little endian, 2 bytes)\n- height (uint16 little endian, 2 bytes)\n- pixel data encoded as "RGB 16bit 565” or "RGB 24-bit 888" depending on the Bit Depth selected\n- single byte CRC\n\nTransfer mode:\nThis setting affects the speed of the data transfer. The recommended value is “Interleaved [50:1]”\nTake into account that data could be lost if the speed is too fast and your phone or the Bluefruit LE peripheral are not able to process it fast enough.\n\nThe possible values for Transfer mode are:\n- Without response: Send packets without waiting for acknowledgement. This is the fastest method.\n- With response: Send each packet waiting for acknowledgment. This is the slowest and safest method.\n- Interleaved: sends a number of packets without response for each packet with response.</string>
 
 	<string name="imagetransfer_waitingforuart">Waiting for Uart&#8230;</string>
 	<string name="imagetransfer_resolution_title">Resolution:</string>
@@ -536,7 +536,7 @@
 	<string name="imagetransfer_senddata_error">There was an error while transferring the image data</string>
 	<string name="imagetransfer_crop_action">Crop image</string>
 	<string name="imagetransfer_crop_error">Error cropping image </string>
-	<string name="imagetransfer_colorspace_title">Color Space:</string>
+	<string name="imagetransfer_colorspace_title">Bit Depth:</string>
 	<string name="imagetransfer_colorspace_16bit">16-bit</string>
 	<string name="imagetransfer_colorspace_24bit">24-bit</string>
 

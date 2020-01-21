@@ -54,12 +54,14 @@ import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheralUart;
 import com.adafruit.bluefruit.le.connect.ble.central.UartPacketManager;
 import com.adafruit.bluefruit.le.connect.dfu.ProgressFragmentDialog;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
-import com.adafruit.bluefruit.le.connect.utils.FileHelper;
 import com.adafruit.bluefruit.le.connect.utils.ImageMagickUtils;
 import com.adafruit.bluefruit.le.connect.utils.ImageUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -622,17 +624,32 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
         if (requestCode == kActivityRequestCode_pickFromGallery && resultCode == Activity.RESULT_OK) {
             if (data != null && data.getData() != null) {
-                Uri photoUri = data.getData();
 
-                Uri uri;
-                String filePath = FileHelper.getPath(context, photoUri);
-                if (filePath != null) {
-                    uri = Uri.parse("file://" + filePath);
-                } else {
-                    uri = photoUri;
+                // Copy image to temporary file
+                try {
+                    InputStream input = context.getContentResolver().openInputStream(data.getData());
+                    if (input != null) {
+                        final File temporaryFile = File.createTempFile("imagetransfer_picture", null);
+                        temporaryFile.deleteOnExit();
+                        try (FileOutputStream output = new FileOutputStream(temporaryFile)) {
+                            byte[] buffer = new byte[4 * 1024];
+                            int read;
+                            while ((read = input.read(buffer)) != -1) {
+                                output.write(buffer, 0, read);
+                            }
+
+                            output.flush();
+                        }
+
+                        cropImage(temporaryFile.getPath());
+                    }
+
+                } catch (FileNotFoundException e) {
+                    Log.e(TAG, "Error opening image: " + e);
+                } catch (IOException e) {
+                    Log.e(TAG, "Error creating temporary image: " + e);
                 }
 
-                cropImage(uri);
             } else {
                 Log.w(TAG, "Couldn't pick a photo");
             }
@@ -641,15 +658,16 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
             addPictureToGallery(context, mTemporalPhotoPath);
             Uri photoUri = Uri.parse(mTemporalPhotoPath);
-
-            cropImage(photoUri);
+            String photoPath = photoUri.getPath();
+            if (photoPath != null) {
+                cropImage(photoPath);
+            }
         } else if (requestCode == kActivityRequestCode_cropPicture && resultCode == Activity.RESULT_OK) {
-
             Log.d(TAG, "kActivityRequestCode_cropPicture");
-
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+
     }
 
     private File createImageFile(@NonNull Context context) throws IOException {
@@ -762,14 +780,10 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     // region Transform Image
 
-    private void cropImage(@NonNull Uri imageUri) {
-        if (imageUri.getPath() == null) {
-            return;
-        }
-
+    private void cropImage(@NonNull String imagePath) {
         FragmentManager fragmentManager = getFragmentManager();
         if (fragmentManager != null) {
-            ImageCropFragment imageCropFragment = ImageCropFragment.newInstance(imageUri.getPath(), mResolution.getWidth(), mResolution.getHeight());
+            ImageCropFragment imageCropFragment = ImageCropFragment.newInstance(imagePath, mResolution.getWidth(), mResolution.getHeight());
             imageCropFragment.setTargetFragment(ImageTransferFragment.this, 0);
 
             fragmentManager.beginTransaction()
