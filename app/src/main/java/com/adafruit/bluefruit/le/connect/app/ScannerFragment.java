@@ -460,7 +460,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
         FragmentActivity activity = getActivity();
         if (activity != null) {
-            activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+            activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN | WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 
             // Automatically starts scanning
             boolean isDfuInProgress = activity instanceof MainActivity && ((MainActivity) activity).isIsDfuInProgress();
@@ -486,7 +486,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_centralmode, menu);
     }

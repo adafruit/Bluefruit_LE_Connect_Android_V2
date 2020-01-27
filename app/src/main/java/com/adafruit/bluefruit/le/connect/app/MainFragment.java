@@ -37,7 +37,7 @@ public class MainFragment extends Fragment {
     private WeakReference<Fragment> mCurrentFragmentReference;
     private int selectedFragmentId = 0;
     //private PeripheralModeViewModel mPeripheralModeViewModel;
-    //private boolean mIsInitialNavigationItemSelected = false;
+    private boolean mIsInitialNavigationItemSelected = false;
 
     // region Fragment Lifecycle
     public MainFragment() {
@@ -72,8 +72,8 @@ public class MainFragment extends Fragment {
         mNavigationView.setOnNavigationItemSelectedListener(this::selectFragment);
         updateActionBarTitle(mNavigationView.getSelectedItemId());       // Restore title (i.e. when a fragment is popped)
         */
+        updateActionBarTitle(R.id.navigation_central);      // Restore title (i.e. when a fragment is popped)
 
-        selectFragment(R.id.navigation_central);
     }
 
     @Override
@@ -88,13 +88,13 @@ public class MainFragment extends Fragment {
             // update options menu with current values
             activity.invalidateOptionsMenu();
 
-            /*
             // Setup when activity is created for the first time
             if (!mIsInitialNavigationItemSelected) {
                 // Set initial value
-                mNavigationView.setSelectedItemId(R.id.navigation_central);
+                //mNavigationView.setSelectedItemId(R.id.navigation_central);
+                selectFragment(R.id.navigation_central);
                 mIsInitialNavigationItemSelected = true;
-            }*/
+            }
         }
     }
 
@@ -117,6 +117,7 @@ public class MainFragment extends Fragment {
     }*/
 
 
+    @SuppressWarnings({"SameParameterValue", "UnusedReturnValue"})
     private boolean selectFragment(int navigationSelectedItem) {
 
         // Check errors
