@@ -6,11 +6,11 @@ android {
         applicationId "com.adafruit.bluefruit.le.connect"
         minSdkVersion 23
         targetSdkVersion 29
-        versionCode 45
-        versionName "3.3.0"
+        versionCode 46
+        versionName "3.3.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        resValue "string", "app_name", "Bluefruit"
+        resValue "string", "app_name", "Bluefruit Connect"
     }
 
     compileOptions {
@@ -27,7 +27,7 @@ android {
             initWith debug
 
             applicationIdSuffix ".beta"
-            resValue "string", "app_name", "Bluefruit Beta"
+            resValue "string", "app_name", "BlueConnect Beta"
         }
 
         release {
@@ -47,7 +47,7 @@ dependencies {
     // Support library
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
@@ -66,8 +66,8 @@ dependencies {
     implementation 'no.nordicsemi.android:dfu:1.9.1'
 
     //  Architecture Components
-    implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
-    implementation 'androidx.lifecycle:lifecycle-common-java8:2.1.0'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation 'androidx.lifecycle:lifecycle-common-java8:2.2.0'
 
     // Mqtt
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
@@ -82,9 +82,7 @@ dependencies {
     implementation 'com.larswerkman:HoloColorPicker:1.5'
 
     // LeakCanary
-    betaImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.3'
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.3'
-    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.3'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.1'
 
     // FileProvider
     implementation 'com.commonsware.cwac:provider:0.5.1'

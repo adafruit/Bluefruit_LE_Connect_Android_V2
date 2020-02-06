@@ -2,30 +2,19 @@ package com.adafruit.bluefruit.le.connect;
 
 import android.app.Application;
 
-import com.squareup.leakcanary.LeakCanary;
-import com.squareup.leakcanary.RefWatcher;
 
 public class BluefruitApplication extends Application {
     // Log
+    @SuppressWarnings("unused")
     private final static String TAG = BluefruitApplication.class.getSimpleName();
 
     // Data
     private static boolean mIsActivityVisible;
-    private RefWatcher mRefWatcher;
 
     // region Lifecycle
     @Override
     public void onCreate() {
         super.onCreate();
-
-        // Setup LeakCanary
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            // This process is dedicated to LeakCanary for heap analysis.
-            // You should not init your app in this process.
-            return;
-        }
-        mRefWatcher = LeakCanary.install(this);
-
 
         // Setup handler for uncaught exceptions.
 //        Thread.setDefaultUncaughtExceptionHandler(this::handleUncaughtException);
