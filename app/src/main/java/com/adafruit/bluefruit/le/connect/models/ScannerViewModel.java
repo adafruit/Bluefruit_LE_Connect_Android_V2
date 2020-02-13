@@ -10,6 +10,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
@@ -18,8 +20,6 @@ import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import android.util.Log;
 
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
@@ -153,7 +153,7 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     // endregion
 
     // region Setup
-    public ScannerViewModel(Application application) {
+    public ScannerViewModel(@NonNull Application application) {
         super(application);
 
         // Add broadcast receiver

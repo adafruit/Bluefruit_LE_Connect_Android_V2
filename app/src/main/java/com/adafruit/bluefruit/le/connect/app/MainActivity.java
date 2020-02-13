@@ -22,7 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.adafruit.bluefruit.le.connect.BluefruitApplication;
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         });
 
         // ViewModels
-        mDfuViewModel = ViewModelProviders.of(this).get(DfuViewModel.class);
+        mDfuViewModel = new ViewModelProvider(this).get(DfuViewModel.class);
 
         // Check if there is any update to the firmware database
         if (savedInstanceState == null) {

@@ -23,7 +23,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -140,7 +140,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
         // ViewModel
         FragmentActivity activity = getActivity();
         if (activity != null) {
-            mDfuViewModel = ViewModelProviders.of(activity).get(DfuViewModel.class);
+            mDfuViewModel = new ViewModelProvider(activity).get(DfuViewModel.class);
 
             // Dfu Update
             mDfuViewModel.getDfuCheckResult().observe(this, dfuCheckResult -> {
@@ -157,7 +157,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_help, menu);
     }
@@ -166,17 +166,16 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
     public boolean onOptionsItemSelected(MenuItem item) {
         FragmentActivity activity = getActivity();
 
+        //noinspection SwitchStatementWithTooFewBranches
         switch (item.getItemId()) {
             case R.id.action_help:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.dfu_help_title), getString(R.string.dfu_help_text));
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .replace(R.id.contentLayout, helpFragment, "Help");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.dfu_help_title), getString(R.string.dfu_help_text));
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .replace(R.id.contentLayout, helpFragment, "Help");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
                 return true;
 
@@ -395,7 +394,9 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
             } else {      // Show all releases
                 for (String key : mAllReleases.keySet()) {
                     ReleasesParser.BoardInfo boardInfo = mAllReleases.get(key);
-                    numReleases += boardInfo.firmwareReleases.size();
+                    if (boardInfo != null) {
+                        numReleases += boardInfo.firmwareReleases.size();
+                    }
                 }
             }
             return numReleases;
@@ -414,22 +415,23 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
                 int currentRow = 0;
                 int currentBoardIndex = 0;
 
-                String[] sortedKeys = mAllReleases.keySet().toArray(new String[mAllReleases.keySet().size()]);
+                String[] sortedKeys = mAllReleases.keySet().toArray(new String[0]);
                 Arrays.sort(sortedKeys);
 
                 while (currentRow <= row) {
                     String currentKey = sortedKeys[currentBoardIndex];
                     ReleasesParser.BoardInfo boardRelease = mAllReleases.get(currentKey);
-
-                    List<ReleasesParser.FirmwareInfo> firmwareReleases = boardRelease.firmwareReleases;
-                    int numReleases = firmwareReleases.size();
-                    int remaining = row - currentRow;
-                    if (remaining < numReleases) {
-                        firmwareInfo = firmwareReleases.get(remaining);
-                    } else {
-                        currentBoardIndex++;
+                    if (boardRelease != null) {
+                        List<ReleasesParser.FirmwareInfo> firmwareReleases = boardRelease.firmwareReleases;
+                        int numReleases = firmwareReleases.size();
+                        int remaining = row - currentRow;
+                        if (remaining < numReleases) {
+                            firmwareInfo = firmwareReleases.get(remaining);
+                        } else {
+                            currentBoardIndex++;
+                        }
+                        currentRow += numReleases;
                     }
-                    currentRow += numReleases;
                 }
             }
 

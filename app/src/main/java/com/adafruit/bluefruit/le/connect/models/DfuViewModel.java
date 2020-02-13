@@ -1,14 +1,13 @@
 package com.adafruit.bluefruit.le.connect.models;
 
-import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.AndroidViewModel;
-
-import android.util.Log;
+import androidx.lifecycle.ViewModel;
 
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
 import com.adafruit.bluefruit.le.connect.dfu.DfuUpdater;
@@ -17,7 +16,7 @@ import com.adafruit.bluefruit.le.connect.utils.SingleLiveEvent;
 
 import java.util.Map;
 
-public class DfuViewModel extends AndroidViewModel {
+public class DfuViewModel extends ViewModel {
     // Constants
     private final static String TAG = DfuViewModel.class.getSimpleName();
 
@@ -41,11 +40,12 @@ public class DfuViewModel extends AndroidViewModel {
     private boolean mIsCheckingFirmwareUpdates = false;
     private final SingleLiveEvent<DfuCheckResult> mDfuCheckResult = new SingleLiveEvent<>();
 
+    /*
     public DfuViewModel(@NonNull Application application) {
         super(application);
 
         //mFirmwareUpdater = new FirmwareUpdater(this, this);
-    }
+    }*/
 
     // region Getters
     public SingleLiveEvent<DfuCheckResult> getDfuCheckResult() {

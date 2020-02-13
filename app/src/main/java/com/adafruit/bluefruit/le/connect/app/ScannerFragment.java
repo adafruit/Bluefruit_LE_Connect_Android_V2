@@ -40,7 +40,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -360,9 +360,9 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         // ViewModel
         FragmentActivity activity = getActivity();
         if (activity != null) {
-            mDfuViewModel = ViewModelProviders.of(activity).get(DfuViewModel.class);
+            mDfuViewModel = new ViewModelProvider(activity).get(DfuViewModel.class);
+            mScannerViewModel = new ViewModelProvider(this, new ViewModelProvider.AndroidViewModelFactory(activity.getApplication())).get(ScannerViewModel.class);
         }
-        mScannerViewModel = ViewModelProviders.of(this).get(ScannerViewModel.class);
 
         // Scan results
         mScannerViewModel.getFilteredBlePeripherals().observe(this, blePeripherals -> mBlePeripheralsAdapter.setBlePeripherals(blePeripherals));

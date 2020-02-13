@@ -5,19 +5,6 @@ import android.bluetooth.le.AdvertiseCallback;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -27,6 +14,19 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.peripheral.PeripheralService;
@@ -52,7 +52,7 @@ public class PeripheralModeFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(@NonNull Context context) {
         super.onAttach(context);
     }
 
@@ -103,7 +103,8 @@ public class PeripheralModeFragment extends Fragment {
         // ViewModel
         FragmentActivity activity = getActivity();
         if (activity != null) {
-            PeripheralModeViewModel model = ViewModelProviders.of(activity).get(PeripheralModeViewModel.class);
+            //PeripheralModeViewModel model = new ViewModelProvider(activity).get(PeripheralModeViewModel.class);
+            PeripheralModeViewModel model = new ViewModelProvider(activity, new ViewModelProvider.AndroidViewModelFactory(activity.getApplication())).get(PeripheralModeViewModel.class);
 
             model.getStartAdvertisingErrorCode().observe(this, errorCode -> {
                 Log.d(TAG, "Advertising error: " + errorCode);
@@ -124,30 +125,29 @@ public class PeripheralModeFragment extends Fragment {
                 FragmentActivity activity2 = getActivity();
                 if (activity2 != null) {
                     FragmentManager fragmentManager = activity2.getSupportFragmentManager();
-                    if (fragmentManager != null) {
 
-                        Fragment fragment = null;
-                        String fragmentTag = null;
-                        switch (index) {
-                            case 0:
-                                fragment = DeviceInformationServiceFragment.newInstance();
-                                fragmentTag = "DeviceInformationService";
-                                break;
-                            case 1:
+                    Fragment fragment = null;
+                    String fragmentTag = null;
+                    switch (index) {
+                        case 0:
+                            fragment = DeviceInformationServiceFragment.newInstance();
+                            fragmentTag = "DeviceInformationService";
+                            break;
+                        case 1:
 
-                                fragment = UartServiceFragment.newInstance();
-                                fragmentTag = "UartService";
-                                break;
-                        }
-
-                        if (fragment != null) {
-                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                    .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                                    .replace(R.id.contentLayout, fragment, fragmentTag);
-                            fragmentTransaction.addToBackStack(null);
-                            fragmentTransaction.commit();
-                        }
+                            fragment = UartServiceFragment.newInstance();
+                            fragmentTag = "UartService";
+                            break;
                     }
+
+                    if (fragment != null) {
+                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                                .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                                .replace(R.id.contentLayout, fragment, fragmentTag);
+                        fragmentTransaction.addToBackStack(null);
+                        fragmentTransaction.commit();
+                    }
+
                 }
             });
             mRecyclerView.setAdapter(adapter);

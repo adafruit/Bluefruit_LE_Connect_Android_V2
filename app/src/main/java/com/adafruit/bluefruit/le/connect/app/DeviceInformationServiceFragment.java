@@ -18,7 +18,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -91,14 +92,15 @@ public class DeviceInformationServiceFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         // ViewModel
-        DeviceInformationServiceViewModel model = ViewModelProviders.of(this).get(DeviceInformationServiceViewModel.class);
-
+        //DeviceInformationServiceViewModel model = new ViewModelProvider(this).get(DeviceInformationServiceViewModel.class);
+        FragmentActivity activity = getActivity();
         final Context context = getContext();
-        if (context != null) {
+        if (activity != null && context != null) {
+            DeviceInformationServiceViewModel model = new ViewModelProvider(this, new ViewModelProvider.AndroidViewModelFactory(activity.getApplication())).get(DeviceInformationServiceViewModel.class);
+
             DeviceInformationServiceAdapter adapter = new DeviceInformationServiceAdapter(context, model);
             mRecyclerView.setAdapter(adapter);
         }
-
     }
 
     // endregion
