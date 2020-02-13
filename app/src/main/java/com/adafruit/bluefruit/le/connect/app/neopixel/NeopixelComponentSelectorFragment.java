@@ -60,7 +60,9 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Remove title
         AppCompatDialog dialog = (AppCompatDialog) getDialog();
-        dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        if (dialog != null) {
+            dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        }
 
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_neopixel_componentselector, container, false);
@@ -71,7 +73,10 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Dismiss on click outside
-        getDialog().setCanceledOnTouchOutside(true);
+        AppCompatDialog dialog = (AppCompatDialog) getDialog();
+        if (dialog != null) {
+            dialog.setCanceledOnTouchOutside(true);
+        }
 
         // UI
         Context context = getContext();
@@ -90,6 +95,7 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
 
 
             SwitchCompat mode400HhzSwitch = view.findViewById(R.id.mode400HhzSwitch);
+            mode400HhzSwitch.setChecked(mIs400KhzEnabled);
             mode400HhzSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (buttonView.isPressed()) {
                     mIs400KhzEnabled = isChecked;

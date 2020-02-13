@@ -1,7 +1,9 @@
 package com.adafruit.bluefruit.le.connect.app.neopixel;
 
-import androidx.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 @SuppressWarnings("WeakerAccess")
 class NeopixelComponents {
@@ -178,6 +180,25 @@ class NeopixelComponents {
                 Log.e(TAG, "Undefined component id");
                 return -1;
         }
+    }
+
+    @Nullable
+    static NeopixelComponents componentFromValue(byte value) {
+        NeopixelComponents result = null;
+
+        NeopixelComponents[] allComponents = getAll();
+        boolean found = false;
+        int i = 0;
+        while (i < allComponents.length && !found) {
+            NeopixelComponents components = allComponents[i];
+            if (components.getComponentValue() == value) {
+                found = true;
+                result = components;
+            }
+            i++;
+        }
+
+        return result;
     }
 
     @NonNull

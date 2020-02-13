@@ -58,7 +58,9 @@ public class NeopixelBoardSelectorFragment extends AppCompatDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Remove title
         AppCompatDialog dialog = (AppCompatDialog) getDialog();
-        dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        if (dialog != null) {
+            dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        }
 
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_neopixel_boardselector, container, false);
@@ -69,7 +71,10 @@ public class NeopixelBoardSelectorFragment extends AppCompatDialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Dismiss on click outside
-        getDialog().setCanceledOnTouchOutside(true);
+        AppCompatDialog dialog = (AppCompatDialog) getDialog();
+        if (dialog != null) {
+            dialog.setCanceledOnTouchOutside(true);
+        }
 
         // UI
         Context context = getContext();
@@ -92,18 +97,21 @@ public class NeopixelBoardSelectorFragment extends AppCompatDialogFragment {
                 input.setInputType(InputType.TYPE_CLASS_NUMBER);
                 input.setRawInputType(Configuration.KEYBOARD_12KEY);
                 alert.setView(input);
-                alert.setPositiveButton(R.string.neopixelboardselector_linestriplength_action, (dialog, whichButton) -> {
+                alert.setPositiveButton(R.string.neopixelboardselector_linestriplength_action, (alertDialog, whichButton) -> {
                     String valueString = String.valueOf(input.getText());
-                    int value = 0;
+                    int value = 8;      // Default length
                     try {
-                        value = Integer.parseInt(valueString);
+                        int number = Integer.parseInt(valueString);
+                        if (number > 0) {
+                            value = number;
+                        }
                     } catch (Exception e) {
                         Log.d(TAG, "Cannot parse value");
                     }
 
                     mListener.onLineStripSelected(value);
                 });
-                alert.setNegativeButton(android.R.string.cancel, (dialog, whichButton) -> {
+                alert.setNegativeButton(android.R.string.cancel, (alertDialog, whichButton) -> {
                 });
                 alert.show();
             });
