@@ -449,7 +449,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         // Dfu Update
         mDfuViewModel.getDfuCheckResult().observe(this, dfuCheckResult -> {
             if (dfuCheckResult != null) {
-                onDfuUpdateCheckResultReceived(dfuCheckResult.blePeripheral, dfuCheckResult.isUpdateAvailable, /*dfuCheckResult.dfuInfo,*/ dfuCheckResult.firmwareInfo);
+                onDfuUpdateCheckResultReceived(dfuCheckResult.blePeripheral, dfuCheckResult.isUpdateAvailable, dfuCheckResult.firmwareInfo);
             }
         });
     }
@@ -477,6 +477,32 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         super.onPause();
 
         mScannerViewModel.stop();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        // Null out references to views to avoid leaks when the fragment is added to the backstack: https://stackoverflow.com/questions/59503689/could-navigation-arch-component-create-a-false-positive-memory-leak/59504797#59504797
+        mBlePeripheralsAdapter = null;
+        mSwipeRefreshLayout = null;
+        mFiltersPanelView = null;
+        mFiltersExpandImageView = null;
+        mFiltersClearButton = null;
+        mFiltersTitleTextView = null;
+        mFiltersRssiSeekBar = null;
+        mFiltersRssiValueTextView = null;
+        mFiltersUnnamedCheckBox = null;
+        mFiltersUartCheckBox = null;
+        mFilteredPeripheralsCountTextView = null;
+
+        mMultiConnectPanelView = null;
+        mMultiConnectExpandImageView = null;
+        mMultiConnectCheckBox = null;
+        mMultiConnectConnectedDevicesTextView = null;
+        mMultiConnectStartButton = null;
+
+        removeConnectionStateDialog();
     }
 
     @Override
@@ -669,7 +695,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
     // region Dfu
     @MainThread
-    private void onDfuUpdateCheckResultReceived(@NonNull BlePeripheral blePeripheral, boolean isUpdateAvailable, /*@NonNull DfuUpdater.DeviceDfuInfo deviceDfuInfo,*/ @Nullable ReleasesParser.FirmwareInfo latestRelease) {
+    private void onDfuUpdateCheckResultReceived(@NonNull BlePeripheral blePeripheral, boolean isUpdateAvailable, @Nullable ReleasesParser.FirmwareInfo latestRelease) {
         Log.d(TAG, "Update available: " + isUpdateAvailable);
         removeConnectionStateDialog();
 

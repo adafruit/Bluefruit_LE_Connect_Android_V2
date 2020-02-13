@@ -9,18 +9,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.SimpleItemAnimator;
-
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -40,6 +28,18 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
+
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 import com.adafruit.bluefruit.le.connect.ble.UartPacket;
@@ -51,7 +51,6 @@ import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -149,7 +148,10 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             //layoutManager.setStackFromEnd(true);        // Scroll to bottom when adding elements
             mBufferRecylerView.setLayoutManager(layoutManager);
 
-            ((SimpleItemAnimator) mBufferRecylerView.getItemAnimator()).setSupportsChangeAnimations(false);         // Disable update animation
+            SimpleItemAnimator itemAnimator = (SimpleItemAnimator) mBufferRecylerView.getItemAnimator();
+            if (itemAnimator != null) {
+                itemAnimator.setSupportsChangeAnimations(false);         // Disable update animation
+            }
             mBufferItemAdapter = new TimestampItemAdapter(context);            // Adapter
 
             mBufferRecylerView.setAdapter(mBufferItemAdapter);
@@ -292,7 +294,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_uart, menu);
 
@@ -369,7 +371,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         FragmentActivity activity = getActivity();
         if (activity == null) {
             return super.onOptionsItemSelected(item);
@@ -378,25 +380,21 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         switch (item.getItemId()) {
             case R.id.action_help: {
                 FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                if (fragmentManager != null) {
-                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.uart_help_title), getString(R.string.uart_help_text_android));
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                            .replace(R.id.contentLayout, helpFragment, "Help");
-                    fragmentTransaction.addToBackStack(null);
-                    fragmentTransaction.commit();
-                }
+                CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.uart_help_title), getString(R.string.uart_help_text_android));
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                        .replace(R.id.contentLayout, helpFragment, "Help");
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
                 return true;
             }
 
             case R.id.action_mqttsettings: {
                 FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                if (fragmentManager != null) {
-                    MqttSettingsFragment mqttSettingsFragment = MqttSettingsFragment.newInstance();
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                            .replace(R.id.contentLayout, mqttSettingsFragment, "MqttSettings");
-                    fragmentTransaction.addToBackStack(null);
-                    fragmentTransaction.commit();
-                }
+                MqttSettingsFragment mqttSettingsFragment = MqttSettingsFragment.newInstance();
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                        .replace(R.id.contentLayout, mqttSettingsFragment, "MqttSettings");
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
                 return true;
             }
 

@@ -174,6 +174,16 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
         }
     }
 
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        // Null out references to views to avoid leaks when the fragment is added to the backstack: https://stackoverflow.com/questions/59503689/could-navigation-arch-component-create-a-false-positive-memory-leak/59504797#59504797
+        mRecyclerView = null;
+        mModulesAdapter = null;
+    }
+
     // endregion
 
     // region Battery

@@ -255,7 +255,6 @@
             android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:gravity="center_horizontal"
             android:text="@string/scanner_filteredoutinfo_multiple_format"
-
             android:textColor="@color/infotext" />
     </RelativeLayout>
 
