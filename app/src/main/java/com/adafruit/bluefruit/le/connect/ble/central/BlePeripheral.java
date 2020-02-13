@@ -82,6 +82,10 @@ public class BlePeripheral {
     private int mRssi = 0;
     private int mMtuSize = kDefaultMtuSize;
 
+    private boolean cachedNameNeedsUpdate = true;     // false if the cached name has been recovered (cachedName could be null, so testing for null is not enough)
+    private String cachedName = null;           // Cached name
+    private String cachedAddress = null;        // Cached address
+
     // region BluetoothGattCallback
     private BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
 
@@ -399,18 +403,25 @@ public class BlePeripheral {
         return mConnectionState;
     }
 
+
     public String getIdentifier() {
-        return mScanResult.getDevice().getAddress();
+        if (cachedAddress == null) {
+            cachedAddress = mScanResult.getDevice().getAddress();
+        }
+        return cachedAddress;
     }
 
     public String getName() {
+        if (cachedNameNeedsUpdate) {
+            String name = mScanResult.getDevice().getName();
+            if (name == null) {
+                name = getScanRecord().getDeviceName();
+            }
 
-        String name = mScanResult.getDevice().getName();
-        if (name == null) {
-            name = getScanRecord().getDeviceName();
+            cachedNameNeedsUpdate = false;
+            cachedName = name;
         }
-
-        return name;
+        return cachedName;
     }
 
     public ScanRecord getScanRecord() {

@@ -78,9 +78,6 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         // Copy all existing results
         List<BlePeripheral> results = new ArrayList<>(input.blePeripherals);
 
-        // Sort devices alphabetically
-        Collections.sort(results, (o1, o2) -> getResultNameForOrdering(o1).compareToIgnoreCase(getResultNameForOrdering(o2)));
-
         // Apply filters
         if (filterData.isOnlyUartEnabled) {
             for (Iterator<BlePeripheral> it = results.iterator(); it.hasNext(); ) {
@@ -128,6 +125,10 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
                 it.remove();
             }
         }
+
+        // Sort devices alphabetically
+        Collections.sort(results, (o1, o2) -> getResultNameForOrdering(o1).compareTo(getResultNameForOrdering(o2)));
+
 
         // Update related variables
         mNumPeripheralsFiltered.setValue(results.size());
@@ -470,11 +471,10 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     // region Utils
     private @NonNull
     String getResultNameForOrdering(BlePeripheral result) {
-        BluetoothDevice device = result.getDevice();
-        String name = device.getName();
+        String name = result.getName();
         if (name == null) {
-            String address = device.getAddress();
-            name = "~" + (address != null ? address : "");     // Prefix with symbol so all the unknowns are pushed to the bottom
+            String identifier = result.getIdentifier();
+            name = "~" + (identifier != null ? identifier : "");     // Prefix with symbol so all the unknowns are pushed to the bottom
         }
         return name;
     }

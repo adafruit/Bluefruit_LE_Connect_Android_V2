@@ -223,8 +223,8 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
     }
 
     private static String getManufacturerName(String manufacturerId) {
-        final String[] kKnownManufacturers = {"004C", "0059"};
-        final String[] kManufacturerNames = {"Apple  (004C)", "Nordic (0059)"};
+        final String[] kKnownManufacturers = {"004C", "0059", "0822"};
+        final String[] kManufacturerNames = {"Apple (004C)", "Nordic (0059)", "Adafruit (0822)"};
 
         String result;
         int knownIndex = Arrays.asList(kKnownManufacturers).indexOf(manufacturerId);
@@ -283,9 +283,12 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
 
             // Save and restore state to preserve user scroll
             // https://stackoverflow.com/questions/43458146/diffutil-in-recycleview-making-it-autoscroll-if-a-new-item-is-added
-            Parcelable recyclerViewState = mRecyclerView.getLayoutManager().onSaveInstanceState();
-            result.dispatchUpdatesTo(this);
-            mRecyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
+            RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
+            if (layoutManager != null) {
+                Parcelable recyclerViewState = layoutManager.onSaveInstanceState();
+                result.dispatchUpdatesTo(this);
+                layoutManager.onRestoreInstanceState(recyclerViewState);
+            }
 
 //            result.dispatchUpdatesTo((ListUpdateCallback)this);
         }
