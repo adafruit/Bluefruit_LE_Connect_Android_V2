@@ -236,21 +236,25 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
         }
 
         // Setup
-        if (context != null && mUartManager == null) {      // Don't setup if already init (because fragment was recreated)
+        if (context != null) {
             // UartManager
             mUartManager = new UartPacketManager(context, null, false, null);
             start();
         }
 
+
         updatePickerColorButton(false);
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
 
+        // Board needs to be recreated when the view is recreated, so stop and free uartManager
         stop();
+        mUartManager = null;
     }
+
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
