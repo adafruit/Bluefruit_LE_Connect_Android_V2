@@ -220,7 +220,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_help, menu);
     }
@@ -229,18 +229,17 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
     public boolean onOptionsItemSelected(MenuItem item) {
         FragmentActivity activity = getActivity();
 
+        //noinspection SwitchStatementWithTooFewBranches
         switch (item.getItemId()) {
             case R.id.action_help:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.pinio_help_title), getString(R.string.pinio_help_text));
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                                .replace(R.id.contentLayout, helpFragment, "Help");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.pinio_help_title), getString(R.string.pinio_help_text));
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                            .replace(R.id.contentLayout, helpFragment, "Help");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
                 return true;
 

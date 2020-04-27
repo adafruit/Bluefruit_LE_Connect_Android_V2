@@ -257,35 +257,33 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                     FragmentActivity activity = getActivity();
                     if (activity != null) {
                         FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                        if (fragmentManager != null) {
 
-                            Fragment fragment = null;
-                            String fragmentTag = null;
-                            switch (moduleId) {
-                                case kModule_ControlPad:
-                                    ControllerPadFragment controllerPadFragment = ControllerPadFragment.newInstance();
-                                    fragment = controllerPadFragment;
-                                    fragmentTag = "Control Pad";
+                        Fragment fragment = null;
+                        String fragmentTag = null;
+                        switch (moduleId) {
+                            case kModule_ControlPad:
+                                ControllerPadFragment controllerPadFragment = ControllerPadFragment.newInstance();
+                                fragment = controllerPadFragment;
+                                fragmentTag = "Control Pad";
 
-                                    // Enable cache for control pad
-                                    mWeakControllerPadFragment = new WeakReference<>(controllerPadFragment);
-                                    mUartDataManager.clearRxCache(mBlePeripheral.getIdentifier());
-                                    mUartDataManager.setListener(ControllerFragment.this);
-                                    break;
-                                case kModule_ColorPicker:
-                                    fragment = ControllerColorPickerFragment.newInstance();
-                                    fragmentTag = "Color Picker";
-                                    break;
-                            }
+                                // Enable cache for control pad
+                                mWeakControllerPadFragment = new WeakReference<>(controllerPadFragment);
+                                mUartDataManager.clearRxCache(mBlePeripheral.getIdentifier());
+                                mUartDataManager.setListener(ControllerFragment.this);
+                                break;
+                            case kModule_ColorPicker:
+                                fragment = ControllerColorPickerFragment.newInstance();
+                                fragmentTag = "Color Picker";
+                                break;
+                        }
 
-                            if (fragment != null) {
-                                fragment.setTargetFragment(ControllerFragment.this, 0);
-                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                        .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                                        .replace(R.id.contentLayout, fragment, fragmentTag);
-                                fragmentTransaction.addToBackStack(null);
-                                fragmentTransaction.commitAllowingStateLoss();      // Allowing state loss to avoid detected crashes
-                            }
+                        if (fragment != null) {
+                            fragment.setTargetFragment(ControllerFragment.this, 0);
+                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                                    .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                                    .replace(R.id.contentLayout, fragment, fragmentTag);
+                            fragmentTransaction.addToBackStack(null);
+                            fragmentTransaction.commitAllowingStateLoss();      // Allowing state loss to avoid detected crashes
                         }
                     }
                 }
@@ -475,11 +473,12 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_help, menu);
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         FragmentActivity activity = getActivity();
@@ -488,14 +487,12 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
             case R.id.action_help:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.controller_help_title), getString(R.string.controller_help_text));
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                                .replace(R.id.contentLayout, helpFragment, "Help");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.controller_help_title), getString(R.string.controller_help_text_ios_android));
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                            .replace(R.id.contentLayout, helpFragment, "Help");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
                 return true;
 
@@ -550,6 +547,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         }
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -769,12 +767,11 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     }
 
 
-    private class SensorData {
-        public int sensorType;
-        public float[] values;
-        public boolean enabled;
+    private static class SensorData {
+        int sensorType;
+        float[] values;
+        boolean enabled;
     }
-
 
     // endregion
 
@@ -828,7 +825,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         }
 
         // Data Structures
-        private class SectionViewHolder extends RecyclerView.ViewHolder {
+        private static class SectionViewHolder extends RecyclerView.ViewHolder {
             TextView titleTextView;
 
             SectionViewHolder(View view) {
@@ -882,7 +879,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
             }
         }
 
-        private class ModuleViewHolder extends RecyclerView.ViewHolder {
+        private static class ModuleViewHolder extends RecyclerView.ViewHolder {
             TextView nameTextView;
             ViewGroup mainViewGroup;
 

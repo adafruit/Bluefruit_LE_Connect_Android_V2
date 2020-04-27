@@ -6,8 +6,8 @@ android {
         applicationId "com.adafruit.bluefruit.le.connect"
         minSdkVersion 23
         targetSdkVersion 29
-        versionCode 46
-        versionName "3.3.1"
+        versionCode 47
+        versionName "3.3.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         resValue "string", "app_name", "Bluefruit Connect"
@@ -54,12 +54,12 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
 
     // Google Play Services
-    implementation 'com.google.android.gms:play-services-base:17.1.0'
+    implementation 'com.google.android.gms:play-services-base:17.2.1'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
-    implementation 'com.google.android.gms:play-services-vision:19.0.0'
+    implementation 'com.google.android.gms:play-services-vision:20.0.0'
 
     // Needed to download files with SSL on Android 4.4
-    implementation 'com.google.android.gms:play-services-auth:17.0.0'
+    implementation 'com.google.android.gms:play-services-auth:18.0.0'
 
     // Nordic
     implementation 'no.nordicsemi.android.support.v18:scanner:1.4.3'

@@ -502,7 +502,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         mMultiConnectConnectedDevicesTextView = null;
         mMultiConnectStartButton = null;
 
-        removeConnectionStateDialog();
+       // removeConnectionStateDialog();
     }
 
     @Override
@@ -558,7 +558,9 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         super.onAnimationEnd(animation);
-                        mFiltersPanelView.setVisibility(isOpen ? View.VISIBLE : View.GONE);
+                        if (mFiltersPanelView != null) {
+                            mFiltersPanelView.setVisibility(isOpen ? View.VISIBLE : View.GONE);
+                        }
                     }
                 });
 

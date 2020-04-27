@@ -132,7 +132,7 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
     @Override
     public void dismiss() {
         // Avoid null pointer exceptions on orientation change: https://stackoverflow.com/questions/10526743/dialogfragment-dismiss-crashing-with-nullpointerexception
-        if (getFragmentManager() != null) {
+        if (getFragmentManager() != null ) {
             super.dismiss();
         }
     }
@@ -150,7 +150,7 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
         mMessageTextView.setText(mMessage);
     }
 
-    public boolean isInitialized() {
+    boolean isInitialized() {
         return mMessageTextView != null;
     }
 
