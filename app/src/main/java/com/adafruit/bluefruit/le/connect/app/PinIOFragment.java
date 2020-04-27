@@ -604,7 +604,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         for (int i = 0; i < DEFAULT_PINS_COUNT; i++) {
             PinData pin = null;
             if (i == 3 || i == 5 || i == 6) {
-                pin = new PinData(i, true, true, false, false, false);
+                pin = new PinData(i, true, true, false, true, false);
             } else if (i >= FIRST_DIGITAL_PIN && i <= LAST_DIGITAL_PIN) {
                 pin = new PinData(i, true, true, false, false, false);
             } else if (i >= FIRST_ANALOG_PIN && i <= LAST_ANALOG_PIN) {
