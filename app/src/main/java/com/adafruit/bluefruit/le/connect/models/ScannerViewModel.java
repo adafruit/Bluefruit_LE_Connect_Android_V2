@@ -60,17 +60,17 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     private final MutableLiveData<Integer> mNumPeripheralsFilteredOut = new MutableLiveData<>();
     private final MutableLiveData<Integer> mNumPeripheralsFiltered = new MutableLiveData<>();
 
-    private LiveData<String> mRssiFilterDescription = Transformations.map(mRssiFilterValue, rssi -> String.format(Locale.ENGLISH, getApplication().getString(R.string.scanner_filter_rssivalue_format), rssi));
+    private final LiveData<String> mRssiFilterDescription = Transformations.map(mRssiFilterValue, rssi -> String.format(Locale.ENGLISH, getApplication().getString(R.string.scanner_filter_rssivalue_format), rssi));
 
-    private LiveData<Boolean> mIsAnyFilterEnabled = Transformations.map(mFiltersLiveDataMerger, FilterData::isAnyFilterEnabled);
+    private final LiveData<Boolean> mIsAnyFilterEnabled = Transformations.map(mFiltersLiveDataMerger, FilterData::isAnyFilterEnabled);
 
-    private LiveData<String> mFiltersDescription = Transformations.map(mFiltersLiveDataMerger, input -> {
+    private final LiveData<String> mFiltersDescription = Transformations.map(mFiltersLiveDataMerger, input -> {
         String filtersDescription = input.getDescription();
         return filtersDescription != null ? String.format(Locale.ENGLISH, getApplication().getString(R.string.scanner_filter_currentfilter_format), filtersDescription) : getApplication().getString(R.string.scanner_filter_nofilter);
     });
 
 
-    private LiveData<List<BlePeripheral>> mFilteredBlePeripherals = Transformations.switchMap(mScanFilterLiveDataMerger, input -> {
+    private final LiveData<List<BlePeripheral>> mFilteredBlePeripherals = Transformations.switchMap(mScanFilterLiveDataMerger, input -> {
         FilterData filterData = input.filterData;
         if (filterData == null) return null;     // Filter Data not initialized yet
 
@@ -150,7 +150,7 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     private final SingleLiveEvent<BlePeripheral> mBlePeripheralDiscoveredServices = new SingleLiveEvent<>();
     private final MutableLiveData<Boolean> mIsMultiConnectEnabled = new MutableLiveData<>();
     private final MutableLiveData<Integer> mNumDevicesConnected = new MutableLiveData<>();
-    // endregion
+    // endregionSe
 
     // region Setup
     public ScannerViewModel(@NonNull Application application) {
@@ -245,7 +245,7 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
 
         // Stop and remove listener
         stop();
-        if (mScanner.getListener() == this) {       // Replace only if is still mself
+        if (mScanner.getListener() == this) {       // Replace only if is still myself
             mScanner.setListener(null);
         }
         saveFilters();      // optional: save filters (useful while debugging because onDestroy is not called and filters are not saved)
@@ -605,7 +605,7 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         LocalBroadcastManager.getInstance(getApplication()).unregisterReceiver(mGattUpdateReceiver);
     }
 
-    private List<String> mPeripheralsDiscoveringConnectingOrDiscoveringServices = new ArrayList<>();            // Contains identifiers of peripherals that are connecting (connect + discovery)
+    private final List<String> mPeripheralsConnectingOrDiscoveringServices = new ArrayList<>();            // Contains identifiers of peripherals that are connecting (connect + discovery)
 
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -622,8 +622,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
                         blePeripheral.discoverServices(status -> {
                             final Handler mainHandler = new Handler(Looper.getMainLooper());
                             final Runnable discoveredServicesRunnable = () -> {
-                                mPeripheralsDiscoveringConnectingOrDiscoveringServices.remove(identifier);          // Connection setup finished
-                                Log.d(TAG, "kBlePeripheral_OnConnected ConnectingOrDiscovering: " + Arrays.toString(mPeripheralsDiscoveringConnectingOrDiscoveringServices.toArray()));
+                                mPeripheralsConnectingOrDiscoveringServices.remove(identifier);          // Connection setup finished
+                                Log.d(TAG, "kBlePeripheral_OnConnected ConnectingOrDiscovering: " + Arrays.toString(mPeripheralsConnectingOrDiscoveringServices.toArray()));
                                 if (status == BluetoothGatt.GATT_SUCCESS) {
                                     // Discovery finished
                                     mBlePeripheralDiscoveredServices.setValue(blePeripheral);
@@ -637,21 +637,21 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
                             mainHandler.post(discoveredServicesRunnable);
                         });
                     } else if (BlePeripheral.kBlePeripheral_OnDisconnected.equals(action)) {
-                        Log.d(TAG, "kBlePeripheral_OnDisconnected ConnectingOrDiscovering: " + Arrays.toString(mPeripheralsDiscoveringConnectingOrDiscoveringServices.toArray()));
-                        if (mPeripheralsDiscoveringConnectingOrDiscoveringServices.contains(identifier)) {          // If connection setup was still ongoing
+                        Log.d(TAG, "kBlePeripheral_OnDisconnected ConnectingOrDiscovering: " + Arrays.toString(mPeripheralsConnectingOrDiscoveringServices.toArray()));
+                        if (mPeripheralsConnectingOrDiscoveringServices.contains(identifier)) {          // If connection setup was still ongoing
                             final boolean isExpected = intent.getStringExtra(BlePeripheral.kExtra_expectedDisconnect) != null;      // If parameter kExtra_expectedDisconnect is non-null, the disconnect was expected (and no message errors are displayed to the user)
                             Log.d(TAG, "Expected disconnect: " + isExpected);
                             if (!isExpected) {
                                 final String message = LocalizationManager.getInstance().getString(getApplication(), "bluetooth_connecting_error");
                                 mBlePeripheralsConnectionErrorMessage.setValue(message);
                             }
-                            mPeripheralsDiscoveringConnectingOrDiscoveringServices.remove(identifier);
+                            mPeripheralsConnectingOrDiscoveringServices.remove(identifier);
                         }
                     } else if (BlePeripheral.kBlePeripheral_OnConnecting.equals(action)) {
-                        if (!mPeripheralsDiscoveringConnectingOrDiscoveringServices.contains(identifier)) {         // peripheral starts connection setup
-                            mPeripheralsDiscoveringConnectingOrDiscoveringServices.add(identifier);
+                        if (!mPeripheralsConnectingOrDiscoveringServices.contains(identifier)) {         // peripheral starts connection setup
+                            mPeripheralsConnectingOrDiscoveringServices.add(identifier);
                         }
-                        Log.d(TAG, "kBlePeripheral_OnConnecting ConnectingOrDiscovering: " + Arrays.toString(mPeripheralsDiscoveringConnectingOrDiscoveringServices.toArray()));
+                        Log.d(TAG, "kBlePeripheral_OnConnecting ConnectingOrDiscovering: " + Arrays.toString(mPeripheralsConnectingOrDiscoveringServices.toArray()));
                     }
 
                     mBlePeripheralsConnectionChanged.setValue(blePeripheral);
@@ -661,8 +661,7 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
                 } else {
                     Log.w(TAG, "ScannerViewModel mGattUpdateReceiver with null peripheral");
                 }
-            }
-            else {
+            } else {
                 Log.w(TAG, "ScannerViewModel mGattUpdateReceiver with null identifier");
             }
         }

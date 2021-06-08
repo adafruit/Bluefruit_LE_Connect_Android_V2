@@ -1,9 +1,10 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
 import android.os.ParcelUuid;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -39,11 +40,11 @@ public class BleScanner {
 
     // Data
     private WeakReference<BleScannerListener> mWeakListener;
-    private List<BlePeripheral> mPeripheralScanResults = new ArrayList<>();
+    private final List<BlePeripheral> mPeripheralScanResults = new ArrayList<>();
     private List<ScanFilter> mScanFilters = new ArrayList<>();
     private boolean mIsScanning;
 
-    private ScanCallback mScanCallback = new ScanCallback() {
+    private final ScanCallback mScanCallback = new ScanCallback() {
         public void onScanResult(int callbackType, @NonNull ScanResult result) {
             peripheralDiscovered(result);
 

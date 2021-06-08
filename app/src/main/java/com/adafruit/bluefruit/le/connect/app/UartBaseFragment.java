@@ -85,8 +85,8 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     protected Spinner mSendPeripheralSpinner;
 
     // UI TextBuffer (refreshing the text buffer is managed with a timer because a lot of changes can arrive really fast and could stall the main thread)
-    private Handler mUIRefreshTimerHandler = new Handler();
-    private Runnable mUIRefreshTimerRunnable = new Runnable() {
+    private final Handler mUIRefreshTimerHandler = new Handler();
+    private final Runnable mUIRefreshTimerRunnable = new Runnable() {
         @Override
         public void run() {
             if (isUITimerRunning) {
@@ -109,7 +109,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private boolean mIsEolEnabled;
     private int mEolCharactersId;
 
-    private volatile SpannableStringBuilder mTextSpanBuffer = new SpannableStringBuilder();
+    private final SpannableStringBuilder mTextSpanBuffer = new SpannableStringBuilder();
 
     protected MqttManager mMqttManager;
 
@@ -602,7 +602,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     // endregion
 
     // region Mqtt UI
-    private Runnable mMqttMenuItemAnimationRunnable = new Runnable() {
+    private final Runnable mMqttMenuItemAnimationRunnable = new Runnable() {
         @Override
         public void run() {
             updateMqttStatus();
@@ -779,12 +779,12 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         }
 
         // Data
-        private Context mContext;
+        private final Context mContext;
         private boolean mIsEchoEnabled;
         private boolean mShowDataInHexFormat;
         private UartPacketManagerBase mUartData;
         private List<UartPacket> mTableCachedDataBuffer;
-        private SimpleDateFormat mDateFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+        private final SimpleDateFormat mDateFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
 
         TimestampItemAdapter(@NonNull Context context) {
             super();

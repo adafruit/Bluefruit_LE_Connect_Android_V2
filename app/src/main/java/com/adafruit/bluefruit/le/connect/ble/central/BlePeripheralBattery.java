@@ -23,7 +23,7 @@ public class BlePeripheralBattery {
 
     // Data
     @NonNull
-    private BlePeripheral mBlePeripheral;
+    private final BlePeripheral mBlePeripheral;
     private int mCurrentBatteryLevel = -1;
 
     // region Initialization

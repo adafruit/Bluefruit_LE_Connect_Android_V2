@@ -64,10 +64,10 @@ public class BlePeripheral {
     public final static String kExtra_deviceAddress = kPrefix + "extra_deviceAddress";
     public final static String kExtra_expectedDisconnect = kPrefix + "extra_expectedDisconnect";
 
-    public static UUID kClientCharacteristicConfigUUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+    public final static UUID kClientCharacteristicConfigUUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     private final static boolean kForceWriteWithoutResponse = false;//true;                  // Force without response, or take into account that write response (onCharacteristicWrite) could be reported AFTER onCharacteristicChanged on expecting a response
-    private static boolean kHackToAvoidProblemsWhenWriteIsReceivedBeforeChangedOnWriteWithResponse = true;   // On Android when writing on a characteristic with writetype WRITE_TYPE_DEFAULT, onCharacteristicChanged (when a response is expected) can be called before onCharacteristicWrite. This weird behaviour has to be taken into account!!
+    private static final boolean kHackToAvoidProblemsWhenWriteIsReceivedBeforeChangedOnWriteWithResponse = true;   // On Android when writing on a characteristic with writetype WRITE_TYPE_DEFAULT, onCharacteristicChanged (when a response is expected) can be called before onCharacteristicWrite. This weird behaviour has to be taken into account!!
 
     // Data
     private ScanResult mScanResult;
@@ -75,9 +75,9 @@ public class BlePeripheral {
     private BluetoothGatt mBluetoothGatt;
 
     private int mConnectionState = STATE_DISCONNECTED;
-    private CommandQueue mCommmandQueue = new CommandQueue();
-    private Map<String, NotifyHandler> mNotifyHandlers = new HashMap<>();
-    private List<CaptureReadHandler> mCaptureReadHandlers = new ArrayList<>();
+    private final CommandQueue mCommmandQueue = new CommandQueue();
+    private final Map<String, NotifyHandler> mNotifyHandlers = new HashMap<>();
+    private final List<CaptureReadHandler> mCaptureReadHandlers = new ArrayList<>();
 
     private int mRssi = 0;
     private int mMtuSize = kDefaultMtuSize;
@@ -87,7 +87,7 @@ public class BlePeripheral {
     private String cachedAddress = null;        // Cached address
 
     // region BluetoothGattCallback
-    private BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -458,7 +458,6 @@ public class BlePeripheral {
 
         BleManager.getInstance().cancelDiscovery();        // Always cancel discovery before connecting
 
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mBluetoothGatt = device.connectGatt(context, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
         } else {
@@ -659,7 +658,6 @@ public class BlePeripheral {
         }
     }
 
-
     public void readCharacteristic(@NonNull BluetoothGattService service, UUID characteristicUUID, @Nullable DataReadHandler dataReadHandler) {
         final BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicUUID);
         if (characteristic != null) {
@@ -667,17 +665,7 @@ public class BlePeripheral {
         } else {
             dataReadHandler.completion(BluetoothGatt.GATT_FAILURE, null);
         }
-        /*
-        readCharacteristic(service, characteristicUUID, status -> {
-            byte[] data = null;
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                final BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicUUID);
-                data = characteristic.getValue();
-            }
-            dataReadHandler.completion(status, data);
-        });*/
     }
-
 
     public void readCharacteristic(@NonNull BluetoothGattCharacteristic characteristic, @Nullable DataReadHandler dataReadHandler) {
         readCharacteristic(characteristic, status -> {
@@ -696,29 +684,6 @@ public class BlePeripheral {
         } else {
             completionHandler.completion(BluetoothGatt.GATT_FAILURE);
         }
-        /*
-        final String identifier = kDebugCommands ? getCharacteristicIdentifier(service.getUuid(), characteristicUUID) : null;
-        BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_READCHARACTERISTIC, identifier, completionHandler) {
-
-            @Override
-            public void execute() {
-                final BluetoothGattCharacteristic characteristic = service.getCharacteristic(characteristicUUID);
-                if (characteristic != null && mBluetoothGatt != null) {
-                    // Read Characteristic
-                    if (!kDebugCommands || (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_READ) != 0) {
-                        mBluetoothGatt.readCharacteristic(characteristic);
-                    } else {
-                        Log.w(TAG, "read: characteristic not readable: " + characteristicUUID.toString());
-                        finishExecutingCommand(BluetoothGatt.GATT_READ_NOT_PERMITTED);
-                    }
-                } else {
-                    Log.w(TAG, "read: characteristic not found: " + characteristicUUID.toString());
-                    finishExecutingCommand(BluetoothGatt.GATT_READ_NOT_PERMITTED);
-                }
-            }
-        };
-        mCommmandQueue.add(command);
-        */
     }
 
     public void readCharacteristic(@NonNull BluetoothGattCharacteristic characteristic, @Nullable CompletionHandler completionHandler) {
@@ -917,12 +882,12 @@ public class BlePeripheral {
     public static final int kPeripheralReadTimeoutError = -1;       // Value should be different that errors defined in BluetoothGatt.GATT_*
 
     static class CaptureReadHandler {
-        private String mIdentifier;
-        private CaptureReadCompletionHandler mResult;
+        private final String mIdentifier;
+        private final CaptureReadCompletionHandler mResult;
         private Timer mTimeoutTimer;
         private long mTimeoutStartingMillis;        // only used for debug (kProfileTimeouts)
         private CaptureReadCompletionHandler.TimeoutAction mTimeoutAction;
-        private boolean mIsNotifyOmitted;
+        private final boolean mIsNotifyOmitted;
 
         CaptureReadHandler(String identifier, CaptureReadCompletionHandler result, int timeout, @Nullable CaptureReadCompletionHandler.TimeoutAction timeoutAction) {
             this(identifier, result, timeout, timeoutAction, false);
@@ -971,7 +936,7 @@ public class BlePeripheral {
         return found ? i : -1;
     }
 
-    private CaptureReadCompletionHandler.TimeoutAction mTimeoutRemoveCaptureHandler = identifier -> {        // Default behaviour for a capture handler timeout
+    private final CaptureReadCompletionHandler.TimeoutAction mTimeoutRemoveCaptureHandler = identifier -> {        // Default behaviour for a capture handler timeout
         // Remove capture handler
         final int captureHandlerIndex = getCaptureHandlerIndex(identifier);
         if (captureHandlerIndex >= 0) {
@@ -995,7 +960,7 @@ public class BlePeripheral {
     // endregion
 
     // region BleCommand
-    abstract class BleCommand {
+    abstract static class BleCommand {
         // Command types
 //        static final int BLECOMMANDTYPE_UNKNOWN = 0;
         static final int BLECOMMANDTYPE_DISCOVERSERVICES = 1;
@@ -1008,11 +973,11 @@ public class BlePeripheral {
         //static final int BLECOMMANDTYPE_SETPREFERREDPHY = 8;
 
         // Data
-        private int mType;
-        private String mIdentifier;
+        private final int mType;
+        private final String mIdentifier;
         private boolean mIsCancelled = false;
-        private CompletionHandler mCompletionHandler;
-        private Object mExtra;
+        private final CompletionHandler mCompletionHandler;
+        private final Object mExtra;
 
         //
         BleCommand(int type, @Nullable String identifier, @Nullable CompletionHandler completionHandler) {
@@ -1045,7 +1010,7 @@ public class BlePeripheral {
         abstract void execute();
     }
 
-    class CommandQueue {
+    static class CommandQueue {
         @NonNull
         private final List<BleCommand> mQueue = new ArrayList<>();
 

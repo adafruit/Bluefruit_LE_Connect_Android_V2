@@ -1,13 +1,13 @@
 package com.adafruit.bluefruit.le.connect.utils;
 
 import android.app.Dialog;
+import android.view.Window;
+import android.view.WindowManager;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-
-import android.view.Window;
-import android.view.WindowManager;
 
 import java.util.List;
 
@@ -29,19 +29,15 @@ public class DialogUtils {
         }
     }
 
-
     // https://stackoverflow.com/questions/11026234/how-to-check-if-the-current-activity-has-a-dialog-in-front/27239319
     public static boolean hasOpenedDialogs(@NonNull FragmentActivity activity) {
         List<Fragment> fragments = activity.getSupportFragmentManager().getFragments();
-        if (fragments != null) {
-            for (Fragment fragment : fragments) {
-                if (fragment instanceof DialogFragment) {
-                    return true;
-                }
+        for (Fragment fragment : fragments) {
+            if (fragment instanceof DialogFragment) {
+                return true;
             }
         }
 
         return false;
     }
-
 }
