@@ -18,9 +18,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    aaptOptions {
-        noCompress "zip"
-    }
 
     buildTypes {
         beta {
@@ -34,6 +31,9 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    androidResources {
+        noCompress 'zip'
     }
 }
 
