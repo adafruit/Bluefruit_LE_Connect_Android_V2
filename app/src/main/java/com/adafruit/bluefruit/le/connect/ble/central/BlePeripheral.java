@@ -154,7 +154,7 @@ public class BlePeripheral {
                     // TODO: fixit
                     // This is not totally correct. If onCharacteristicChanged arrives before onCharacteristicWrite, onCharacteristicChanged should not finishExecutingCommand and wait should be executed when this function is called
                 } else {
-                    Log.d(TAG, "onCharacteristicWrite. Waiting for reponse");
+                    Log.d(TAG, "onCharacteristicWrite. Waiting for response");
                     final String identifier = getCharacteristicIdentifier(characteristic);
                     if (kDebugCommands && !identifier.equals(command.mIdentifier)) {
                         Log.w(TAG, "Warning: onCharacteristicWrite with no matching command");

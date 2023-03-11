@@ -23,12 +23,12 @@ public class UartDataManager implements BlePeripheralUart.UartRxHandler {
 
     // Data
     //private boolean mIsEnabled = false;
-    private boolean mIsRxCacheEnabled;     // If cache is enabled, onUartRx sends the cachedData. Cache can be cleared using removeRxCacheFirst or clearRxCache. If not enabled, onUartRx sends only the latest data received
+    private final boolean mIsRxCacheEnabled;     // If cache is enabled, onUartRx sends the cachedData. Cache can be cleared using removeRxCacheFirst or clearRxCache. If not enabled, onUartRx sends only the latest data received
 
     private UartDataManagerListener mListener;
 
-    private Map<String, byte[]> mRxDatas = new HashMap<>();
-    private Semaphore mRxDataSemaphore = new Semaphore(1, true);
+    private final Map<String, byte[]> mRxDatas = new HashMap<>();
+    private final Semaphore mRxDataSemaphore = new Semaphore(1, true);
 
     public UartDataManager(@NonNull Context context, @Nullable UartDataManagerListener listener, boolean isRxCacheEnabled) {     // Is enabled automatically. Call setEnabled(false) to release internal receiver
         mListener = listener;

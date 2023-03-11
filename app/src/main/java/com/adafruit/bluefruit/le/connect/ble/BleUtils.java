@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public class BleUtils {
@@ -210,7 +211,7 @@ public class BleUtils {
 
     public static @NonNull
     String bytesToText(byte[] bytes, boolean simplifyNewLine) {
-        String text = new String(bytes, Charset.forName("UTF-8"));
+        String text = new String(bytes, StandardCharsets.UTF_8);
         if (simplifyNewLine) {
             text = text.replaceAll("(\\r\\n|\\r)", "\n");
         }

@@ -66,7 +66,7 @@ public class GattServer implements PeripheralService.Listener {
     }
 
     // Data
-    private BluetoothManager mBluetoothManager;
+    private final BluetoothManager mBluetoothManager;
     private BluetoothGattServer mGattServer;
 
     private BluetoothLeAdvertiser mAdvertiser;
@@ -77,11 +77,11 @@ public class GattServer implements PeripheralService.Listener {
 
     private Listener mListener;
 
-    private List<PeripheralService> mPeripheralServices = new ArrayList<>();
+    private final List<PeripheralService> mPeripheralServices = new ArrayList<>();
     private Semaphore mAddServicesSemaphore;
 
     // Data - preparedWrite
-    class ServiceCharacteristicKey {
+    static class ServiceCharacteristicKey {
         // Based on https://stackoverflow.com/questions/14677993/how-to-create-a-hashmap-with-two-keys-key-pair-value
         private final UUID serviceUuid;
         private final UUID characteristicUuid;
@@ -107,7 +107,7 @@ public class GattServer implements PeripheralService.Listener {
         }
     }
 
-    private Map<ServiceCharacteristicKey, byte[]> mPreparedWrites = new HashMap<>();
+    private final Map<ServiceCharacteristicKey, byte[]> mPreparedWrites = new HashMap<>();
 
 
     // Static methods

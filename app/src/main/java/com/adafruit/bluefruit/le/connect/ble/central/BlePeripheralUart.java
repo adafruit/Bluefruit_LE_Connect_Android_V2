@@ -38,7 +38,7 @@ public class BlePeripheralUart {
 
     // Data
     @NonNull
-    private BlePeripheral mBlePeripheral;
+    private final BlePeripheral mBlePeripheral;
     private BluetoothGattCharacteristic mUartTxCharacteristic;
     private BluetoothGattCharacteristic mUartRxCharacteristic;
     private int mUartTxCharacteristicWriteType;

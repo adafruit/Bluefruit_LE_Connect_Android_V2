@@ -6,9 +6,9 @@ public class UartPacket {
     public static final int TRANSFERMODE_TX = 0;
     public static final int TRANSFERMODE_RX = 1;
 
-    private String mPeripheralId;
-    private long mTimestamp;        // in millis
-    private int mMode;
+    private final String mPeripheralId;
+    private final long mTimestamp;        // in millis
+    private final int mMode;
     private byte[] mData;
 
 
