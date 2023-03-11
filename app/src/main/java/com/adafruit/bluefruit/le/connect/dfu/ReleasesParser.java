@@ -156,7 +156,7 @@ public class ReleasesParser {
 
     /**
      * Compares two version strings.
-     * Based on http://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java
+     * Based on <a href="http://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java">...</a>
      * <p/>
      * Use this instead of String.compareTo() for a non-lexicographical
      * comparison that works for version strings. e.g. "1.10".compareTo("1.6").

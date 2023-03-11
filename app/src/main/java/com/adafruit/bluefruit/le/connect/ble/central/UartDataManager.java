@@ -2,9 +2,10 @@ package com.adafruit.bluefruit.le.connect.ble.central;
 
 import android.bluetooth.BluetoothGatt;
 import android.content.Context;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Log;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -83,7 +84,7 @@ public class UartDataManager implements BlePeripheralUart.UartRxHandler {
             try {
                 mRxDataSemaphore.acquire();
             } catch (InterruptedException e) {
-                Log.w(TAG, "InterruptedException: " + e.toString());
+                Log.w(TAG, "InterruptedException: " + e);
             }
 
             if (mListener != null) {
@@ -112,7 +113,7 @@ public class UartDataManager implements BlePeripheralUart.UartRxHandler {
             try {
                 mRxDataSemaphore.acquire();
             } catch (InterruptedException e) {
-                Log.w(TAG, "InterruptedException: " + e.toString());
+                Log.w(TAG, "InterruptedException: " + e);
             }
 
             // Append new data to previous data

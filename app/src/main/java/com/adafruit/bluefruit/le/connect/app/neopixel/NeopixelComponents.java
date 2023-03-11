@@ -48,7 +48,7 @@ class NeopixelComponents {
     static final int kComponents_bgrw = 29;
 
     // Data
-    private int mType;
+    private final int mType;
 
     // region Lifecycle
     NeopixelComponents(int type) {

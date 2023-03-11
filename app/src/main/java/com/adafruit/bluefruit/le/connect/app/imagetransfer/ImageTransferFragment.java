@@ -92,7 +92,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     private final static String kPreferences_isColorSpace24Bits = "is_color_space_24_bits";
     private final static String kPreferences_isEInkModeEnabled = "is_eink_mode_enabled";
 
-    private Size kDefaultResolution = new Size(64, 64);
+    private final Size kDefaultResolution = new Size(64, 64);
 
     // UI
     private TextView mUartWaitingTextView;

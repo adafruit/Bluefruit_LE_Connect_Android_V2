@@ -146,10 +146,10 @@ public class NeopixelBoardSelectorFragment extends AppCompatDialogFragment {
 
         // Data
         private List<String> mDefaultBoards;
-        private Listener mListener;
+        private final Listener mListener;
 
         // ViewHolder
-        class ViewHolder extends RecyclerView.ViewHolder {
+        static class ViewHolder extends RecyclerView.ViewHolder {
             Button mItem;
 
             ViewHolder(ViewGroup view) {

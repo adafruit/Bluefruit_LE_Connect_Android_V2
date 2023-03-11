@@ -46,7 +46,7 @@ public class ImageTransferFormatSelectorPageFragment extends Fragment {
     };
 
 
-    private static Size[] kEInkResolutions = {
+    private static final Size[] kEInkResolutions = {
             new Size(152, 152),
             new Size(168, 44),
             new Size(212, 104),

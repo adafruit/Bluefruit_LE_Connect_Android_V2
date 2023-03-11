@@ -56,7 +56,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
     // Data
-    private InfoData mInfoData = new InfoData();
+    private final InfoData mInfoData = new InfoData();
 
     // region Fragment Lifecycle
 
@@ -125,7 +125,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_help, menu);
     }
@@ -138,13 +138,11 @@ public class InfoFragment extends ConnectedPeripheralFragment {
             case R.id.action_help:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.info_help_title), getString(R.string.info_help_text));
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .replace(R.id.contentLayout, helpFragment, "Help");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.info_help_title), getString(R.string.info_help_text));
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .replace(R.id.contentLayout, helpFragment, "Help");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
                 return true;
 
@@ -265,7 +263,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
 
     // region Structures
 
-    private class ElementPath {
+    private static class ElementPath {
         // Constants
         private final static int kDataFormat_Auto = -1;
         private final static int kDataFormat_String = 0;
@@ -295,6 +293,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
             return (serviceUUID != null ? serviceUUID.toString() : "") + serviceInstance + (characteristicUUID != null ? characteristicUUID.toString() : "") + (descriptorUUID != null ? descriptorUUID.toString() : "");
         }
 
+        @NonNull
         @Override
         public String toString() {
             return name;
@@ -344,7 +343,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
         }
     }
 
-    class InfoData {
+    static class InfoData {
         List<ElementPath> mServices;                            // List with service names
         Map<String, List<ElementPath>> mCharacteristics;        // Map with characteristics for service keys
         Map<String, List<ElementPath>> mDescriptors;            // Map with descriptors for characteristic keys
@@ -377,7 +376,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
         private static final int kViewType_Descriptor = 2;
 
         // ViewHolders
-        class ServiceViewHolder extends RecyclerView.ViewHolder {
+        static class ServiceViewHolder extends RecyclerView.ViewHolder {
             TextView nameTextView;
             TextView uuidTextView;
 
@@ -388,7 +387,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
             }
         }
 
-        class CharacteristicViewHolder extends RecyclerView.ViewHolder {
+        static class CharacteristicViewHolder extends RecyclerView.ViewHolder {
             ViewGroup mainViewGroup;
             TextView nameTextView;
             TextView uuidTextView;
@@ -405,7 +404,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
             }
         }
 
-        class DescriptorViewHolder extends RecyclerView.ViewHolder {
+        static class DescriptorViewHolder extends RecyclerView.ViewHolder {
             ViewGroup mainViewGroup;
             TextView nameTextView;
             TextView uuidTextView;
@@ -423,8 +422,8 @@ public class InfoFragment extends ConnectedPeripheralFragment {
         }
 
         // Data
-        private Context mContext;
-        private InfoData mInfoData;
+        private final Context mContext;
+        private final InfoData mInfoData;
 
         InfoAdapter(@NonNull Context context, InfoData infoData) {
             mContext = context;

@@ -581,23 +581,22 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         if (context == null) return false;
 
         boolean permissionGranted = true;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android Marshmallow Permission check 
-            if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                permissionGranted = false;
-                if (mRequestLocationDialog != null) {
-                    mRequestLocationDialog.cancel();
-                    mRequestLocationDialog = null;
-                }
 
-                final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                mRequestLocationDialog = builder.setTitle(R.string.bluetooth_locationpermission_title)
-                        .setMessage(R.string.controller_sensor_locationpermission_text)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION))
-                        .show();
+        if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissionGranted = false;
+            if (mRequestLocationDialog != null) {
+                mRequestLocationDialog.cancel();
+                mRequestLocationDialog = null;
             }
+
+            final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            mRequestLocationDialog = builder.setTitle(R.string.bluetooth_locationpermission_title)
+                    .setMessage(R.string.controller_sensor_locationpermission_text)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION))
+                    .show();
         }
+
         return permissionGranted;
     }
 

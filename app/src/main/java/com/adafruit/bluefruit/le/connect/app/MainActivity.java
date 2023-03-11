@@ -1,7 +1,6 @@
 package com.adafruit.bluefruit.le.connect.app;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -10,7 +9,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -211,41 +209,30 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
 
     // region Permissions
     private boolean manageLocationServiceAvailabilityForScanning() {
+        int locationMode = Settings.Secure.LOCATION_MODE_OFF;
+        try {
+            locationMode = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
 
-        boolean areLocationServiceReady = true;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {        // Location services are only needed to be enabled from Android 6.0
-            int locationMode = Settings.Secure.LOCATION_MODE_OFF;
-            try {
-                locationMode = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
-
-            } catch (Settings.SettingNotFoundException e) {
-                e.printStackTrace();
-            }
-            areLocationServiceReady = locationMode != Settings.Secure.LOCATION_MODE_OFF;
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
         }
-
+        final boolean areLocationServiceReady = locationMode != Settings.Secure.LOCATION_MODE_OFF;
         return areLocationServiceReady;
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     private boolean requestFineLocationPermissionIfNeeded() {       // Starting with Android 10, Bluetooth scanning needs Location FINE Permission
         boolean permissionGranted = true;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android Marshmallow Permission check 
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                permissionGranted = false;
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                mRequestLocationDialog = builder.setTitle(R.string.bluetooth_locationpermission_title)
-                        .setMessage(R.string.bluetooth_locationpermission_text)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION))
-                        .show();
-            }
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissionGranted = false;
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            mRequestLocationDialog = builder.setTitle(R.string.bluetooth_locationpermission_title)
+                    .setMessage(R.string.bluetooth_locationpermission_text)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION))
+                    .show();
         }
         return permissionGranted;
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

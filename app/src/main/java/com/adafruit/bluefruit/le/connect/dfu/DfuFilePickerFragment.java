@@ -42,7 +42,7 @@ public class DfuFilePickerFragment extends AppCompatDialogFragment {
     private AlertDialog mDialog;
 
     // Data
-    private ReleasesParser.BasicVersionInfo mVersionInfo = new ReleasesParser.BasicVersionInfo();
+    private final ReleasesParser.BasicVersionInfo mVersionInfo = new ReleasesParser.BasicVersionInfo();
     private OnFragmentInteractionListener mListener;
 
 

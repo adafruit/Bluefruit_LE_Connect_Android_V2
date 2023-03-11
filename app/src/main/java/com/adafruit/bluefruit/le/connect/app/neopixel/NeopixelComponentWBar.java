@@ -108,7 +108,7 @@ public class NeopixelComponentWBar extends View {
      * An array of floats that can be build into a {@code Color} <br>
      * Where we can extract the color from.
      */
-    private float[] mHSVColor = new float[3];
+    private final float[] mHSVColor = new float[3];
 
     /**
      * Factor used to calculate the position to the Opacity on the bar.

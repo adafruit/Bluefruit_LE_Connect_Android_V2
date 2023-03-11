@@ -66,7 +66,9 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Remove title
         AppCompatDialog dialog = (AppCompatDialog) getDialog();
-        dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        if (dialog != null) {
+            dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        }
 
         View view = inflater.inflate(R.layout.layout_common_message_dialog, container, false);
         return view;
@@ -85,9 +87,12 @@ public class ScannerStatusFragmentDialog extends AppCompatDialogFragment {
         super.onStart();
 
         // https://stackoverflow.com/questions/42501704/how-to-make-dialogfragment-width-match-parent
-        Window window = getDialog().getWindow();
-        if (window != null) {
-            window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        AppCompatDialog dialog = (AppCompatDialog) getDialog();
+        if (dialog != null) {
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+            }
         }
     }
 

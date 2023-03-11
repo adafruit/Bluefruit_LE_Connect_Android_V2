@@ -54,7 +54,7 @@ public class ThermalCameraFragment extends ConnectedPeripheralFragment implement
     private boolean mIsColorEnabled = true;
     private boolean mIsFilterEnabled = true;
     private String mTextCachedBuffer = "";
-    private Semaphore mTextCachedBufferSemaphore = new Semaphore(1, true);
+    private final Semaphore mTextCachedBufferSemaphore = new Semaphore(1, true);
     private float mMinTemperature = Float.MAX_VALUE;
     private float mMaxTemperature = -Float.MAX_VALUE;
 
@@ -171,7 +171,7 @@ public class ThermalCameraFragment extends ConnectedPeripheralFragment implement
         try {
             mTextCachedBufferSemaphore.acquire();
         } catch (InterruptedException e) {
-            Log.w(TAG, "InterruptedException: " + e.toString());
+            Log.w(TAG, "InterruptedException: " + e);
         }
 
         mTextCachedBuffer += dataString;
@@ -283,7 +283,7 @@ public class ThermalCameraFragment extends ConnectedPeripheralFragment implement
     // endregion
 
     // region Color
-    private float[] temperatureComponentsForValueCachedColor = new float[]{0f, 0.7f, 0.5f};        // To avoid allocating memory, preserve a float array for temporal colors
+    private final float[] temperatureComponentsForValueCachedColor = new float[]{0f, 0.7f, 0.5f};        // To avoid allocating memory, preserve a float array for temporal colors
 
     public int temperatureComponentsForValue(float value) {
 

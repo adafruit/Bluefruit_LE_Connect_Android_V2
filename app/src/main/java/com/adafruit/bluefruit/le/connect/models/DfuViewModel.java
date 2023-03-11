@@ -36,7 +36,7 @@ public class DfuViewModel extends ViewModel {
     }
 
     // Data
-    private DfuUpdater mDfuUpdater = new DfuUpdater();
+    private final DfuUpdater mDfuUpdater = new DfuUpdater();
     private boolean mIsCheckingFirmwareUpdates = false;
     private final SingleLiveEvent<DfuCheckResult> mDfuCheckResult = new SingleLiveEvent<>();
 
