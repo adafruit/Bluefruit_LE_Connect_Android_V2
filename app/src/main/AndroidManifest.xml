@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.adafruit.bluefruit.le.connect">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- BluetoothLe Required -->
     <uses-feature
@@ -16,6 +15,7 @@
     <!-- Bluetooth Permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />      <!-- Scanning: Needed for bluetooth scanning (FINE needed on Android 10) --> <!-- Controller: Client must have ACCESS_FINE_LOCATION permission to request PRIORITY_HIGH_ACCURACY location -->
 
     <!-- Downloads Permissions -->
@@ -33,6 +33,7 @@
     <application
         android:name=".BluefruitApplication"
         android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_scheme"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -40,7 +41,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:targetApi="q">
+        tools:targetApi="s">
         <service android:name=".dfu.DfuService" />
 
         <!-- Mqtt Service -->
@@ -48,7 +49,7 @@
 
         <activity
             android:name=".app.SplashActivity"
-            android:label="@string/app_name"
+            android:exported="true"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -69,13 +70,11 @@
         </activity>
         <activity
             android:name=".app.MainActivity"
-            android:label="@string/app_name"
             android:launchMode="singleTop"
             android:windowSoftInputMode="stateHidden" />
 
         <!-- DFU Notification -->
         <activity android:name=".dfu.NotificationActivity" />
-
 
         <!-- FileProvider -->
         <provider
