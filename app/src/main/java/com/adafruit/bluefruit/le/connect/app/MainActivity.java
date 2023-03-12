@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     private final static boolean kAvoidPoppingFragmentsWhileOnDfu = false;
 
     // Permission requests
-    private final static int PERMISSION_REQUEST_FINE_LOCATION = 1;
+    private final static int PERMISSION_REQUEST_ALL = 1;
 
     // Activity request codes (used for onActivityResult)
     private static final int kActivityRequestCode_EnableBluetooth = 1;
@@ -194,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
 
                 if (isBluetoothEnabled) {
                     // Request Bluetooth scanning permissions
-                    final boolean isLocationPermissionGranted = requestFineLocationPermissionIfNeeded();
+                    final boolean isLocationPermissionGranted = requestScanningPermissionsIfNeeded();
 
                     if (isLocationPermissionGranted) {
                         // All good. Start Scanning
@@ -208,19 +210,56 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     }
 
     // region Permissions
-    private boolean manageLocationServiceAvailabilityForScanning() {
-        int locationMode = Settings.Secure.LOCATION_MODE_OFF;
-        try {
-            locationMode = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
-
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+    String[] getNeededPermissionsForScanning() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return new String[]{
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT
+            };
+        } else {
+            return new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION
+            };
         }
-        final boolean areLocationServiceReady = locationMode != Settings.Secure.LOCATION_MODE_OFF;
-        return areLocationServiceReady;
     }
 
-    private boolean requestFineLocationPermissionIfNeeded() {       // Starting with Android 10, Bluetooth scanning needs Location FINE Permission
+    private boolean manageLocationServiceAvailabilityForScanning() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return true;
+        } else {
+            int locationMode = Settings.Secure.LOCATION_MODE_OFF;
+            try {
+                locationMode = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
+
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+            }
+            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+        }
+    }
+
+    private static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean requestScanningPermissionsIfNeeded() {       // Starting with Android 10, Bluetooth scanning needs Location FINE Permission
+
+        String[] permissions = getNeededPermissionsForScanning();
+        if (hasPermissions(this, permissions)) {
+            return true;
+        } else {
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_ALL);
+            return false;
+        }
+
+        /*
         boolean permissionGranted = true;
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissionGranted = false;
@@ -232,6 +271,8 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
                     .show();
         }
         return permissionGranted;
+
+         */
     }
 
     @Override
@@ -239,16 +280,16 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
-            case PERMISSION_REQUEST_FINE_LOCATION: {
-                if (grantResults.length >= 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "Location permission granted");
+            case PERMISSION_REQUEST_ALL: {
+                if (hasPermissions(this, permissions)) {
+                    Log.d(TAG, "Bluetooth permissions granted");
 
                     checkPermissions();
 
                 } else {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle(R.string.bluetooth_locationpermission_notavailable_title);
-                    builder.setMessage(R.string.bluetooth_locationpermission_notavailable_text);
+                    builder.setTitle(R.string.bluetooth_permissions_notavailable_title);
+                    builder.setMessage(R.string.bluetooth_permissions_notavailable_text);
                     builder.setPositiveButton(android.R.string.ok, null);
                     builder.setOnDismissListener(dialog -> {
                     });
@@ -338,8 +379,8 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         checkPermissions();
     }
 
-    public void scannerRequestLocationPermissionIfNeeded() {
-        requestFineLocationPermissionIfNeeded();
+    public void scannerRequestPermissionsIfNeeded() {
+        requestScanningPermissionsIfNeeded();
     }
 
     public void startPeripheralModules(String peripheralIdentifier) {

@@ -1,5 +1,8 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -17,6 +20,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.annotation.RequiresPermission;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.adafruit.bluefruit.le.connect.BuildConfig;
@@ -88,7 +92,8 @@ public class BlePeripheral {
 
     // region BluetoothGattCallback
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
-
+        @SuppressLint("InlinedApi")
+        @RequiresPermission(value = BLUETOOTH_CONNECT)
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
@@ -411,6 +416,8 @@ public class BlePeripheral {
         return cachedAddress;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public String getName() {
         if (cachedNameNeedsUpdate) {
             String name = mScanResult.getDevice().getName();
@@ -443,11 +450,15 @@ public class BlePeripheral {
         mCommmandQueue.clear();
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public @NonNull
     BluetoothDevice getDevice() {
         return mScanResult.getDevice();
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     @MainThread
     public void connect(Context context) {
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
@@ -457,18 +468,15 @@ public class BlePeripheral {
         localBroadcastUpdate(kBlePeripheral_OnConnecting, getIdentifier());
 
         BleManager.getInstance().cancelDiscovery();        // Always cancel discovery before connecting
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mBluetoothGatt = device.connectGatt(context, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
-        } else {
-            mBluetoothGatt = device.connectGatt(context, false, mGattCallback);
-        }
+        mBluetoothGatt = device.connectGatt(context, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
 
         if (mBluetoothGatt == null) {
             Log.e(TAG, "connectGatt Error. Returns null");
         }
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     @MainThread
     public void disconnect() {
         if (mBluetoothGatt != null) {
@@ -486,6 +494,8 @@ public class BlePeripheral {
         return mConnectionState == STATE_DISCONNECTED;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     private void notifyConnectionFinished(boolean isExpected) {
         mConnectionState = STATE_DISCONNECTED;
         if (isExpected) {
@@ -497,11 +507,15 @@ public class BlePeripheral {
         mLocalBroadcastManager = null;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public boolean readRssi() {
         // if true: Caller should wait for onReadRssi callback. False when rssi read is not available
         return mBluetoothGatt != null && mBluetoothGatt.readRemoteRssi();
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void setPreferredPhy(int txPhy, int rxPhy, int phyOptions) {
         if (mBluetoothGatt != null) {
@@ -511,6 +525,8 @@ public class BlePeripheral {
         }
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void readPhy() {
         if (mBluetoothGatt != null) {
@@ -521,6 +537,8 @@ public class BlePeripheral {
 
     // region CommandQueue
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     @MainThread
     private void closeBluetoothGatt() {
         if (mBluetoothGatt != null) {
@@ -555,6 +573,8 @@ public class BlePeripheral {
 
     public void discoverServices(CompletionHandler completionHandler) {
         BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_DISCOVERSERVICES, null, completionHandler) {
+            @SuppressLint("InlinedApi")
+            @RequiresPermission(value = BLUETOOTH_CONNECT)
             @Override
             public void execute() {
                 final boolean isDiscoveryInProgress = mBluetoothGatt != null && mBluetoothGatt.discoverServices();
@@ -580,11 +600,11 @@ public class BlePeripheral {
     }
 
     private String getCharacteristicIdentifier(@NonNull UUID serviceUUID, @NonNull UUID characteristicUUID) {
-        return serviceUUID.toString() + characteristicUUID.toString();
+        return serviceUUID + characteristicUUID.toString();
     }
 
     private String getDescriptorIdentifier(@NonNull UUID serviceUUID, @NonNull UUID characteristicUUID, @NonNull UUID descriptorUUID) {
-        return serviceUUID.toString() + characteristicUUID.toString() + descriptorUUID.toString();
+        return serviceUUID + characteristicUUID.toString() + descriptorUUID;
     }
 
     public @Nullable
@@ -611,6 +631,8 @@ public class BlePeripheral {
         final String identifier = getCharacteristicIdentifier(characteristic);
         BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_SETNOTIFY, kDebugCommands ? identifier : null, completionHandler) {
 
+            @SuppressLint("InlinedApi")
+            @RequiresPermission(value = BLUETOOTH_CONNECT)
             @Override
             public void execute() {
                 BluetoothGattDescriptor descriptor = characteristic.getDescriptor(kClientCharacteristicConfigUUID);
@@ -633,6 +655,8 @@ public class BlePeripheral {
         final String identifier = getCharacteristicIdentifier(characteristic);
         BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_SETNOTIFY, kDebugCommands ? identifier : null, completionHandler) {
 
+            @SuppressLint("InlinedApi")
+            @RequiresPermission(value = BLUETOOTH_CONNECT)
             @Override
             public void execute() {
 
@@ -690,6 +714,8 @@ public class BlePeripheral {
         final String identifier = kDebugCommands ? getCharacteristicIdentifier(characteristic.getService().getUuid(), characteristic.getUuid()) : null;
         BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_READCHARACTERISTIC, identifier, completionHandler) {
 
+            @SuppressLint("InlinedApi")
+            @RequiresPermission(value = BLUETOOTH_CONNECT)
             @Override
             public void execute() {
                 if (mBluetoothGatt != null) {
@@ -711,6 +737,8 @@ public class BlePeripheral {
 
     public void writeCharacteristic(@NonNull BluetoothGattCharacteristic characteristic, int writeType, @NonNull byte[] data, @Nullable CompletionHandler completionHandler) {
         BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_WRITECHARACTERISTIC, kDebugCommands ? getCharacteristicIdentifier(characteristic) : null, completionHandler) {
+            @SuppressLint("InlinedApi")
+            @RequiresPermission(value = BLUETOOTH_CONNECT)
             @Override
             public void execute() {
                 if (mBluetoothGatt != null) {
@@ -752,6 +780,8 @@ public class BlePeripheral {
         BleCommandCaptureReadParameters captureReadParameters = new BleCommandCaptureReadParameters(readIdentifier, readCompletionHandler, readTimeout);
 
         BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_WRITECHARACTERISTICANDWAITNOTIFY, getCharacteristicIdentifier(characteristic), completionHandler, captureReadParameters) {
+            @SuppressLint("InlinedApi")
+            @RequiresPermission(value = BLUETOOTH_CONNECT)
             @Override
             public void execute() {
                 if (mBluetoothGatt != null) {
@@ -804,6 +834,8 @@ public class BlePeripheral {
     public void readDescriptor(@NonNull BluetoothGattCharacteristic characteristic, UUID descriptorUUID, CompletionHandler completionHandler) {
         final String identifier = kDebugCommands ? getDescriptorIdentifier(characteristic.getService().getUuid(), characteristic.getUuid(), descriptorUUID) : null;
         BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_READDESCRIPTOR, identifier, completionHandler) {
+            @SuppressLint("InlinedApi")
+            @RequiresPermission(value = BLUETOOTH_CONNECT)
             @Override
             public void execute() {
                 // Read Descriptor
@@ -822,6 +854,8 @@ public class BlePeripheral {
     public void requestMtu(@IntRange(from = 23, to = 517) int mtuSize, CompletionHandler completionHandler) {
         final String identifier = null;
         BleCommand command = new BleCommand(BleCommand.BLECOMMANDTYPE_REQUESTMTU, identifier, completionHandler) {
+            @SuppressLint("InlinedApi")
+            @RequiresPermission(value = BLUETOOTH_CONNECT)
             @Override
             public void execute() {
                 // Request mtu size change

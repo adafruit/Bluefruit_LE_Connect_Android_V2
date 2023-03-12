@@ -561,8 +561,8 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
 
                 } else {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                    builder.setTitle(R.string.bluetooth_locationpermission_notavailable_title);
-                    builder.setMessage(R.string.bluetooth_locationpermission_notavailable_text);
+                    builder.setTitle(R.string.locationpermission_notavailable_title);
+                    builder.setMessage(R.string.locationpermission_notavailable_text);
                     builder.setPositiveButton(android.R.string.ok, null);
                     builder.setOnDismissListener(dialog -> {
                     });
@@ -575,7 +575,6 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     private boolean requestFineLocationPermissionIfNeeded() {
         final Context context = getContext();
         if (context == null) return false;
@@ -590,8 +589,8 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
             }
 
             final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-            mRequestLocationDialog = builder.setTitle(R.string.bluetooth_locationpermission_title)
-                    .setMessage(R.string.controller_sensor_locationpermission_text)
+            mRequestLocationDialog = builder.setTitle(R.string.locationpermission_notavailable_title)
+                    .setMessage(R.string.locationpermission_notavailable_text)
                     .setPositiveButton(android.R.string.ok, null)
                     .setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION))
                     .show();

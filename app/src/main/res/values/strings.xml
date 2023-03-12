@@ -13,10 +13,10 @@
 	<string name="bluetooth_poweredoff">Bluetooth is currently powered off</string>
 
 	<string name="bluetooth_locationpermission_disabled_text">Location Services should be enabled to scan bluetooth peripherals.\nPlease, go to settings and enable it to start scanning peripherals</string>
-	<string name="bluetooth_locationpermission_title">This app needs location access</string>
-	<string name="bluetooth_locationpermission_text">Please grant location access so this app can scan for Bluetooth peripherals</string>
-	<string name="bluetooth_locationpermission_notavailable_title">Bluetooth Scanning not available</string>
-	<string name="bluetooth_locationpermission_notavailable_text">Since location access has not been granted, the app will not be able to scan for Bluetooth peripherals</string>
+	<string name="locationpermission_notavailable_title">This app needs location access</string>
+	<string name="locationpermission_notavailable_text">Since location access has not been granted, the app will not generate location data</string>
+	<string name="bluetooth_permissions_notavailable_title">Bluetooth Scanning not available</string>
+	<string name="bluetooth_permissions_notavailable_text">Since bluetooth permissions have not been granted, the app will not be able to scan for Bluetooth peripherals</string>
 	<string name="bluetooth_scanner_errorregisteringapp">App cannot be registered for bluetooth scanning.\nPlease reset bluetooth and try again.</string>
 	<string name="bluetooth_connecting_error">Error connecting to peripheral</string>
 	<string name="bluetooth_advertising_start_error">Error starting advertising</string>
@@ -203,6 +203,7 @@
 	<string name="uart_settings_displayMode_title">Display Mode</string>
 	<string name="uart_settings_displayMode_timestamp">Timestamp</string>
 	<string name="uart_settings_displayMode_text">Text</string>
+	<string name="uart_settings_displayMode_terminal">Terminal</string>
 	<string name="uart_settings_dataMode_title">Data Mode</string>
 	<string name="uart_settings_dataMode_hex">Hex</string>
 	<string name="uart_settings_dataMode_ascii">Ascii</string>
@@ -299,8 +300,8 @@
 	<string name="plotter_help_text">• The \'Plotter\' utility can be used to plot incoming numeric data in a chart, without having to create a custom plotter code or application. It behaves similarly to the Serial Plotter in recent versions of the Arduino IDE.\n\n•  To plot one or more data streams to the plotter, send your numeric data in CSV format with one of the following seperators:\n\',\' - Comma (0x2C)\n\' \' - Space (0x20)\n\';\' - Semicolon (0x3B)\nHorizontal Tab (0x09), \'\\t\' in code\n\nEach unique set of data samples must be terminated by a LINE FEED character (0x0A), which is usually represented as \'\\n\' in code.\n\n• Only numeric data should be sent over the BLE UART connection(s).</string>
 
 
-	<!-- Circuit Python -->
-	<string name="uart_circuitpython_title">Circuit Python</string>
+	<!-- CircuitPython -->
+	<string name="uart_circuitpython_title">CircuitPython</string>
 
 
 	<!-- Dfu -->

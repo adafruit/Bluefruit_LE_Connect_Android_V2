@@ -62,7 +62,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:20.4.1'
 
     // Nordic
-    implementation 'no.nordicsemi.android.support.v18:scanner:1.4.3'
+    implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
     implementation 'no.nordicsemi.android:dfu:1.9.1'
 
     //  Architecture Components

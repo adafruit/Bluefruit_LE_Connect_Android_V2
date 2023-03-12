@@ -1,10 +1,14 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
+import android.annotation.SuppressLint;
 import android.os.ParcelUuid;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -129,6 +133,8 @@ public class BleScanner {
         return connectedPeripherals;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public void disconnectFromAll() {
         List<BlePeripheral> connectedPeriperals = getConnectedOrConnectingPeripherals();
 
@@ -211,7 +217,7 @@ public class BleScanner {
     public synchronized void refresh() {
         stop();
 
-        // Don't remove connnected or connecting peripherals
+        // Don't remove connected or connecting peripherals
         for (ListIterator<BlePeripheral> listIterator = mPeripheralScanResults.listIterator(); listIterator.hasNext(); ) {
             BlePeripheral blePeripheral = listIterator.next();
             if (blePeripheral.getConnectionState() == BlePeripheral.STATE_DISCONNECTED) {

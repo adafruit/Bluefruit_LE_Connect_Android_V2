@@ -12,11 +12,27 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-    <!-- Bluetooth Permissions -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <!-- Bluetooth permission is required on Android 4.3 - 11 in order to communicate with Bluetooth LE devices. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <!-- Bluetooth Admin permission is required on Android 4.3 - 11 in order to scan for Bluetooth LE devices. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <!-- Location permission is required from Android 6 to 11 to be able to scan for advertising Bluetooth LE devices. -->
+    <!-- Controller: Client must have ACCESS_FINE_LOCATION permission to request PRIORITY_HIGH_ACCURACY location -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />      <!-- Scanning: Needed for bluetooth scanning (FINE needed on Android 10) --> <!-- Controller: Client must have ACCESS_FINE_LOCATION permission to request PRIORITY_HIGH_ACCURACY location -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- BLUETOOTH_SCAN permission is needed from Android 12 to scan for Bluetooth LE devices. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <!-- BLUETOOTH_CONNECT permission is required from Android 12 to connect to a Bluetooth LE device -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
     <!-- Downloads Permissions -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
