@@ -5,9 +5,9 @@ android {
     defaultConfig {
         applicationId "com.adafruit.bluefruit.le.connect"
         minSdkVersion 23
-        targetSdkVersion 31
-        versionCode 47
-        versionName "3.3.2"
+        targetSdkVersion 33
+        versionCode 48
+        versionName "3.4.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         resValue "string", "app_name", "Bluefruit Connect"
@@ -63,7 +63,7 @@ dependencies {
 
     // Nordic
     implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
-    implementation 'no.nordicsemi.android:dfu:1.9.1'
+    implementation 'no.nordicsemi.android:dfu:2.3.0'
 
     //  Architecture Components
     implementation "androidx.lifecycle:lifecycle-viewmodel:$lifecycle_version"

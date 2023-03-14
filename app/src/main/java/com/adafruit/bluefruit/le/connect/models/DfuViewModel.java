@@ -75,8 +75,8 @@ public class DfuViewModel extends ViewModel {
     }
 
 
-    public void downloadAndInstall(@NonNull Context context, @NonNull BlePeripheral blePeripheral, @NonNull ReleasesParser.BasicVersionInfo versionInfo, @NonNull DfuUpdater.DownloadStateListener downloadStateListener) {
-        mDfuUpdater.downloadAndInstall(context, blePeripheral, versionInfo, downloadStateListener);
+    public void downloadAndInstall(@NonNull Context context, @NonNull String deviceAddress, @NonNull String deviceName, @NonNull ReleasesParser.BasicVersionInfo versionInfo, @NonNull DfuUpdater.DownloadStateListener downloadStateListener) {
+        mDfuUpdater.downloadAndInstall(context, deviceAddress, deviceName, versionInfo, downloadStateListener);
     }
 
     /*

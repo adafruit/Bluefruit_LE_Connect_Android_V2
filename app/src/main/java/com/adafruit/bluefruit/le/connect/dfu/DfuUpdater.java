@@ -311,7 +311,7 @@ public class DfuUpdater {
         void onDownloadFailed();
     }
 
-    public void downloadAndInstall(@NonNull Context context, @NonNull BlePeripheral blePeripheral, @NonNull ReleasesParser.BasicVersionInfo versionInfo, @NonNull DownloadStateListener downloadStateListener) {
+    public void downloadAndInstall(@NonNull Context context, @NonNull String deviceAddress, @NonNull String deviceName, @NonNull ReleasesParser.BasicVersionInfo versionInfo, @NonNull DownloadStateListener downloadStateListener) {
         // Cancel previous download task if still running
         if (sDownloadTask != null) {
             sDownloadTask.cancel(true);
@@ -335,7 +335,7 @@ public class DfuUpdater {
                         // Check if we also need to download an ini file, or we are good
                         if (versionInfo.iniFileUrl == null) {
                             // No init file so, go to install firmware
-                            install(context, blePeripheral, file.getAbsolutePath(), null);
+                            install(context, deviceAddress, deviceName, file.getAbsolutePath(), null);
                             sDownloadTask = null;
                         } else {
                             // We have to download the ini file too
@@ -354,7 +354,7 @@ public class DfuUpdater {
                                         if (success) {
                                             // We already had the hex file downloaded, and now we also have the ini file. Let's go
                                             String hexLocalFile = new File(context.getCacheDir(), kDefaultHexFilename).getAbsolutePath();          // get path from the previously downloaded hex file
-                                            install(context, blePeripheral, hexLocalFile, file.getAbsolutePath());
+                                            install(context, deviceAddress, deviceName, hexLocalFile, file.getAbsolutePath());
                                         } else {
                                             downloadStateListener.onDownloadFailed();
                                             sDownloadTask = null;
@@ -387,11 +387,11 @@ public class DfuUpdater {
 
     private DfuServiceController mDfuServiceController;
 
-    private void install(@NonNull Context context, @NonNull BlePeripheral blePeripheral, @NonNull String localHexPath, @Nullable String localIniPath) {
+    private void install(@NonNull Context context, @NonNull String deviceAddress, @NonNull String deviceName, @NonNull String localHexPath, @Nullable String localIniPath) {
 
         //final boolean keepBond = false;
-        final DfuServiceInitiator starter = new DfuServiceInitiator(blePeripheral.getDevice().getAddress())
-                .setDeviceName(blePeripheral.getName())
+        final DfuServiceInitiator starter = new DfuServiceInitiator(deviceAddress)
+                .setDeviceName(deviceName)
                 //.setKeepBond(keepBond);
                 ;
 

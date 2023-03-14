@@ -1,6 +1,9 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -17,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
@@ -323,9 +327,14 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             case BleUtils.STATUS_BLUETOOTH_DISABLED: {
                 isEnabled = false;      // it was already off
                 // if no enabled, launch settings dialog to enable it (user should always be prompted before automatically enabling bluetooth)
-                Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBluetoothIntent, kActivityRequestCode_EnableBluetooth);
-                // execution will continue at onActivityResult()
+                try {
+                    Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableBluetoothIntent, kActivityRequestCode_EnableBluetooth);
+                    // execution will continue at onActivityResult()
+                } catch (SecurityException e) {
+                    Log.w(TAG, "Permissions not granted when trying to launch enable-bluetooth dialog: " + e);
+                }
+
                 break;
             }
         }
@@ -430,7 +439,6 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     };
     // endregion
 
-
     // region DFU
     private DfuProgressFragmentDialog mDfuProgressDialog;
 
@@ -447,6 +455,8 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         return mIsDfuInProgress;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public void startUpdate(@NonNull BlePeripheral blePeripheral, @NonNull ReleasesParser.BasicVersionInfo versionInfo) {
         dismissDfuProgressDialog();
 
@@ -463,7 +473,9 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         });
 
         mIsDfuInProgress = true;
-        mDfuViewModel.downloadAndInstall(this, blePeripheral, versionInfo, new DfuUpdater.DownloadStateListener() {
+        final String address = blePeripheral.getDevice().getAddress();
+        final String name = blePeripheral.getName();
+        mDfuViewModel.downloadAndInstall(this, address, name, versionInfo, new DfuUpdater.DownloadStateListener() {
             @Override
             public void onDownloadStarted(int type) {
                 mDfuProgressDialog.setIndeterminate(true);

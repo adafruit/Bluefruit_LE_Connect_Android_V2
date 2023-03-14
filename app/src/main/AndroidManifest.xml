@@ -34,6 +34,12 @@
     <!-- BLUETOOTH_CONNECT permission is required from Android 12 to connect to a Bluetooth LE device -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
+    <!-- ACCESS_BACKGROUND_LOCATION permission is required required to trigger a successful DFU whilst the device screen is turned off: https://github.com/NordicSemiconductor/Android-DFU-Library -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- FOREGROUND_SERVICE permission is required required: https://github.com/NordicSemiconductor/Android-DFU-Library/issues/321 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
     <!-- Downloads Permissions -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
