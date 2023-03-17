@@ -87,5 +87,4 @@ public class BleManager {
 
         return connectedDevices;
     }
-
 }

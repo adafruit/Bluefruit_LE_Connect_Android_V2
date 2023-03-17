@@ -1,5 +1,8 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
@@ -13,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -47,9 +51,9 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
 
     // Data
     private List<BlePeripheral> mBlePeripherals;
-    private Context mContext;
+    private final Context mContext;
     private RecyclerView mRecyclerView;
-    private Listener mListener;
+    private final Listener mListener;
 
     BlePeripheralsAdapter(@NonNull Context context, @NonNull Listener listener) {
         mContext = context.getApplicationContext();
@@ -78,6 +82,8 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         return description;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     private static Spanned getAdvertisementDescription(Context context, BlePeripheral blePeripheral) {
         final int deviceType = BleScanner.getDeviceType(blePeripheral);
 
@@ -105,6 +111,8 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         return result;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     private static String getUriBeaconAdvertisementDescription(Context context, BlePeripheral blePeripheral) {
         StringBuilder result = new StringBuilder();
 
@@ -133,6 +141,8 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         return result.toString();
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     private static String getCommonAdvertisementDescription(Context context, BlePeripheral blePeripheral) {
         StringBuilder result = new StringBuilder();
 
@@ -169,7 +179,8 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
     }
 
     // region UI Utils
-
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     private static String getBeaconAdvertisementDescription(Context context, BlePeripheral blePeripheral) {
         StringBuilder result = new StringBuilder();
 
@@ -244,6 +255,7 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         mRecyclerView = recyclerView;
     }
 
+
     void setBlePeripherals(final List<BlePeripheral> blePeripherals) {
         if (mBlePeripherals == null) {
             mBlePeripherals = blePeripherals;
@@ -260,6 +272,8 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
                     return blePeripherals.size();
                 }
 
+                @SuppressLint("InlinedApi")
+                @RequiresPermission(value = BLUETOOTH_CONNECT)
                 @Override
                 public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
                     final String oldItemAddress = mBlePeripherals.get(oldItemPosition).getDevice().getAddress();
@@ -301,6 +315,8 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         return new ViewHolder(view);
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
         final BlePeripheral blePeripheral = mBlePeripherals.get(position);
@@ -311,7 +327,7 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
 
         // Main view
         String name = blePeripheral.getName();
-        if (name == null) {
+        if (name == null || name.isEmpty()) {
             name = identifier;
         }
 
@@ -368,7 +384,7 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         String deviceAddress;
 
         private boolean isExpanded = false;
-        private ViewGroup expandedViewGroup;
+        private final ViewGroup expandedViewGroup;
 
         ViewHolder(View view) {
             super(view);

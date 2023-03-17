@@ -71,7 +71,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
     private static final int kUartStatus_QueryAnalogMapping = 2;
 
 
-    public class PinData {
+    public static class PinData {
         private static final int kMode_Unknown = 255;
         private static final int kMode_Input = 0;
         private static final int kMode_Output = 1;
@@ -110,9 +110,9 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
     private BlePeripheralUart mBlePeripheralUart;
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
     private int mUartStatus = kUartStatus_InputOutput;
-    private List<PinData> mPins = new ArrayList<>();
+    private final List<PinData> mPins = new ArrayList<>();
     private Handler mQueryCapabilitiesTimerHandler;
-    private Runnable mQueryCapabilitiesTimerRunnable = () -> {
+    private final Runnable mQueryCapabilitiesTimerRunnable = () -> {
         Log.d(TAG, "timeout: cancelQueryCapabilities");
         endPinQuery(true);
     };
@@ -337,7 +337,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         }
     }
 
-    private List<Byte> mQueryCapabilitiesDataBuffer = new ArrayList<>();
+    private final List<Byte> mQueryCapabilitiesDataBuffer = new ArrayList<>();
 
     private void queryCapabilities() {
         Log.d(TAG, "queryCapabilities");
@@ -378,7 +378,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
 
     // region Query AnalogMapping
 
-    private ArrayList<Byte> mQueryAnalogMappingDataBuffer = new ArrayList<>();
+    private final ArrayList<Byte> mQueryAnalogMappingDataBuffer = new ArrayList<>();
 
     private void queryAnalogMapping() {
         Log.d(TAG, "queryAnalogMapping");
@@ -930,7 +930,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
             TextView nameTextView;
             TextView valueTextView;
             TextView modeTextView;
-            private ViewGroup expandedViewGroup;
+            private final ViewGroup expandedViewGroup;
             RadioGroup modeRadioGroup;
             RadioButton inputRadioButton;
             RadioButton outputRadioButton;
@@ -999,9 +999,9 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         }
 
         // Data
-        private Context mContext;
-        private List<PinData> mPins;
-        private Listener mListener;
+        private final Context mContext;
+        private final List<PinData> mPins;
+        private final Listener mListener;
         private boolean[] mExpandedNodes;
 
         // region Lifecycle

@@ -194,6 +194,7 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
         RecyclerView paletteRecyclerView = view.findViewById(R.id.paletteRecyclerView);
         Context context = getContext();
         if (context != null) {
+            //noinspection InvalidSetHasFixedSize
             paletteRecyclerView.setHasFixedSize(true);
             paletteRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
             RecyclerView.Adapter paletteAdapter = new PaletteAdapter(context, color -> {

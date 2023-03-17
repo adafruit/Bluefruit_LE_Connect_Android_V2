@@ -25,19 +25,19 @@ public class DeviceInformationPeripheralService extends PeripheralService {
     private static final UUID kDisServiceUUID = UUID.fromString("0000180A-0000-1000-8000-00805F9B34FB");
 
     // Characteristics
-    private static UUID kManufacturerNameCharacteristicUUID = UUID.fromString("00002A29-0000-1000-8000-00805F9B34FB");
-    private static UUID kModelNumberCharacteristicUUID = UUID.fromString("00002A24-0000-1000-8000-00805F9B34FB");
-    private static UUID kSerialNumberCharacteristicUUID = UUID.fromString("00002A25-0000-1000-8000-00805F9B34FB");
-    private static UUID kHardwareNumberCharacteristicUUID = UUID.fromString("00002A76-0000-1000-8000-00805F9B34FB");
-    private static UUID kFirmwareRevisionCharacteristicUUID = UUID.fromString("00002A26-0000-1000-8000-00805F9B34FB");
-    private static UUID kSoftwareRevisionCharacteristicUUID = UUID.fromString("00002A28-0000-1000-8000-00805F9B34FB");
+    private static final UUID kManufacturerNameCharacteristicUUID = UUID.fromString("00002A29-0000-1000-8000-00805F9B34FB");
+    private static final UUID kModelNumberCharacteristicUUID = UUID.fromString("00002A24-0000-1000-8000-00805F9B34FB");
+    private static final UUID kSerialNumberCharacteristicUUID = UUID.fromString("00002A25-0000-1000-8000-00805F9B34FB");
+    private static final UUID kHardwareNumberCharacteristicUUID = UUID.fromString("00002A76-0000-1000-8000-00805F9B34FB");
+    private static final UUID kFirmwareRevisionCharacteristicUUID = UUID.fromString("00002A26-0000-1000-8000-00805F9B34FB");
+    private static final UUID kSoftwareRevisionCharacteristicUUID = UUID.fromString("00002A28-0000-1000-8000-00805F9B34FB");
 
-    private BluetoothGattCharacteristic mManufacturerNameCharacteristic = new BluetoothGattCharacteristic(kManufacturerNameCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
-    private BluetoothGattCharacteristic mModelNumberCharacteristic = new BluetoothGattCharacteristic(kModelNumberCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
-    private BluetoothGattCharacteristic mSerialNumberCharacteristic = new BluetoothGattCharacteristic(kSerialNumberCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
-    private BluetoothGattCharacteristic mHardwareNumberCharacteristic = new BluetoothGattCharacteristic(kHardwareNumberCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
-    private BluetoothGattCharacteristic mFirmwareRevisionCharacteristic = new BluetoothGattCharacteristic(kFirmwareRevisionCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
-    private BluetoothGattCharacteristic mSoftwareRevisionCharacteristic = new BluetoothGattCharacteristic(kSoftwareRevisionCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
+    private final BluetoothGattCharacteristic mManufacturerNameCharacteristic = new BluetoothGattCharacteristic(kManufacturerNameCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
+    private final BluetoothGattCharacteristic mModelNumberCharacteristic = new BluetoothGattCharacteristic(kModelNumberCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
+    private final BluetoothGattCharacteristic mSerialNumberCharacteristic = new BluetoothGattCharacteristic(kSerialNumberCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
+    private final BluetoothGattCharacteristic mHardwareNumberCharacteristic = new BluetoothGattCharacteristic(kHardwareNumberCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
+    private final BluetoothGattCharacteristic mFirmwareRevisionCharacteristic = new BluetoothGattCharacteristic(kFirmwareRevisionCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
+    private final BluetoothGattCharacteristic mSoftwareRevisionCharacteristic = new BluetoothGattCharacteristic(kSoftwareRevisionCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
 
     public DeviceInformationPeripheralService(Context context) {
         super(context);

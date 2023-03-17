@@ -1,7 +1,12 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.content.Context.CLIPBOARD_SERVICE;
+import static android.content.Context.MODE_PRIVATE;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.bluetooth.le.ScanCallback;
 import android.content.ClipData;
@@ -35,6 +40,7 @@ import android.widget.TextView;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -63,9 +69,6 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.Locale;
 
 import no.nordicsemi.android.support.v18.scanner.ScanRecord;
-
-import static android.content.Context.CLIPBOARD_SERVICE;
-import static android.content.Context.MODE_PRIVATE;
 
 public class ScannerFragment extends Fragment implements ScannerStatusFragmentDialog.onScannerStatusCancelListener {
     // Constants
@@ -122,7 +125,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         try {
             mListener = (ScannerFragmentListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement ScannerFragmentListener");
+            throw new ClassCastException(context + " must implement ScannerFragmentListener");
         }
     }
 
@@ -329,7 +332,11 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         mMultiConnectConnectedDevicesTextView = view.findViewById(R.id.multiConnectConnectedDevicesTextView);
         mMultiConnectCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (buttonView.isPressed()) {
-                mScannerViewModel.setIsMultiConnectEnabled(isChecked);
+                try {
+                    mScannerViewModel.setIsMultiConnectEnabled(isChecked);
+                } catch (SecurityException e) {
+                    Log.w(TAG, "Error setting multiConnectEnabled: " + e);
+                }
             }
         });
 
@@ -339,7 +346,11 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         multiConnectTitleGroupView.setOnClickListener(view15 -> {
             // onClickExpandMultiConnect
             KeyboardUtils.dismissKeyboard(view15);
-            mScannerViewModel.setIsMultiConnectEnabled(!mScannerViewModel.isMultiConnectEnabledValue());
+            try {
+                mScannerViewModel.setIsMultiConnectEnabled(!mScannerViewModel.isMultiConnectEnabledValue());
+            } catch (SecurityException e) {
+                Log.w(TAG, "Error setting multiConnectEnabled: " + e);
+            }
         });
 
         mMultiConnectStartButton = view.findViewById(R.id.multiConnectStartButton);
@@ -358,17 +369,14 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         super.onActivityCreated(savedInstanceState);
 
         // ViewModel
-        FragmentActivity activity = getActivity();
-        if (activity != null) {
-            mDfuViewModel = new ViewModelProvider(activity).get(DfuViewModel.class);
-            mScannerViewModel = new ViewModelProvider(this, new ViewModelProvider.AndroidViewModelFactory(activity.getApplication())).get(ScannerViewModel.class);
-        }
+        mDfuViewModel = new ViewModelProvider(requireActivity()).get(DfuViewModel.class);
+        mScannerViewModel = new ViewModelProvider(requireActivity()).get(ScannerViewModel.class);
 
         // Scan results
-        mScannerViewModel.getFilteredBlePeripherals().observe(this, blePeripherals -> mBlePeripheralsAdapter.setBlePeripherals(blePeripherals));
+        mScannerViewModel.getFilteredBlePeripherals().observe(getViewLifecycleOwner(), blePeripherals -> mBlePeripheralsAdapter.setBlePeripherals(blePeripherals));
 
         // Scanning
-        mScannerViewModel.getScanningErrorCode().observe(this, errorCode -> {
+        mScannerViewModel.getScanningErrorCode().observe(getViewLifecycleOwner(), errorCode -> {
             Log.d(TAG, "Scanning error: " + errorCode);
 
             if (getActivity() != null && !getActivity().isFinishing()) {        // Check that is not finishing to avoid badtokenexceptions
@@ -379,27 +387,27 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
                             .show();
                     DialogUtils.keepDialogOnOrientationChanges(dialog);
                 } else {        // Ask for location permission
-                    mListener.scannerRequestLocationPermissionIfNeeded();
+                    mListener.scannerRequestPermissionsIfNeeded();
                 }
             }
         });
 
         // Filters
-        mScannerViewModel.getFiltersDescription().observe(this, filterDescription -> mFiltersTitleTextView.setText(filterDescription));
+        mScannerViewModel.getFiltersDescription().observe(getViewLifecycleOwner(), filterDescription -> mFiltersTitleTextView.setText(filterDescription));
 
-        mScannerViewModel.getRssiFilterDescription().observe(this, rssiDescription -> mFiltersRssiValueTextView.setText(rssiDescription));
+        mScannerViewModel.getRssiFilterDescription().observe(getViewLifecycleOwner(), rssiDescription -> mFiltersRssiValueTextView.setText(rssiDescription));
 
-        mScannerViewModel.getRssiFilterValue().observe(this, value -> {
+        mScannerViewModel.getRssiFilterValue().observe(getViewLifecycleOwner(), value -> {
             if (value != null) {
                 mFiltersRssiSeekBar.setProgress(-value);
             }
         });
 
-        mScannerViewModel.isAnyFilterEnabled().observe(this, enabled -> mFiltersClearButton.setVisibility(Boolean.TRUE.equals(enabled) ? View.VISIBLE : View.GONE));
+        mScannerViewModel.isAnyFilterEnabled().observe(getViewLifecycleOwner(), enabled -> mFiltersClearButton.setVisibility(Boolean.TRUE.equals(enabled) ? View.VISIBLE : View.GONE));
 
-        mScannerViewModel.isFilterUnnamedEnabled().observe(this, enabled -> mFiltersUnnamedCheckBox.setChecked(Boolean.TRUE.equals(enabled)));
+        mScannerViewModel.isFilterUnnamedEnabled().observe(getViewLifecycleOwner(), enabled -> mFiltersUnnamedCheckBox.setChecked(Boolean.TRUE.equals(enabled)));
 
-        mScannerViewModel.isFilterOnlyUartEnabled().observe(this, enabled -> mFiltersUartCheckBox.setChecked(Boolean.TRUE.equals(enabled)));
+        mScannerViewModel.isFilterOnlyUartEnabled().observe(getViewLifecycleOwner(), enabled -> mFiltersUartCheckBox.setChecked(Boolean.TRUE.equals(enabled)));
 
         mScannerViewModel.getBlePeripheralsConnectionChanged().observe(this, blePeripheral -> {
             mBlePeripheralsAdapter.notifyDataSetChanged();
@@ -408,11 +416,11 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             }
         });
 
-        mScannerViewModel.getBlePeripheralDiscoveredServices().observe(this, this::showServiceDiscoveredStateDialog);
+        mScannerViewModel.getBlePeripheralDiscoveredServices().observe(getViewLifecycleOwner(), this::showServiceDiscoveredStateDialog);
 
-        mScannerViewModel.getConnectionErrorMessage().observe(this, this::showConnectionStateError);
+        mScannerViewModel.getConnectionErrorMessage().observe(getViewLifecycleOwner(), this::showConnectionStateError);
 
-        mScannerViewModel.isMultiConnectEnabled().observe(this, aBoolean -> {
+        mScannerViewModel.isMultiConnectEnabled().observe(getViewLifecycleOwner(), aBoolean -> {
             boolean isChecked = Boolean.TRUE.equals(aBoolean);
             openMultiConnectPanel(isChecked, true);
             if (mMultiConnectCheckBox.isChecked() != isChecked) {
@@ -421,7 +429,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         });
 
         // Connection
-        mScannerViewModel.getNumDevicesConnected().observe(this, numConnectedDevices -> {
+        mScannerViewModel.getNumDevicesConnected().observe(getViewLifecycleOwner(), numConnectedDevices -> {
             Context context = getContext();
             if (context != null) {
                 final int numDevices = numConnectedDevices != null ? numConnectedDevices : 0;
@@ -432,7 +440,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         });
 
         // Filtered-out peripherals
-        mScannerViewModel.getNumPeripheralsFilteredOut().observe(this, numPeripheralsFilteredOutInteger -> {
+        mScannerViewModel.getNumPeripheralsFilteredOut().observe(getViewLifecycleOwner(), numPeripheralsFilteredOutInteger -> {
             Context context = getContext();
             if (context != null) {
                 final int numPeripheralsFilteredOut = numPeripheralsFilteredOutInteger != null ? numPeripheralsFilteredOutInteger : 0;
@@ -502,7 +510,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         mMultiConnectConnectedDevicesTextView = null;
         mMultiConnectStartButton = null;
 
-       // removeConnectionStateDialog();
+        // removeConnectionStateDialog();
     }
 
     @Override
@@ -524,6 +532,8 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         mScannerViewModel.start();
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     void disconnectAllPeripherals() {
         mScannerViewModel.disconnectAllPeripherals();
     }
@@ -633,7 +643,11 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
         final BlePeripheral blePeripheral = mScannerViewModel.getPeripheralWithIdentifier(blePeripheralIdentifier);
         if (blePeripheral != null) {
-            blePeripheral.disconnect();
+            try {
+                blePeripheral.disconnect();
+            } catch (SecurityException e) {
+                Log.w(TAG, "Error disconnecting: " + e);
+            }
         } else {
             Log.w(TAG, "status dialog cancelled for unknown peripheral");
         }
@@ -746,7 +760,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     interface ScannerFragmentListener {
         void bluetoothAdapterIsDisabled();
 
-        void scannerRequestLocationPermissionIfNeeded();
+        void scannerRequestPermissionsIfNeeded();
 
         void startPeripheralModules(String singlePeripheralIdentifier);
     }

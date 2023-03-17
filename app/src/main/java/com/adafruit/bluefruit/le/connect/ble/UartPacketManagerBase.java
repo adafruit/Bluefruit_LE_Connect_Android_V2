@@ -32,7 +32,7 @@ public class UartPacketManagerBase implements BlePeripheralUart.UartRxHandler {
     protected WeakReference<Listener> mWeakListener;
     protected List<UartPacket> mPackets = new ArrayList<>();
     protected Semaphore mPacketsSemaphore = new Semaphore(1, true);
-    private boolean mIsPacketCacheEnabled;
+    private final boolean mIsPacketCacheEnabled;
     protected Context mContext;
     protected MqttManager mMqttManager;
 

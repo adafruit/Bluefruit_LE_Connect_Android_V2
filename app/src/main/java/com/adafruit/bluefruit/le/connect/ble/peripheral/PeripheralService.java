@@ -33,7 +33,7 @@ public class PeripheralService {
     String mName;
     private boolean mIsEnabled = true;
     BluetoothGattService mService;
-    private Map<UUID, Set<BluetoothDevice>> mSubscribedCharacteristics = new HashMap<>();
+    private final Map<UUID, Set<BluetoothDevice>> mSubscribedCharacteristics = new HashMap<>();
     protected Listener mListener;
 
     PeripheralService(Context context) {

@@ -80,6 +80,7 @@ public class NeopixelBoardSelectorFragment extends AppCompatDialogFragment {
         Context context = getContext();
         if (context != null) {
             RecyclerView standardSizesRecyclerView = view.findViewById(R.id.standardSizesRecyclerView);
+            //noinspection InvalidSetHasFixedSize
             standardSizesRecyclerView.setHasFixedSize(true);
             standardSizesRecyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
             RecyclerView.Adapter standardBoardSizesAdapter = new StandardBoardSizesAdapter(context, index -> {
@@ -146,10 +147,10 @@ public class NeopixelBoardSelectorFragment extends AppCompatDialogFragment {
 
         // Data
         private List<String> mDefaultBoards;
-        private Listener mListener;
+        private final Listener mListener;
 
         // ViewHolder
-        class ViewHolder extends RecyclerView.ViewHolder {
+        static class ViewHolder extends RecyclerView.ViewHolder {
             Button mItem;
 
             ViewHolder(ViewGroup view) {

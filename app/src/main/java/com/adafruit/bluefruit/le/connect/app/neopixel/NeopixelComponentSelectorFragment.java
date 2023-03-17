@@ -82,6 +82,7 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
         Context context = getContext();
         if (context != null) {
             RecyclerView standardComponentsRecyclerView = view.findViewById(R.id.standardComponentsRecyclerView);
+            //noinspection InvalidSetHasFixedSize
             standardComponentsRecyclerView.setHasFixedSize(true);
             standardComponentsRecyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
             RecyclerView.Adapter standardBoardSizesAdapter = new StandardComponentsAdapter(mSelectedComponent, components -> {
@@ -136,12 +137,12 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
         }
 
         // Data
-        private NeopixelComponents[] mDefaultComponents = NeopixelComponents.getAll();
-        private Listener mListener;
+        private final NeopixelComponents[] mDefaultComponents = NeopixelComponents.getAll();
+        private final Listener mListener;
         private int mSelectedComponentIndex;
 
         // ViewHolder
-        class ViewHolder extends RecyclerView.ViewHolder {
+        static class ViewHolder extends RecyclerView.ViewHolder {
             Button mItem;
             View mCheckboxView;
 
@@ -162,7 +163,7 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
         @Override
         public StandardComponentsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             ViewGroup view = (ViewGroup) LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_neopixel_list_item, parent, false);
-            final StandardComponentsAdapter.ViewHolder viewHolder = new StandardComponentsAdapter.ViewHolder(view);
+            final StandardComponentsAdapter.ViewHolder viewHolder = new ViewHolder(view);
             return viewHolder;
         }
 

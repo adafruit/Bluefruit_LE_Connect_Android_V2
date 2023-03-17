@@ -3,7 +3,6 @@ package com.adafruit.bluefruit.le.connect.app.imagetransfer;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -131,7 +130,7 @@ public class ImageTransferFormatSelectorDialogFragment extends DialogFragment im
         } else if (getTargetFragment() instanceof FormatSelectorListener) {
             mListener = (FormatSelectorListener) getTargetFragment();
         } else {
-            throw new RuntimeException(context.toString() + " must implement FormatSelectorListener");
+            throw new RuntimeException(context + " must implement FormatSelectorListener");
         }
     }
 
@@ -145,7 +144,7 @@ public class ImageTransferFormatSelectorDialogFragment extends DialogFragment im
     static class ResolutionsPageAdapter extends FragmentPagerAdapter {
 
         // Params
-        private Size mResolution;
+        private final Size mResolution;
         //private Fragment mTargetFragment;
 
         ResolutionsPageAdapter(@NonNull FragmentManager fm, int behavior, Size resolution) {//}, Fragment targetFragment) {

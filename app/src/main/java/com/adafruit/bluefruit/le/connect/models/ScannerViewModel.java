@@ -1,5 +1,9 @@
 package com.adafruit.bluefruit.le.connect.models;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.content.Context.MODE_PRIVATE;
+
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.bluetooth.BluetoothGatt;
 import android.content.BroadcastReceiver;
@@ -13,6 +17,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
@@ -32,8 +37,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-
-import static android.content.Context.MODE_PRIVATE;
 
 public class ScannerViewModel extends AndroidViewModel implements BleScanner.BleScannerListener {
     // region Constants
@@ -88,33 +91,42 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
 
         if (!filterData.isUnnamedEnabled) {
             for (Iterator<BlePeripheral> it = results.iterator(); it.hasNext(); ) {
-                if (it.next().getDevice().getName() == null) {
-                    it.remove();
+                try {
+                    String name = it.next().getDevice().getName();
+                    if (name == null) {
+                        it.remove();
+                    }
+                } catch (SecurityException e) {
+                    Log.w(TAG, "Error getting name for peripheral: " + e);
                 }
             }
         }
 
         if (filterData.name != null && !filterData.name.isEmpty()) {
             for (Iterator<BlePeripheral> it = results.iterator(); it.hasNext(); ) {
-                String name = it.next().getDevice().getName();
-                boolean testPassed = false;
-                if (name != null) {
-                    if (filterData.isNameMatchExact) {
-                        if (filterData.isNameMatchCaseInSensitive) {
-                            testPassed = name.compareToIgnoreCase(filterData.name) == 0;
+                try {
+                    String name = it.next().getDevice().getName();
+                    boolean testPassed = false;
+                    if (name != null) {
+                        if (filterData.isNameMatchExact) {
+                            if (filterData.isNameMatchCaseInSensitive) {
+                                testPassed = name.compareToIgnoreCase(filterData.name) == 0;
+                            } else {
+                                testPassed = name.compareTo(filterData.name) == 0;
+                            }
                         } else {
-                            testPassed = name.compareTo(filterData.name) == 0;
-                        }
-                    } else {
-                        if (filterData.isNameMatchCaseInSensitive) {
-                            testPassed = name.toLowerCase().contains(filterData.name.toLowerCase());
-                        } else {
-                            testPassed = name.contains(filterData.name);
+                            if (filterData.isNameMatchCaseInSensitive) {
+                                testPassed = name.toLowerCase().contains(filterData.name.toLowerCase());
+                            } else {
+                                testPassed = name.contains(filterData.name);
+                            }
                         }
                     }
-                }
-                if (!testPassed) {
-                    it.remove();
+                    if (!testPassed) {
+                        it.remove();
+                    }
+                } catch (SecurityException e) {
+                    Log.w(TAG, "Error getting name for peripheral: " + e);
                 }
             }
         }
@@ -126,9 +138,11 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         }
 
         // Sort devices alphabetically
-        Collections.sort(results, (o1, o2) -> getResultNameForOrdering(o1).compareTo(getResultNameForOrdering(o2)));
-
-
+        try {
+            Collections.sort(results, (o1, o2) -> getResultNameForOrdering(o1).compareTo(getResultNameForOrdering(o2)));
+        } catch (SecurityException e) {
+            Log.w(TAG, "Error getting name for peripherals: " + e);
+        }
         // Update related variables
         mNumPeripheralsFiltered.setValue(results.size());
         final int numPeripheralsFilteredOut = input.blePeripherals.size() - results.size();
@@ -140,8 +154,6 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
 
         return liveResults;
     });
-
-
     // endregion
 
     // region Data - Connection
@@ -426,6 +438,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         mIsFilterNameCaseInsensitive.setValue(enabled);
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public void setIsMultiConnectEnabled(boolean enabled) {
         mIsMultiConnectEnabled.setValue(enabled);
 
@@ -434,6 +448,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         }
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public void disconnectAllPeripherals() {
         if (mScanner != null) {
             mScanner.disconnectFromAll();
@@ -468,6 +484,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     // endregion
 
     // region Utils
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     private @NonNull
     String getResultNameForOrdering(BlePeripheral result) {
         String name = result.getName();
@@ -630,7 +648,11 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
 
                                 } else {
                                     final String message = LocalizationManager.getInstance().getString(getApplication(), "peripheraldetails_errordiscoveringservices");
-                                    blePeripheral.disconnect();
+                                    try {
+                                        blePeripheral.disconnect();
+                                    } catch (SecurityException e) {
+                                        Log.w(TAG, "Disconnect called with no permission: " + e);
+                                    }
                                     mBlePeripheralsConnectionErrorMessage.setValue(message);
                                 }
                             };

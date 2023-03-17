@@ -23,7 +23,7 @@ public class PeripheralModeManager implements GattServer.Listener {
     private GattServer mPeripheral;
     private DeviceInformationPeripheralService mDeviceInfomationPeripheralService;
     private UartPeripheralService mUartPeripheralService;
-    private Semaphore mChangeNameSemaphore = new Semaphore(1, true);
+    private final Semaphore mChangeNameSemaphore = new Semaphore(1, true);
     private WeakReference<GattServer.Listener> mWeakListener;
 
     // Singleton

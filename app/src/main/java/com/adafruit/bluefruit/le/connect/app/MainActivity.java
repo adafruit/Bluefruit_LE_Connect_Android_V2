@@ -1,7 +1,9 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.Manifest;
-import android.annotation.TargetApi;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -18,7 +20,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -50,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     private final static boolean kAvoidPoppingFragmentsWhileOnDfu = false;
 
     // Permission requests
-    private final static int PERMISSION_REQUEST_FINE_LOCATION = 1;
+    private final static int PERMISSION_REQUEST_ALL = 1;
 
     // Activity request codes (used for onActivityResult)
     private static final int kActivityRequestCode_EnableBluetooth = 1;
@@ -196,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
 
                 if (isBluetoothEnabled) {
                     // Request Bluetooth scanning permissions
-                    final boolean isLocationPermissionGranted = requestFineLocationPermissionIfNeeded();
+                    final boolean isLocationPermissionGranted = requestScanningPermissionsIfNeeded();
 
                     if (isLocationPermissionGranted) {
                         // All good. Start Scanning
@@ -210,11 +214,23 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     }
 
     // region Permissions
+    String[] getNeededPermissionsForScanning() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return new String[]{
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT
+            };
+        } else {
+            return new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION
+            };
+        }
+    }
+
     private boolean manageLocationServiceAvailabilityForScanning() {
-
-        boolean areLocationServiceReady = true;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {        // Location services are only needed to be enabled from Android 6.0
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return true;
+        } else {
             int locationMode = Settings.Secure.LOCATION_MODE_OFF;
             try {
                 locationMode = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
@@ -222,46 +238,62 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             } catch (Settings.SettingNotFoundException e) {
                 e.printStackTrace();
             }
-            areLocationServiceReady = locationMode != Settings.Secure.LOCATION_MODE_OFF;
+            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
         }
-
-        return areLocationServiceReady;
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    private boolean requestFineLocationPermissionIfNeeded() {       // Starting with Android 10, Bluetooth scanning needs Location FINE Permission
-        boolean permissionGranted = true;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Android Marshmallow Permission check 
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                permissionGranted = false;
-                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                mRequestLocationDialog = builder.setTitle(R.string.bluetooth_locationpermission_title)
-                        .setMessage(R.string.bluetooth_locationpermission_text)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION))
-                        .show();
+    private static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
             }
         }
-        return permissionGranted;
+        return true;
     }
 
+    private boolean requestScanningPermissionsIfNeeded() {       // Starting with Android 10, Bluetooth scanning needs Location FINE Permission
+
+        String[] permissions = getNeededPermissionsForScanning();
+        if (hasPermissions(this, permissions)) {
+            return true;
+        } else {
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_ALL);
+            return false;
+        }
+
+        /*
+        boolean permissionGranted = true;
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissionGranted = false;
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            mRequestLocationDialog = builder.setTitle(R.string.bluetooth_locationpermission_title)
+                    .setMessage(R.string.bluetooth_locationpermission_text)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setOnDismissListener(dialog -> requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_FINE_LOCATION))
+                    .show();
+        }
+        return permissionGranted;
+
+         */
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
-            case PERMISSION_REQUEST_FINE_LOCATION: {
-                if (grantResults.length >= 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, "Location permission granted");
+            case PERMISSION_REQUEST_ALL: {
+                if (hasPermissions(this, permissions)) {
+                    Log.d(TAG, "Bluetooth permissions granted");
 
                     checkPermissions();
 
                 } else {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle(R.string.bluetooth_locationpermission_notavailable_title);
-                    builder.setMessage(R.string.bluetooth_locationpermission_notavailable_text);
+                    builder.setTitle(R.string.bluetooth_permissions_notavailable_title);
+                    builder.setMessage(R.string.bluetooth_permissions_notavailable_text);
                     builder.setPositiveButton(android.R.string.ok, null);
                     builder.setOnDismissListener(dialog -> {
                     });
@@ -295,9 +327,14 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             case BleUtils.STATUS_BLUETOOTH_DISABLED: {
                 isEnabled = false;      // it was already off
                 // if no enabled, launch settings dialog to enable it (user should always be prompted before automatically enabling bluetooth)
-                Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBluetoothIntent, kActivityRequestCode_EnableBluetooth);
-                // execution will continue at onActivityResult()
+                try {
+                    Intent enableBluetoothIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableBluetoothIntent, kActivityRequestCode_EnableBluetooth);
+                    // execution will continue at onActivityResult()
+                } catch (SecurityException e) {
+                    Log.w(TAG, "Permissions not granted when trying to launch enable-bluetooth dialog: " + e);
+                }
+
                 break;
             }
         }
@@ -351,8 +388,8 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         checkPermissions();
     }
 
-    public void scannerRequestLocationPermissionIfNeeded() {
-        requestFineLocationPermissionIfNeeded();
+    public void scannerRequestPermissionsIfNeeded() {
+        requestScanningPermissionsIfNeeded();
     }
 
     public void startPeripheralModules(String peripheralIdentifier) {
@@ -402,7 +439,6 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     };
     // endregion
 
-
     // region DFU
     private DfuProgressFragmentDialog mDfuProgressDialog;
 
@@ -419,6 +455,8 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         return mIsDfuInProgress;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public void startUpdate(@NonNull BlePeripheral blePeripheral, @NonNull ReleasesParser.BasicVersionInfo versionInfo) {
         dismissDfuProgressDialog();
 
@@ -435,7 +473,9 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         });
 
         mIsDfuInProgress = true;
-        mDfuViewModel.downloadAndInstall(this, blePeripheral, versionInfo, new DfuUpdater.DownloadStateListener() {
+        final String address = blePeripheral.getDevice().getAddress();
+        final String name = blePeripheral.getName();
+        mDfuViewModel.downloadAndInstall(this, address, name, versionInfo, new DfuUpdater.DownloadStateListener() {
             @Override
             public void onDownloadStarted(int type) {
                 mDfuProgressDialog.setIndeterminate(true);

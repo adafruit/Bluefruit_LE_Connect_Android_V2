@@ -15,6 +15,8 @@
  */
 package com.adafruit.bluefruit.le.connect.app.barcode;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.barcode.Barcode;
@@ -24,7 +26,7 @@ import com.google.android.gms.vision.barcode.Barcode;
  * multi-processor uses this factory to create barcode trackers as needed -- one for each barcode.
  */
 public class BarcodeTrackerFactory implements MultiProcessor.Factory<Barcode> {
-    private GraphicOverlay<BarcodeGraphic> mGraphicOverlay;
+    private final GraphicOverlay<BarcodeGraphic> mGraphicOverlay;
     public BarcodeGraphicTracker.BarcodeTrackerListener mListener;
 
     public BarcodeTrackerFactory(GraphicOverlay<BarcodeGraphic> barcodeGraphicOverlay, BarcodeGraphicTracker.BarcodeTrackerListener listener) {
@@ -32,8 +34,9 @@ public class BarcodeTrackerFactory implements MultiProcessor.Factory<Barcode> {
         mListener = listener;
     }
 
+    @NonNull
     @Override
-    public Tracker<Barcode> create(Barcode barcode) {
+    public Tracker<Barcode> create(@NonNull Barcode barcode) {
         BarcodeGraphic graphic = new BarcodeGraphic(mGraphicOverlay);
         return new BarcodeGraphicTracker(mGraphicOverlay, graphic, mListener);
     }

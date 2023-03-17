@@ -2,9 +2,10 @@ package com.adafruit.bluefruit.le.connect.ble.central;
 
 import android.bluetooth.BluetoothGatt;
 import android.content.Context;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Log;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,12 +24,12 @@ public class UartDataManager implements BlePeripheralUart.UartRxHandler {
 
     // Data
     //private boolean mIsEnabled = false;
-    private boolean mIsRxCacheEnabled;     // If cache is enabled, onUartRx sends the cachedData. Cache can be cleared using removeRxCacheFirst or clearRxCache. If not enabled, onUartRx sends only the latest data received
+    private final boolean mIsRxCacheEnabled;     // If cache is enabled, onUartRx sends the cachedData. Cache can be cleared using removeRxCacheFirst or clearRxCache. If not enabled, onUartRx sends only the latest data received
 
     private UartDataManagerListener mListener;
 
-    private Map<String, byte[]> mRxDatas = new HashMap<>();
-    private Semaphore mRxDataSemaphore = new Semaphore(1, true);
+    private final Map<String, byte[]> mRxDatas = new HashMap<>();
+    private final Semaphore mRxDataSemaphore = new Semaphore(1, true);
 
     public UartDataManager(@NonNull Context context, @Nullable UartDataManagerListener listener, boolean isRxCacheEnabled) {     // Is enabled automatically. Call setEnabled(false) to release internal receiver
         mListener = listener;
@@ -83,7 +84,7 @@ public class UartDataManager implements BlePeripheralUart.UartRxHandler {
             try {
                 mRxDataSemaphore.acquire();
             } catch (InterruptedException e) {
-                Log.w(TAG, "InterruptedException: " + e.toString());
+                Log.w(TAG, "InterruptedException: " + e);
             }
 
             if (mListener != null) {
@@ -112,7 +113,7 @@ public class UartDataManager implements BlePeripheralUart.UartRxHandler {
             try {
                 mRxDataSemaphore.acquire();
             } catch (InterruptedException e) {
-                Log.w(TAG, "InterruptedException: " + e.toString());
+                Log.w(TAG, "InterruptedException: " + e);
             }
 
             // Append new data to previous data

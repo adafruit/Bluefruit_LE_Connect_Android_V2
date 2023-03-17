@@ -9,7 +9,6 @@
         android:right="20dp">
 
         <bitmap
-
             android:gravity="center"
             android:src="@drawable/info_adafruit_logo" />
     </item>
