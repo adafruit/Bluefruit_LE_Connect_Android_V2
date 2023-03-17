@@ -6,7 +6,7 @@ android {
         applicationId "com.adafruit.bluefruit.le.connect"
         minSdkVersion 23
         targetSdkVersion 33
-        versionCode 48
+        versionCode 49
         versionName "3.4.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

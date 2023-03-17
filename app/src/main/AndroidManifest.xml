@@ -35,7 +35,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
     <!-- ACCESS_BACKGROUND_LOCATION permission is required required to trigger a successful DFU whilst the device screen is turned off: https://github.com/NordicSemiconductor/Android-DFU-Library -->
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <!-- Removed to avoid problems with new Google Play approval process -->
+    <!-- <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />  -->
 
     <!-- FOREGROUND_SERVICE permission is required required: https://github.com/NordicSemiconductor/Android-DFU-Library/issues/321 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

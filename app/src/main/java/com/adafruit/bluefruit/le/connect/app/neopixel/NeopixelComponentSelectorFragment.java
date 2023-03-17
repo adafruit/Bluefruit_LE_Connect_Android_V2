@@ -82,6 +82,7 @@ public class NeopixelComponentSelectorFragment extends AppCompatDialogFragment {
         Context context = getContext();
         if (context != null) {
             RecyclerView standardComponentsRecyclerView = view.findViewById(R.id.standardComponentsRecyclerView);
+            //noinspection InvalidSetHasFixedSize
             standardComponentsRecyclerView.setHasFixedSize(true);
             standardComponentsRecyclerView.setLayoutManager(new LinearLayoutManager(context, RecyclerView.VERTICAL, false));
             RecyclerView.Adapter standardBoardSizesAdapter = new StandardComponentsAdapter(mSelectedComponent, components -> {
