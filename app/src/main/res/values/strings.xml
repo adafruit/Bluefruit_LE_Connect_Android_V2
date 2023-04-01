@@ -297,7 +297,7 @@
 	<string name="plotter_nodata">No chart data available</string>
 
 	<string name="plotter_help_title">Plotter</string>
-	<string name="plotter_help_text">• The \'Plotter\' utility can be used to plot incoming numeric data in a chart, without having to create a custom plotter code or application. It behaves similarly to the Serial Plotter in recent versions of the Arduino IDE.\n\n•  To plot one or more data streams to the plotter, send your numeric data in CSV format with one of the following seperators:\n\',\' - Comma (0x2C)\n\' \' - Space (0x20)\n\';\' - Semicolon (0x3B)\nHorizontal Tab (0x09), \'\\t\' in code\n\nEach unique set of data samples must be terminated by a LINE FEED character (0x0A), which is usually represented as \'\\n\' in code.\n\n• Only numeric data should be sent over the BLE UART connection(s).</string>
+	<string name="plotter_help_text">• The \'Plotter\' utility can be used to plot incoming numeric data in a chart, without having to create a custom plotter code or application. It behaves similarly to the Serial Plotter in recent versions of the Arduino IDE.\n\n•  To plot one or more data streams to the plotter, send your numeric data in CSV format with one of the following seperators:\n\',\' - Comma (0x2C)\n\' \' - Space (0x20)\n\';\' - Semicolon (0x3B)\nHorizontal Tab (0x09), \'\\t\' in code\n\nEach unique set of data samples must be terminated by a LINE FEED character (0x0A), which is usually represented as \'\\n\' in code.\n\n• Only numeric data should be sent over the BLE UART connection(s). The X-Axis is time in seconds.</string>
 
 
 	<!-- CircuitPython -->
