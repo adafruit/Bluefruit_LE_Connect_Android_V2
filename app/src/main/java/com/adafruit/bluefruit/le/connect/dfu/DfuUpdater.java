@@ -420,9 +420,7 @@ public class DfuUpdater {
             starter.setInitFile(null, localIniPath);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            DfuServiceInitiator.createDfuNotificationChannel(context);
-        }
+        DfuServiceInitiator.createDfuNotificationChannel(context);
 
         mDfuServiceController = starter.start(context, DfuService.class);
     }

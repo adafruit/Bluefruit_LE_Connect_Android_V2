@@ -103,7 +103,7 @@ public class BlePeripheral {
                 mConnectionState = STATE_CONNECTED;
 
                 // Phy
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && kSetPhy_2M) {
+                if (kSetPhy_2M) {
                     Log.d(TAG, "Set Phy to 2M");
                     setPreferredPhy(BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED);
                 }
@@ -519,7 +519,6 @@ public class BlePeripheral {
 
     @SuppressLint("InlinedApi")
     @RequiresPermission(value = BLUETOOTH_CONNECT)
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public void setPreferredPhy(int txPhy, int rxPhy, int phyOptions) {
         if (mBluetoothGatt != null) {
             Log.d(TAG, "setPreferredPhy");
@@ -530,7 +529,6 @@ public class BlePeripheral {
 
     @SuppressLint("InlinedApi")
     @RequiresPermission(value = BLUETOOTH_CONNECT)
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public void readPhy() {
         if (mBluetoothGatt != null) {
             mBluetoothGatt.readPhy();

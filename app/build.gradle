@@ -4,10 +4,10 @@ android {
     compileSdkVersion 33
     defaultConfig {
         applicationId "com.adafruit.bluefruit.le.connect"
-        minSdkVersion 23
+        minSdkVersion 27
         targetSdkVersion 33
-        versionCode 49
-        versionName "3.4.0"
+        versionCode 50
+        versionName "3.5.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         resValue "string", "app_name", "Bluefruit Connect"
