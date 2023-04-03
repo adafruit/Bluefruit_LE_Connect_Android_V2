@@ -484,8 +484,6 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     // endregion
 
     // region Utils
-    @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
     private @NonNull
     String getResultNameForOrdering(BlePeripheral result) {
         String name = result.getName();

@@ -59,7 +59,7 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
 
     // Data
     private PeripheralModulesFragmentListener mListener;
-    private List<BlePeripheralBattery> mBatteryPeripherals = new ArrayList<>();
+    private final List<BlePeripheralBattery> mBatteryPeripherals = new ArrayList<>();
     private RecyclerView mRecyclerView;
     private ModulesAdapter mModulesAdapter;
 
@@ -292,12 +292,12 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
         private static final int kPeripheralDetailsCellsStartPosition = 1;
 
         // Data
-        private Context mContext;
-        private List<BlePeripheralBattery> mBatteryPeripherals;
-        private int mConnectionMode;
+        private final Context mContext;
+        private final List<BlePeripheralBattery> mBatteryPeripherals;
+        private final int mConnectionMode;
         private List<BlePeripheral> mConnectedPeripherals;
-        private BlePeripheral mBlePeripheral;
-        private View.OnClickListener mOnClickListener;
+        private final BlePeripheral mBlePeripheral;
+        private final View.OnClickListener mOnClickListener;
 
         ModulesAdapter(@NonNull Context context, @NonNull List<BlePeripheralBattery> batteryPeripherals, @Nullable BlePeripheral blePeripheralForSingleConnectionMode, @NonNull View.OnClickListener onClickListener) {
             mContext = context.getApplicationContext();

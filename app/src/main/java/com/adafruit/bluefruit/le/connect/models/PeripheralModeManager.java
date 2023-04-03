@@ -21,7 +21,7 @@ public class PeripheralModeManager implements GattServer.Listener {
 
     // Data
     private GattServer mPeripheral;
-    private DeviceInformationPeripheralService mDeviceInfomationPeripheralService;
+    private DeviceInformationPeripheralService mDeviceInformationPeripheralService;
     private UartPeripheralService mUartPeripheralService;
     private final Semaphore mChangeNameSemaphore = new Semaphore(1, true);
     private WeakReference<GattServer.Listener> mWeakListener;
@@ -47,10 +47,10 @@ public class PeripheralModeManager implements GattServer.Listener {
 
         if (GattServer.isPeripheralModeSupported()) {
             mPeripheral = new GattServer(context, this);
-            mDeviceInfomationPeripheralService = new DeviceInformationPeripheralService(context);
+            mDeviceInformationPeripheralService = new DeviceInformationPeripheralService(context);
             mUartPeripheralService = new UartPeripheralService(context);
 
-            mPeripheral.addService(mDeviceInfomationPeripheralService);
+            mPeripheral.addService(mDeviceInformationPeripheralService);
             mPeripheral.addService(mUartPeripheralService);
 
             return mPeripheral.startAdvertising(context);
@@ -68,7 +68,7 @@ public class PeripheralModeManager implements GattServer.Listener {
         }
 
         mUartPeripheralService = null;
-        mDeviceInfomationPeripheralService = null;
+        mDeviceInformationPeripheralService = null;
         mPeripheral = null;
     }
 
@@ -127,8 +127,8 @@ public class PeripheralModeManager implements GattServer.Listener {
         }
     }
 
-    DeviceInformationPeripheralService getDeviceInfomationPeripheralService() {
-        return mDeviceInfomationPeripheralService;
+    DeviceInformationPeripheralService getDeviceInformationPeripheralService() {
+        return mDeviceInformationPeripheralService;
     }
 
     public UartPeripheralService getUartPeripheralService() {

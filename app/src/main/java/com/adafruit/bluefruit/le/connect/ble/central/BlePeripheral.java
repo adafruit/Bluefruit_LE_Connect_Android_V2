@@ -416,11 +416,14 @@ public class BlePeripheral {
         return cachedAddress;
     }
 
-    @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public String getName() {
         if (cachedNameNeedsUpdate) {
-            String name = mScanResult.getDevice().getName();
+            String name = null;
+            try {
+                name = mScanResult.getDevice().getName();
+            } catch (SecurityException e) {
+                Log.w(TAG, "getName security exception: " + e);
+            }
             if (name == null) {
                 name = getScanRecord().getDeviceName();
             }

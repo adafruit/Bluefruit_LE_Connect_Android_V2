@@ -1,5 +1,8 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
@@ -19,6 +22,7 @@ import android.widget.TextView;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -109,7 +113,11 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
             mAdapter = new DfuAdapter(context, mBlePeripheral, new DfuAdapter.Listener() {
                 @Override
                 public void onReleaseSelected(@NonNull ReleasesParser.BasicVersionInfo versionInfo, @Nullable DfuUpdater.DeviceDfuInfo deviceDfuInfo) {
-                    startUpdate(versionInfo);
+                    try {
+                        startUpdate(versionInfo);
+                    } catch (SecurityException e) {
+                        Log.e(TAG, "onReleaseSelected security exception: " + e);
+                    }
                 }
 
                 @Override
@@ -223,19 +231,24 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
     }
     // endregion
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     private void startUpdate(@NonNull ReleasesParser.BasicVersionInfo versionInfo) {
         FragmentActivity activity = getActivity();
         if (activity instanceof MainActivity) {
             MainActivity mainActivity = (MainActivity) activity;
             mainActivity.startUpdate(mBlePeripheral, versionInfo);
         }
-
     }
 
     // region DfuFilePickerFragment.OnImageCropListener
     @Override
     public void onDfuFilePickerStartUpdate(@NonNull ReleasesParser.BasicVersionInfo versionInfo) {
-        startUpdate(versionInfo);
+        try {
+            startUpdate(versionInfo);
+        } catch (SecurityException e) {
+            Log.e(TAG, "onDfuFilePickerStartUpdate security excpetion: " + e);
+        }
     }
 
     @Override
@@ -255,12 +268,12 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
         private static final int kCurrentFirmwareCellStartPosition = 1;
         private static final int kFirmwareCellsStartPosition = 3;
         // Data
-        private Context mContext;
+        private final Context mContext;
         private Map<String, ReleasesParser.BoardInfo> mAllReleases = new LinkedHashMap<>();
         private ReleasesParser.BoardInfo mBoardRelease;
         private DfuUpdater.DeviceDfuInfo mDeviceDfuInfo;
-        private BlePeripheral mBlePeripheral;
-        private Listener mListener;
+        private final BlePeripheral mBlePeripheral;
+        private final Listener mListener;
 
         DfuAdapter(@NonNull Context context, @NonNull BlePeripheral blePeripheral, @NonNull Listener listener) {
             mContext = context.getApplicationContext();
@@ -304,10 +317,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
                     View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_common_section_item, parent, false);
                     return new SectionViewHolder(view);
                 }
-                case kCellType_CurrentFirmware: {
-                    View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_dfu_release_item, parent, false);
-                    return new VersionViewHolder(view);
-                }
+                case kCellType_CurrentFirmware:
                 case kCellType_Firmware: {
                     View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_dfu_release_item, parent, false);
                     return new VersionViewHolder(view);
@@ -446,7 +456,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
         }
 
         // Data Structures
-        class SectionViewHolder extends RecyclerView.ViewHolder {
+        static class SectionViewHolder extends RecyclerView.ViewHolder {
             TextView titleTextView;
 
             SectionViewHolder(View view) {
@@ -455,7 +465,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
             }
         }
 
-        class VersionViewHolder extends RecyclerView.ViewHolder {
+        static class VersionViewHolder extends RecyclerView.ViewHolder {
             ViewGroup mainView;
             TextView titleTextView;
             TextView descriptionTextView;
@@ -468,7 +478,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
             }
         }
 
-        class CustomVersionViewHolder extends RecyclerView.ViewHolder {
+        static class CustomVersionViewHolder extends RecyclerView.ViewHolder {
             Button chooseButton;
 
             CustomVersionViewHolder(View view) {

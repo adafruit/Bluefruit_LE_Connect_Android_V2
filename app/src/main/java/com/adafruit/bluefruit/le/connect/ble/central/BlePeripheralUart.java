@@ -1,5 +1,8 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.os.Build;
@@ -7,9 +10,11 @@ import android.os.ParcelUuid;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.annotation.RequiresPermission;
 
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 
@@ -108,6 +113,9 @@ public class BlePeripheralUart {
         mUartTxCharacteristic = null;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
+    @MainThread
     public void disconnect() {
         mBlePeripheral.disconnect();
     }
@@ -115,6 +123,7 @@ public class BlePeripheralUart {
     public String getIdentifier() {
         return mBlePeripheral.getIdentifier();
     }
+
 
     public String getName() {
         return mBlePeripheral.getName();
@@ -124,6 +133,8 @@ public class BlePeripheralUart {
         mBlePeripheral.requestMtu(mtuSize, completionHandler);
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void readPhy() {
         mBlePeripheral.readPhy();

@@ -1,14 +1,14 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothGatt;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.os.Bundle;
-import androidx.annotation.MainThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +16,11 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
+
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.UartPacket;
@@ -38,7 +43,7 @@ public class UartModeFragment extends UartBaseFragment {
     private final static String TAG = UartModeFragment.class.getSimpleName();
 
     // Data
-    private Map<String, Integer> mColorForPeripheral = new HashMap<>();
+    private final Map<String, Integer> mColorForPeripheral = new HashMap<>();
     private String mMultiUartSendToPeripheralIdentifier = null;     // null = all peripherals
 
     // region Fragment Lifecycle
@@ -82,8 +87,7 @@ public class UartModeFragment extends UartBaseFragment {
                     public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
                         if (pos == 0) {
                             mMultiUartSendToPeripheralIdentifier = null;    // All peripherals
-                        }
-                        else if (pos < mBlePeripheralsUart.size() - 1) {     // Check boundaries
+                        } else if (pos < mBlePeripheralsUart.size() - 1) {     // Check boundaries
                             mMultiUartSendToPeripheralIdentifier = mBlePeripheralsUart.get(pos).getIdentifier();
                         }
                     }
@@ -96,7 +100,11 @@ public class UartModeFragment extends UartBaseFragment {
         }
 
         // Setup Uart
-        setupUart();
+        try {
+            setupUart();
+        } catch (SecurityException e) {
+            Log.e(TAG, "onViewCreated security exception: " + e);
+        }
     }
 
     // endregion
@@ -104,8 +112,8 @@ public class UartModeFragment extends UartBaseFragment {
     // region PeripheralSelectorAdapter
     static class PeripheralSelectorAdapter implements SpinnerAdapter {
         // Data
-        private Context mContext;
-        private List<BlePeripheralUart> mBlePeripheralsUart;
+        private final Context mContext;
+        private final List<BlePeripheralUart> mBlePeripheralsUart;
 
         PeripheralSelectorAdapter(@NonNull Context context, @NonNull List<BlePeripheralUart> blePeripheralsUart) {
             super();
@@ -187,6 +195,8 @@ public class UartModeFragment extends UartBaseFragment {
         return mBlePeripheral == null;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     protected void setupUart() {
         // Init
         Context context = getContext();
