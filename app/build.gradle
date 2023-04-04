@@ -74,9 +74,12 @@ dependencies {
 
     // Mqtt
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
+    // Warning: Paho library is no longer compatible with Android 12+: https://github.com/eclipse/paho.mqtt.android/issues/485
+    /*
     implementation(group: 'org.eclipse.paho', name: 'org.eclipse.paho.android.service', version: '1.1.1') {
         exclude module: 'support-v4'
-    }
+    }*/
+    implementation 'androidx.work:work-runtime:2.8.1'
 
     // Charts
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
