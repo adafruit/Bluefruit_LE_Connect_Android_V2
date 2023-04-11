@@ -72,6 +72,9 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private final static String kPreferences_asciiMode = "ascii";
     private final static String kPreferences_timestampDisplayMode = "timestampdisplaymode";
 
+
+    protected static final String ARG_MODE = "SinglePeripheralIdentifier";
+
     // UI
     private EditText mBufferTextView;
     private RecyclerView mBufferRecylerView;
@@ -116,6 +119,8 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private int maxPacketsToPaintAsText;
     private int mPacketsCacheLastSize = 0;
 
+    protected int mMode;
+
     // region Fragment Lifecycle
     public UartBaseFragment() {
         // Required empty public constructor
@@ -124,10 +129,22 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            mMode = getArguments().getInt(ARG_MODE);
+        }
 
         // Retain this fragment across configuration changes
         setRetainInstance(true);
     }
+
+    // region Fragment Lifecycle
+    protected static Bundle createFragmentArgs(@Nullable String singlePeripheralIdentifier, int mode) {      // if singlePeripheralIdentifier is null, uses multi-connect
+        Bundle args = ConnectedPeripheralFragment.createFragmentArgs(singlePeripheralIdentifier);
+        args.putInt(ARG_MODE, mode);
+        return args;
+    }
+
+    // endregion
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -362,7 +379,6 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
     }
 
-
     @Override
     public void onDestroyOptionsMenu() {
         super.onDestroyOptionsMenu();
@@ -474,6 +490,8 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     }
 
     // endregion
+
+
 
     // region Uart
     protected abstract void setupUart();

@@ -47,9 +47,9 @@ public class UartModeFragment extends UartBaseFragment {
     private String mMultiUartSendToPeripheralIdentifier = null;     // null = all peripherals
 
     // region Fragment Lifecycle
-    public static UartModeFragment newInstance(@Nullable String singlePeripheralIdentifier) {
+    public static UartModeFragment newInstance(@Nullable String singlePeripheralIdentifier, int mode) {
         UartModeFragment fragment = new UartModeFragment();
-        fragment.setArguments(createFragmentArgs(singlePeripheralIdentifier));
+        fragment.setArguments(createFragmentArgs(singlePeripheralIdentifier, mode));
         return fragment;
     }
 
@@ -221,7 +221,7 @@ public class UartModeFragment extends UartBaseFragment {
                 if (!BlePeripheralUart.isUartInitialized(blePeripheral, mBlePeripheralsUart)) {
                     BlePeripheralUart blePeripheralUart = new BlePeripheralUart(blePeripheral);
                     mBlePeripheralsUart.add(blePeripheralUart);
-                    blePeripheralUart.uartEnable(mUartData, status -> {
+                    blePeripheralUart.uartEnable(mMode, mUartData, status -> {
 
                         String peripheralName = blePeripheral.getName();
                         if (peripheralName == null) {
@@ -266,7 +266,7 @@ public class UartModeFragment extends UartBaseFragment {
                 mColorForPeripheral.put(mBlePeripheral.getIdentifier(), colors[0]);
                 BlePeripheralUart blePeripheralUart = new BlePeripheralUart(mBlePeripheral);
                 mBlePeripheralsUart.add(blePeripheralUart);
-                blePeripheralUart.uartEnable(mUartData, status -> mMainHandler.post(() -> {
+                blePeripheralUart.uartEnable(mMode, mUartData, status -> mMainHandler.post(() -> {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         // Done
                         Log.d(TAG, "Uart enabled");

@@ -34,6 +34,8 @@ import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -55,7 +57,8 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
     private final static int MODULE_CALIBRATION = 6;
     private final static int MODULE_THERMALCAMERA = 7;
     private final static int MODULE_IMAGETRANSFER = 8;
-    private final static int MODULE_DFU = 9;
+    private final static int MODULE_CIRCUITPYTHON = 9;
+    private final static int MODULE_DFU = 10;
 
     // Data
     private PeripheralModulesFragmentListener mListener;
@@ -83,7 +86,7 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
         try {
             mListener = (PeripheralModulesFragmentListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement PeripheralModulesFragmentListener");
+            throw new ClassCastException(context + " must implement PeripheralModulesFragmentListener");
         }
     }
 
@@ -223,7 +226,7 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
                 break;
 
             case MODULE_UART:
-                fragment = UartModeFragment.newInstance(singlePeripheralIdentifier);
+                fragment = UartModeFragment.newInstance(singlePeripheralIdentifier, BlePeripheralUart.MODE_UART);
                 break;
 
             case MODULE_PLOTTER:
@@ -257,6 +260,10 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
 
             case MODULE_IMAGETRANSFER:
                 fragment = ImageTransferFragment.newInstance(singlePeripheralIdentifier);
+                break;
+
+            case MODULE_CIRCUITPYTHON:
+                fragment = UartModeFragment.newInstance(singlePeripheralIdentifier, BlePeripheralUart.MODE_CIRCUITPYTHON);
                 break;
 
             case MODULE_DFU:
@@ -449,6 +456,11 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
                             titleId = R.string.imagetransfer_tab_title;
                             break;
 
+                        case MODULE_CIRCUITPYTHON:
+                            iconDrawableId = R.drawable.tab_circuitpython_icon;
+                            titleId = R.string.uart_circuitpython_title;
+                            break;
+
                         case MODULE_DFU:
                             iconDrawableId = R.drawable.tab_dfu_icon;
                             titleId = R.string.dfu_tab_title;
@@ -464,7 +476,7 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
                     }
 
                     moduleViewHolder.mainViewGroup.setTag(moduleId);
-                    moduleViewHolder.mainViewGroup.setOnClickListener(view -> mOnClickListener.onClick(view));
+                    moduleViewHolder.mainViewGroup.setOnClickListener(mOnClickListener);
                     break;
                 }
             }
@@ -491,21 +503,25 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
                 return new int[]{};
             } else {
                 final boolean hasUart = BlePeripheralUart.hasUart(mBlePeripheral);
+                final boolean hasCircuitPython = BlePeripheralUart.hasCircuitPython(mBlePeripheral);
                 final boolean hasDfu = BlePeripheralDfu.hasDfu(mBlePeripheral);
 
-                if (hasUart && hasDfu) {
-                    return new int[]{MODULE_INFO, MODULE_UART, MODULE_PLOTTER, MODULE_PINIO, MODULE_CONTROLLER, MODULE_NEOPIXEL, MODULE_THERMALCAMERA, MODULE_IMAGETRANSFER, MODULE_DFU};
-                } else if (hasUart) {
-                    return new int[]{MODULE_INFO, MODULE_UART, MODULE_PLOTTER, MODULE_PINIO, MODULE_CONTROLLER, MODULE_THERMALCAMERA, MODULE_IMAGETRANSFER};
-                } else if (hasDfu) {
-                    return new int[]{MODULE_INFO, MODULE_DFU};
-                } else {
-                    return new int[]{MODULE_INFO};
+                List<Integer> modules = new ArrayList<>(Collections.singletonList(MODULE_INFO));
+                if (hasUart) {
+                    modules.addAll(Arrays.asList(MODULE_UART, MODULE_PLOTTER, MODULE_PINIO, MODULE_CONTROLLER, MODULE_NEOPIXEL, MODULE_THERMALCAMERA, MODULE_IMAGETRANSFER));
                 }
+                if (hasCircuitPython) {
+                    modules.add(MODULE_CIRCUITPYTHON);
+                }
+                if (hasDfu) {
+                    modules.add(MODULE_DFU);
+                }
+
+                return modules.stream().mapToInt(Integer::intValue).toArray();
             }
         }
 
-        class SectionViewHolder extends RecyclerView.ViewHolder {
+        static class SectionViewHolder extends RecyclerView.ViewHolder {
             TextView titleTextView;
 
             SectionViewHolder(View view) {
@@ -514,7 +530,7 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
             }
         }
 
-        class PeripheralDetailsViewHolder extends RecyclerView.ViewHolder {
+        static class PeripheralDetailsViewHolder extends RecyclerView.ViewHolder {
             TextView nameTextView;
             ImageView rssiImageView;
             TextView rssiTextView;
@@ -531,7 +547,7 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
             }
         }
 
-        class ModuleViewHolder extends RecyclerView.ViewHolder {
+        static class ModuleViewHolder extends RecyclerView.ViewHolder {
             ViewGroup mainViewGroup;
             ImageView iconImageView;
             TextView nameTextView;
