@@ -97,7 +97,7 @@ public class BlePeripheral {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            Log.w(TAG, "onConnectionStateChange from: " + status + " to:" + newState);
+            Log.d(TAG, "onConnectionStateChange from: " + status + " to:" + newState);
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 mConnectionState = STATE_CONNECTED;

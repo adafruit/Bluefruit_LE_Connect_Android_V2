@@ -180,7 +180,7 @@
                             android:text="@string/uart_mqtt_settings_group_publish"
                             android:textColor="@color/infotext" />
 
-                        <Switch
+                        <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/publishSwitch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
@@ -272,7 +272,7 @@
                             android:text="@string/uart_mqtt_settings_group_subscribe"
                             android:textColor="@color/infotext" />
 
-                        <Switch
+                        <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/subscribeSwitch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
@@ -422,7 +422,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/uart_mqtt_settings_cleansession" />
 
-                            <Switch
+                            <com.google.android.material.switchmaterial.SwitchMaterial
                                 android:id="@+id/cleanSessionSwitch"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />
@@ -439,7 +439,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/uart_mqtt_settings_sslconnection" />
 
-                            <Switch
+                            <com.google.android.material.switchmaterial.SwitchMaterial
                                 android:id="@+id/sslConnectionSwitch"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content" />

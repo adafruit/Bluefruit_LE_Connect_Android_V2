@@ -93,7 +93,7 @@ public class MqttSettings {
     }
 
     public static int getPublishQos(@NonNull Context context, int index) {
-        return getPrefsInt(context, kPreferences_publishqos + index, MqttManager.MqqtQos_AtMostOnce);
+        return getPrefsInt(context, kPreferences_publishqos + index, MqttManager.MqttQos_AtMostOnce);
     }
 
     public static void setPublishQos(@NonNull Context context, int index, int qos) {
@@ -101,7 +101,7 @@ public class MqttSettings {
     }
 
     public static int getSubscribeQos(Context context) {
-        return getPrefsInt(context, kPreferences_subscribeqos, MqttManager.MqqtQos_AtMostOnce);
+        return getPrefsInt(context, kPreferences_subscribeqos, MqttManager.MqttQos_AtMostOnce);
     }
 
     public static void setSubscribeQos(@NonNull Context context, int qos) {

@@ -73,7 +73,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private final static String kPreferences_timestampDisplayMode = "timestampdisplaymode";
 
 
-    protected static final String ARG_MODE = "SinglePeripheralIdentifier";
+    protected static final String ARG_MODE = "Mode";
 
     // UI
     private EditText mBufferTextView;
@@ -635,13 +635,13 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             return;      // Hack: Sometimes this could have not been initialized so we don't update icons
         }
 
-        MqttManager.MqqtConnectionStatus status = mMqttManager.getClientStatus();
+        MqttManager.MqttConnectionStatus status = mMqttManager.getClientStatus();
 
-        if (status == MqttManager.MqqtConnectionStatus.CONNECTING) {
+        if (status == MqttManager.MqttConnectionStatus.CONNECTING) {
             final int[] kConnectingAnimationDrawableIds = {R.drawable.mqtt_connecting1, R.drawable.mqtt_connecting2, R.drawable.mqtt_connecting3};
             mMqttMenuItem.setIcon(kConnectingAnimationDrawableIds[mMqttMenuItemAnimationFrame]);
             mMqttMenuItemAnimationFrame = (mMqttMenuItemAnimationFrame + 1) % kConnectingAnimationDrawableIds.length;
-        } else if (status == MqttManager.MqqtConnectionStatus.CONNECTED) {
+        } else if (status == MqttManager.MqttConnectionStatus.CONNECTED) {
             mMqttMenuItem.setIcon(R.drawable.mqtt_connected);
             mMqttMenuItemAnimationHandler.removeCallbacks(mMqttMenuItemAnimationRunnable);
         } else {
