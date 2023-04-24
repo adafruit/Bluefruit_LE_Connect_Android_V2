@@ -1,6 +1,7 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
@@ -12,14 +13,12 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -461,7 +460,7 @@ public class BlePeripheral {
     }
 
     @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
     @MainThread
     public void connect(Context context) {
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
@@ -860,13 +859,8 @@ public class BlePeripheral {
             @Override
             public void execute() {
                 // Request mtu size change
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                    Log.d(TAG, "Request mtu change");
-                    mBluetoothGatt.requestMtu(mtuSize);
-                } else {
-                    Log.w(TAG, "change mtu size not recommended on Android < 7.0");      // https://issuetracker.google.com/issues/37101017
-                    finishExecutingCommand(BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED);
-                }
+                Log.d(TAG, "Request mtu change");
+                mBluetoothGatt.requestMtu(mtuSize);
             }
         };
         mCommmandQueue.add(command);

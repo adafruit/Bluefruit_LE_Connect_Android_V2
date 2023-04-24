@@ -1,5 +1,9 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
+
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -8,6 +12,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +64,8 @@ public class BleManager {
         return mAdapter;
     }*/
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_SCAN)
     public void cancelDiscovery() {
         if (mAdapter != null) {
             mAdapter.cancelDiscovery();
@@ -69,6 +76,8 @@ public class BleManager {
         return mAdapter != null && mAdapter.isEnabled();
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public @NonNull
     List<BluetoothDevice> getConnectedDevices() {
         List<BluetoothDevice> connectedDevices = new ArrayList<>();

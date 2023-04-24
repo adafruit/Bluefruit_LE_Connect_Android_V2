@@ -293,7 +293,7 @@ public class UartModeFragment extends UartBaseFragment {
     }
 
     @Override
-    protected void send(String message) {
+    protected void send(byte[] data) {
         if (!(mUartData instanceof UartPacketManager)) {
             Log.e(TAG, "Error send with invalid uartData class");
             return;
@@ -309,12 +309,12 @@ public class UartModeFragment extends UartBaseFragment {
         if (isInMultiUartMode()) {
             for (BlePeripheralUart blePeripheralUart : mBlePeripheralsUart) {
                 if (mMultiUartSendToPeripheralIdentifier == null || mMultiUartSendToPeripheralIdentifier.equals(blePeripheralUart.getIdentifier())) {
-                    uartData.send(blePeripheralUart, message);
+                    uartData.send(blePeripheralUart, data);
                 }
             }
         } else {
             BlePeripheralUart blePeripheralUart = mBlePeripheralsUart.get(0);
-            uartData.send(blePeripheralUart, message);
+            uartData.send(blePeripheralUart, data);
         }
     }
 
@@ -352,17 +352,9 @@ public class UartModeFragment extends UartBaseFragment {
         }
 
         BlePeripheralUart blePeripheralUart = mBlePeripheralsUart.get(0);
-        final String message = new String(mqttMessage.getPayload());
+        final byte[] data = mqttMessage.getPayload();
 
-        ((UartPacketManager) mUartData).send(blePeripheralUart, message, true);          // Don't republish to mqtt something received from mqtt
-
-        /*
-        mMainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        })*/
+        ((UartPacketManager) mUartData).send(blePeripheralUart, data, true);          // Don't republish to mqtt something received from mqtt
     }
 
     // endregion

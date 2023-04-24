@@ -275,6 +275,7 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
                 // Connect / Disconnect
                 Context context1 = getContext();
                 if (context1 != null) {
+                    // TODO: this should not create a new Manager. There should be only ONE manager
                     MqttManager.MqttConnectionStatus status = mMqttManager.getClientStatus();
                     Log.d(TAG, "current mqtt status: " + status);
                     if (status == MqttManager.MqttConnectionStatus.DISCONNECTED || status == MqttManager.MqttConnectionStatus.NONE || status == MqttManager.MqttConnectionStatus.ERROR) {

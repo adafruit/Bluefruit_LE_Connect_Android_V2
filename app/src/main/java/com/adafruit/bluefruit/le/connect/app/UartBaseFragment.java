@@ -49,6 +49,7 @@ import com.adafruit.bluefruit.le.connect.mqtt.MqttManager;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttSettings;
 import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -72,7 +73,6 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private final static String kPreferences_asciiMode = "ascii";
     private final static String kPreferences_timestampDisplayMode = "timestampdisplaymode";
 
-
     protected static final String ARG_MODE = "Mode";
 
     // UI
@@ -86,6 +86,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private TextView mSentBytesTextView;
     private TextView mReceivedBytesTextView;
     protected Spinner mSendPeripheralSpinner;
+    private ViewGroup mKeyboardAccessoryView;
 
     // UI TextBuffer (refreshing the text buffer is managed with a timer because a lot of changes can arrive really fast and could stall the main thread)
     private final Handler mUIRefreshTimerHandler = new Handler();
@@ -207,6 +208,9 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         mSentBytesTextView = view.findViewById(R.id.sentBytesTextView);
         mReceivedBytesTextView = view.findViewById(R.id.receivedBytesTextView);
 
+        // Keyboard accessory view
+        mKeyboardAccessoryView = view.findViewById(R.id.keyboardAccessoryView);
+
         // Read shared preferences
         maxPacketsToPaintAsText = kDefaultMaxPacketsToPaintAsText; //PreferencesFragment.getUartTextMaxPackets(this);
 
@@ -234,12 +238,36 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
                 mMqttManager.setListener(this);
             }
         }
+
+        // Keyboard visibility
+        KeyboardUtils.addKeyboardToggleListener(requireActivity(), isVisible -> {
+            //Log.d(TAG, "Keyboard visible: " + isVisible);
+            mKeyboardAccessoryView.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+        });
+
+        // Keyboard custom buttons
+        final Button ctrlCButton = view.findViewById(R.id.crtlCButton);
+        ctrlCButton.setOnClickListener(v -> {
+            final byte[] data = new byte[]{(byte) 0x03};
+            send(data);
+        });
+
+        final Button ctrlDButton = view.findViewById(R.id.crtlDButton);
+        ctrlDButton.setOnClickListener(v -> {
+            final byte[] data = new byte[]{(byte) 0x04};
+            send(data);
+        });
+
+        final Button ctrlZButton = view.findViewById(R.id.crtlZButton);
+        ctrlZButton.setOnClickListener(v -> {
+            final byte[] data = new byte[]{(byte) 0x1a};
+            send(data);
+        });
     }
 
     private void setShowDataInHexFormat(boolean showDataInHexFormat) {
         mShowDataInHexFormat = showDataInHexFormat;
         mBufferItemAdapter.setShowDataInHexFormat(showDataInHexFormat);
-
     }
 
     private void setEchoEnabled(boolean isEchoEnabled) {
@@ -375,8 +403,6 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         }
         MenuItem selectedEolCharacterMenuItem = eolModeSubMenu.findItem(selectedEolCharactersSubMenuId);
         selectedEolCharacterMenuItem.setChecked(true);
-
-
     }
 
     @Override
@@ -492,11 +518,10 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     // endregion
 
 
-
     // region Uart
     protected abstract void setupUart();
 
-    protected abstract void send(String message);
+    protected abstract void send(byte[] data);
 
     private void onClickSend() {
         String newText = mSendEditText.getText().toString();
@@ -508,7 +533,8 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             newText += getEolCharacters();
         }
 
-        send(newText);
+        byte[] data = newText.getBytes(StandardCharsets.UTF_8);
+        send(data);
     }
 
     // endregion

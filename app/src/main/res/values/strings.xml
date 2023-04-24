@@ -183,10 +183,13 @@
 	<string name="uart_tab_title">UART</string>
 	<string name="uart_navigation_title_format" formatted="false">UART - %s</string>
 
-
 	<string name="uart_send_action">Send</string>
 	<string name="uart_send_toall_action">To All</string>
 	<string name="uart_send_toall_long">All Connected Peripherals</string>
+
+	<string name="uart_input_ctrlc">CTRL-C</string>
+	<string name="uart_input_ctrld">CTRL-D</string>
+	<string name="uart_input_ctrlz">CTRL-Z</string>
 
 	<string name="uart_sentbytes_format" formatted="false">Sent: %d bytes</string>
 	<string name="uart_receivedbytes_format" formatted="false">Received: %d bytes</string>
@@ -239,8 +242,6 @@
 	<string name="uart_mqtt_qos_atleastonce">At Least Once</string>
 	<string name="uart_mqtt_qos_atmostonce">At Most Once</string>
 	<string name="uart_mqtt_qos_exactlyonce">Exactly Once</string>
-
-
 
 	<string name="uart_help_title">UART</string>
 	<string name="uart_help_text">Instructions:\n\n• Tap the input field at the bottom of the screen.\n\n• Enter the text string you want to send.\n\n• Send a message by pressing the keyboard\'s Send button.\n\n• Use the Timestamp/Text and ASCII/Hex control above the main console view to control the display format of messages.\n\n• Use the Export button to copy or send the contents of the console.\n\n• Use the Clear button to clear the console\'s contents.</string>
