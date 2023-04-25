@@ -247,7 +247,7 @@ public class DfuFragment extends ConnectedPeripheralFragment implements DfuFileP
         try {
             startUpdate(versionInfo);
         } catch (SecurityException e) {
-            Log.e(TAG, "onDfuFilePickerStartUpdate security excpetion: " + e);
+            Log.e(TAG, "onDfuFilePickerStartUpdate security exception: " + e);
         }
     }
 

@@ -1,6 +1,9 @@
 package com.adafruit.bluefruit.le.connect.app;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static com.adafruit.bluefruit.le.connect.ble.central.BleScanner.kDeviceType_Beacon;
+import static com.adafruit.bluefruit.le.connect.ble.central.BleScanner.kDeviceType_Uart;
+import static com.adafruit.bluefruit.le.connect.ble.central.BleScanner.kDeviceType_UriBeacon;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -8,6 +11,8 @@ import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.text.Html;
 import android.text.Spanned;
+import android.text.SpannedString;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,10 +40,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import no.nordicsemi.android.support.v18.scanner.ScanRecord;
-
-import static com.adafruit.bluefruit.le.connect.ble.central.BleScanner.kDeviceType_Beacon;
-import static com.adafruit.bluefruit.le.connect.ble.central.BleScanner.kDeviceType_Uart;
-import static com.adafruit.bluefruit.le.connect.ble.central.BleScanner.kDeviceType_UriBeacon;
 
 class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.ViewHolder> {
     // Constants
@@ -102,13 +103,7 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
                 break;
         }
 
-        Spanned result;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            result = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY);
-        } else {
-            result = Html.fromHtml(text);
-        }
-        return result;
+        return Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY);
     }
 
     @SuppressLint("InlinedApi")
@@ -315,8 +310,6 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
         return new ViewHolder(view);
     }
 
-    @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
         final BlePeripheral blePeripheral = mBlePeripherals.get(position);
@@ -351,17 +344,27 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
 
             BlePeripheral selectedBlePeripheral = weakBlePeripheral.get();
             if (selectedBlePeripheral != null) {
-                if (connectionState == BlePeripheral.STATE_DISCONNECTED) {
-                    selectedBlePeripheral.connect(mContext);
-                } else {
-                    selectedBlePeripheral.disconnect();
+                try {
+                    if (connectionState == BlePeripheral.STATE_DISCONNECTED) {
+                        selectedBlePeripheral.connect(mContext);
+                    } else {
+                        selectedBlePeripheral.disconnect();
+                    }
+                } catch (SecurityException e) {
+                    Log.e(TAG, "connectButton security exception: " + e);
                 }
             }
         });
         holder.view.setOnClickListener(view -> holder.togleExpanded());
 
         // Expanded view
-        Spanned text = getAdvertisementDescription(mContext, blePeripheral);
+        Spanned text;
+        try {
+            text = getAdvertisementDescription(mContext, blePeripheral);
+        } catch (SecurityException e) {
+            Log.e(TAG, "getAdvertisementDescription security exception: " + e);
+            text = new SpannedString("");
+        }
         holder.dataTextView.setText(text);
 
         holder.rawDataButton.setOnClickListener(v -> mListener.onAdvertisementData(blePeripheral));
