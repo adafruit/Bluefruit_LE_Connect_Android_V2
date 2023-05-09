@@ -5,10 +5,15 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothGatt;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +26,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.ble.UartPacket;
@@ -30,13 +36,18 @@ import com.adafruit.bluefruit.le.connect.ble.central.BleScanner;
 import com.adafruit.bluefruit.le.connect.ble.central.UartPacketManager;
 import com.adafruit.bluefruit.le.connect.style.UartStyle;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
+import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UartModeFragment extends UartBaseFragment {
     // Log
@@ -45,6 +56,7 @@ public class UartModeFragment extends UartBaseFragment {
     // Data
     private final Map<String, Integer> mColorForPeripheral = new HashMap<>();
     private String mMultiUartSendToPeripheralIdentifier = null;     // null = all peripherals
+    private String mTerminalTitle = null;
 
     // region Fragment Lifecycle
     public static UartModeFragment newInstance(@Nullable String singlePeripheralIdentifier, int mode) {
@@ -76,6 +88,8 @@ public class UartModeFragment extends UartBaseFragment {
         setActionBarTitle(R.string.uart_tab_title);
 
         // UI
+        updateUartReadyUI(false);
+
         Context context = getContext();
         if (context != null) {
             final boolean isInMultiUartMode = isInMultiUartMode();
@@ -97,13 +111,26 @@ public class UartModeFragment extends UartBaseFragment {
                     }
                 });
             }
+
+            // Register onConnect listener to setup Uart if peripheral is reconnected
+            registerGattReceiver(context);
         }
 
         // Setup Uart
         try {
-            setupUart();
+            setupUart(false);
         } catch (SecurityException e) {
             Log.e(TAG, "onViewCreated security exception: " + e);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        Context context = getContext();
+        if (context != null) {
+            unregisterGattReceiver(context);
         }
     }
 
@@ -197,7 +224,7 @@ public class UartModeFragment extends UartBaseFragment {
 
     @SuppressLint("InlinedApi")
     @RequiresPermission(value = BLUETOOTH_CONNECT)
-    protected void setupUart() {
+    protected void setupUart(boolean force) {
         // Init
         Context context = getContext();
         if (context == null) {
@@ -218,7 +245,7 @@ public class UartModeFragment extends UartBaseFragment {
                 BlePeripheral blePeripheral = connectedPeripherals.get(i);
                 mColorForPeripheral.put(blePeripheral.getIdentifier(), colors[i % colors.length]);
 
-                if (!BlePeripheralUart.isUartInitialized(blePeripheral, mBlePeripheralsUart)) {
+                if (force || !BlePeripheralUart.isUartInitialized(blePeripheral, mBlePeripheralsUart)) {
                     BlePeripheralUart blePeripheralUart = new BlePeripheralUart(blePeripheral);
                     mBlePeripheralsUart.add(blePeripheralUart);
                     blePeripheralUart.uartEnable(mMode, mUartData, status -> {
@@ -260,7 +287,7 @@ public class UartModeFragment extends UartBaseFragment {
                 }
             }
         } else {
-            if (!BlePeripheralUart.isUartInitialized(mBlePeripheral, mBlePeripheralsUart)) { // If was not previously setup (i.e. orientation change)
+            if (force || !BlePeripheralUart.isUartInitialized(mBlePeripheral, mBlePeripheralsUart)) { // If was not previously setup (i.e. orientation change)
                 updateUartReadyUI(false);
                 mColorForPeripheral.clear();        // Reset colors assigned to peripherals
                 mColorForPeripheral.put(mBlePeripheral.getIdentifier(), colors[0]);
@@ -272,6 +299,7 @@ public class UartModeFragment extends UartBaseFragment {
                         Log.d(TAG, "Uart enabled");
                         updateUartReadyUI(true);
                     } else {
+                        Log.d(TAG, "Uart enable error");
                         WeakReference<BlePeripheralUart> weakBlePeripheralUart = new WeakReference<>(blePeripheralUart);
                         Context context1 = getContext();
                         if (context1 != null) {
@@ -280,7 +308,11 @@ public class UartModeFragment extends UartBaseFragment {
                                     .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
                                         BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
                                         if (strongBlePeripheralUart != null) {
-                                            strongBlePeripheralUart.disconnect();
+                                            try {
+                                                strongBlePeripheralUart.disconnect();
+                                            } catch (SecurityException e) {
+                                                Log.e(TAG, "disconnect security exception: " + e);
+                                            }
                                         }
                                     })
                                     .show();
@@ -288,6 +320,8 @@ public class UartModeFragment extends UartBaseFragment {
                         }
                     }
                 }));
+            } else {
+                updateUartReadyUI(true);
             }
         }
     }
@@ -318,23 +352,124 @@ public class UartModeFragment extends UartBaseFragment {
         }
     }
 
+    //    private static final String oscTitleRegex = "\\\\u001B]0;(?<title>.+?(?=\\\\u001B\\\\\\\\))";
+    private static final String oscTitleRegex = "\\u001B]0;(?<title>.+?(?=\\u001B\\\\))";
+    private static final Pattern oscTitlePattern = Pattern.compile(oscTitleRegex);
+
+    @Override
+    protected UartPacket onUartPacketTextPreProcess(UartPacket packet) {
+        // Terminal OSC commands
+        if (mDisplayMode != UARTDISPLAYMODE_TERMINAL || packet.getMode() != UartPacket.TRANSFERMODE_RX)
+            return packet;
+
+        final byte[] bytes = packet.getData();
+        String text = new String(bytes, StandardCharsets.UTF_8);
+
+        // ]0;🐍BLE:Ok | Done | 8.0.0-beta.0-5-g65ec12afd\
+        // "\u001B]0;\uD83D\uDC0DBLE:Ok | Done | 8.0.0-beta.0-5-g65ec12afd\u001B\\"
+        Matcher matcher = oscTitlePattern.matcher(text);
+
+        // Check all occurrences
+        String title = null;
+        String remainingText = null;
+        if (matcher.find()) {
+            //Log.d(TAG, "Start index: " + matcher.start());
+            //Log.d(TAG, " End index: " + matcher.end());
+            String group = matcher.group();
+            Log.d(TAG, " Found: " + group);
+
+            // Remove characters pre-title
+            if (group.length() > 3) {
+                title = group.substring(4);
+                Log.d(TAG, "OSC title found: " + title);
+            }
+
+            // Remove title + characters post-title (with hacks to avoid problems with Java escaping sequences)
+            text = text.replace("\\", "\\\\");      // Hack: Java .replaceAll can't replace a single \ character (Unrecognized backslash escape sequence in pattern)
+            int oscEndIndex = Math.min(text.length(), matcher.end() + 3);
+            String toBeReplaced = text.substring(matcher.start(), oscEndIndex);
+            remainingText = text.replaceAll(toBeReplaced, "");
+            if (remainingText.length() >= 3) {      // Hack to remove the remaining ||\
+                remainingText = remainingText.substring(3);
+            }
+        }
+
+        if (title != null) {
+            mTerminalTitle = title;
+            updateTerminalTitle();
+            return new UartPacket(packet.getPeripheralId(), packet.getMode(), remainingText.getBytes(StandardCharsets.UTF_8));
+        } else {
+            return packet;
+        }
+    }
+
+    private void updateTerminalTitle() {
+        final boolean isHidden = mDisplayMode != UARTDISPLAYMODE_TERMINAL || mTerminalTitle == null || mTerminalTitle.isEmpty();
+        mTerminalTitleTextView.setVisibility(isHidden ? View.GONE : View.VISIBLE);
+        mTerminalTitleTextView.setText(mTerminalTitle);
+    }
+
     // endregion
 
     // region UI
     @Override
     protected int colorForPacket(UartPacket packet) {
         int color = Color.BLACK;
-        final String peripheralId = packet.getPeripheralId();
-        if (peripheralId != null) {
-            Integer peripheralColor = mColorForPeripheral.get(peripheralId);
-            if (peripheralColor != null) {
-                color = peripheralColor;
+
+        if (mDisplayMode != UARTDISPLAYMODE_TERMINAL) {
+            final String peripheralId = packet.getPeripheralId();
+            if (peripheralId != null) {
+                Integer peripheralColor = mColorForPeripheral.get(peripheralId);
+                if (peripheralColor != null) {
+                    color = peripheralColor;
+                }
             }
         }
 
         return color;
     }
 
+    // endregion
+
+
+    // region Broadcast Listener
+    private void registerGattReceiver(@NonNull Context context) {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BlePeripheral.kBlePeripheral_OnConnected);
+        filter.addAction(BlePeripheral.kBlePeripheral_OnReconnecting);
+        LocalBroadcastManager.getInstance(context).registerReceiver(mGattUpdateReceiver, filter);
+    }
+
+    private void unregisterGattReceiver(@NonNull Context context) {
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(mGattUpdateReceiver);
+    }
+
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            final String identifier = intent.getStringExtra(BlePeripheral.kExtra_deviceAddress);
+            if (identifier != null) {
+                if (BlePeripheral.kBlePeripheral_OnConnected.equals(action)) {
+                    try {
+                        Log.d(TAG, "Reconnection detected. Setup UART");
+
+                        mBlePeripheral.discoverServices(status -> {
+                            final Handler mainHandler = new Handler(Looper.getMainLooper());
+                            mainHandler.post(() -> setupUart(true));
+                        });
+                    } catch (SecurityException e) {
+                        Log.e(TAG, "kBlePeripheral_OnConnected security exception: " + e);
+                    }
+                }
+            } else if (BlePeripheral.kBlePeripheral_OnReconnecting.equals(action)) {
+                Log.d(TAG, "Disconnection detected. Disconnect UART");
+                updateUartReadyUI(false);
+            } else {
+                Log.w(TAG, "UartModeFragment mGattUpdateReceiver with null peripheral");
+            }
+        }
+    };
     // endregion
 
     // region Mqtt

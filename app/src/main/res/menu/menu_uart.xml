@@ -36,6 +36,11 @@
                         android:id="@+id/action_displaymode_text"
                         android:title="@string/uart_settings_displayMode_text"
                         app:showAsAction="never" />
+
+                    <item
+                        android:id="@+id/action_displaymode_terminal"
+                        android:title="@string/uart_settings_displayMode_terminal"
+                        app:showAsAction="never" />
                 </group>
             </menu>
         </item>

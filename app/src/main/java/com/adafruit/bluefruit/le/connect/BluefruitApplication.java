@@ -16,6 +16,12 @@ public class BluefruitApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
+        /*
+        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy())
+                .detectLeakedClosableObjects()
+                .build());
+        */
+
         // Setup handler for uncaught exceptions.
 //        Thread.setDefaultUncaughtExceptionHandler(this::handleUncaughtException);
     }

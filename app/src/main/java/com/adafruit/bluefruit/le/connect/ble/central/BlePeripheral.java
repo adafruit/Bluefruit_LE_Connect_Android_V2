@@ -65,6 +65,7 @@ public class BlePeripheral {
     public final static String kBlePeripheral_OnConnecting = kPrefix + "connecting";
     public final static String kBlePeripheral_OnConnected = kPrefix + "connected";
     public final static String kBlePeripheral_OnDisconnected = kPrefix + "disconnected";
+    public final static String kBlePeripheral_OnReconnecting = kPrefix + "reconnecting";
     public final static String kBlePeripheral_OnRssiUpdated = kPrefix + "rssiUpdated";
     public final static String kExtra_deviceAddress = kPrefix + "extra_deviceAddress";
     public final static String kExtra_expectedDisconnect = kPrefix + "extra_expectedDisconnect";
@@ -192,7 +193,7 @@ public class BlePeripheral {
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
 
-            //Log.d(TAG, "onCharacteristicChanged. numCaptureReadHandlers: " + mCaptureReadHandlers.size());
+            Log.d(TAG, "onCharacteristicChanged. numCaptureReadHandlers: " + mCaptureReadHandlers.size());
 
             final String identifier = getCharacteristicIdentifier(characteristic);
             final int status = BluetoothGatt.GATT_SUCCESS;          // On Android, there is no error reported for this callback, so we assume it is SUCCESS
@@ -513,6 +514,7 @@ public class BlePeripheral {
         } else {
             if (isAutoreconnectOnDisconnectionEnabled) {
                 Log.d(TAG, "Trying to reconnect to peripheral: " + getName());
+                localBroadcastUpdate(kBlePeripheral_OnReconnecting, getIdentifier());
                 Handler mainHandler = new Handler(Looper.getMainLooper());
                 mainHandler.post(() -> connect(mConnectionContext));
             } else {
@@ -521,7 +523,7 @@ public class BlePeripheral {
             isAutoreconnectOnDisconnectionEnabled = false;
         }
         closeBluetoothGatt();
-        mLocalBroadcastManager = null;
+        //mLocalBroadcastManager = null;
         mConnectionContext = null;
     }
 
@@ -576,6 +578,9 @@ public class BlePeripheral {
                 intent.putExtra(extraParamKey, extraParamValue);
             }
             mLocalBroadcastManager.sendBroadcast(intent);
+        }
+        else {
+            Log.w(TAG, "localBroadcastUpdate with invalid manager");
         }
     }
 

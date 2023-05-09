@@ -1,6 +1,7 @@
 package com.adafruit.bluefruit.le.connect.models;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.annotation.SuppressLint;
@@ -15,6 +16,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
@@ -33,7 +35,6 @@ import com.adafruit.bluefruit.le.connect.utils.SingleLiveEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -82,11 +83,7 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
 
         // Apply filters
         if (filterData.isOnlyUartEnabled) {
-            for (Iterator<BlePeripheral> it = results.iterator(); it.hasNext(); ) {
-                if (BleScanner.getDeviceType(it.next()) != BleScanner.kDeviceType_Uart) {
-                    it.remove();
-                }
-            }
+            results.removeIf(blePeripheral -> BleScanner.getDeviceType(blePeripheral) != BleScanner.kDeviceType_Uart);
         }
 
         if (!filterData.isUnnamedEnabled) {
@@ -131,15 +128,11 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
             }
         }
 
-        for (Iterator<BlePeripheral> it = results.iterator(); it.hasNext(); ) {
-            if (it.next().getRssi() < filterData.rssi) {
-                it.remove();
-            }
-        }
+        results.removeIf(blePeripheral -> blePeripheral.getRssi() < filterData.rssi);
 
         // Sort devices alphabetically
         try {
-            Collections.sort(results, (o1, o2) -> getResultNameForOrdering(o1).compareTo(getResultNameForOrdering(o2)));
+            results.sort((o1, o2) -> getResultNameForOrdering(o1).compareTo(getResultNameForOrdering(o2)));
         } catch (SecurityException e) {
             Log.w(TAG, "Error getting name for peripherals: " + e);
         }
@@ -439,7 +432,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     }
 
     @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
+    @MainThread
     public void setIsMultiConnectEnabled(boolean enabled) {
         mIsMultiConnectEnabled.setValue(enabled);
 
@@ -449,7 +443,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     }
 
     @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
+    @MainThread
     public void disconnectAllPeripherals() {
         if (mScanner != null) {
             mScanner.disconnectFromAll();

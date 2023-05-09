@@ -57,7 +57,7 @@ public class UartServiceFragment extends UartBaseFragment {
         setActionBarTitle(R.string.uart_tab_title);
 
         // Setup Uart
-        setupUart();
+        setupUart(false);
     }
 
     // endregion
@@ -69,7 +69,7 @@ public class UartServiceFragment extends UartBaseFragment {
         return false;
     }
 
-    protected void setupUart() {
+    protected void setupUart(boolean force) {
         // Init
         Context context = getContext();
         if (context == null) {

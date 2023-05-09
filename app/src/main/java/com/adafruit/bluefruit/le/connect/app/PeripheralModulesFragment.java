@@ -177,7 +177,6 @@ public class PeripheralModulesFragment extends ConnectedPeripheralFragment {
         }
     }
 
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();

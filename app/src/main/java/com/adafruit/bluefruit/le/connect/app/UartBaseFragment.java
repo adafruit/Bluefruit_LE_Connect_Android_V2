@@ -14,6 +14,7 @@ import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -71,13 +72,17 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private final static String kPreferences_eolCharactersId = "eolCharactersId";
     private final static String kPreferences_echo = "echo";
     private final static String kPreferences_asciiMode = "ascii";
-    private final static String kPreferences_timestampDisplayMode = "timestampdisplaymode";
+    private final static String kPreferences_displayMode = "displaymode";
 
     protected static final String ARG_MODE = "Mode";
 
+    protected final static int UARTDISPLAYMODE_TIMESTAMP = 0;
+    protected final static int UARTDISPLAYMODE_TEXT = 1;
+    protected final static int UARTDISPLAYMODE_TERMINAL = 2;
+
     // UI
     private EditText mBufferTextView;
-    private RecyclerView mBufferRecylerView;
+    private RecyclerView mBufferRecyclerView;
     protected TimestampItemAdapter mBufferItemAdapter;
     private EditText mSendEditText;
     private Button mSendButton;
@@ -87,6 +92,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private TextView mReceivedBytesTextView;
     protected Spinner mSendPeripheralSpinner;
     private ViewGroup mKeyboardAccessoryView;
+    protected TextView mTerminalTitleTextView;
 
     // UI TextBuffer (refreshing the text buffer is managed with a timer because a lot of changes can arrive really fast and could stall the main thread)
     private final Handler mUIRefreshTimerHandler = new Handler();
@@ -105,10 +111,10 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     // Data
     protected final Handler mMainHandler = new Handler(Looper.getMainLooper());
     protected UartPacketManagerBase mUartData;
-    protected List<BlePeripheralUart> mBlePeripheralsUart = new ArrayList<>();
+    protected final @NonNull List<BlePeripheralUart> mBlePeripheralsUart = new ArrayList<>();
 
     private boolean mShowDataInHexFormat;
-    private boolean mIsTimestampDisplayMode;
+    protected int mDisplayMode = UARTDISPLAYMODE_TIMESTAMP;
     private boolean mIsEchoEnabled;
     private boolean mIsEolEnabled;
     private int mEolCharactersId;
@@ -121,6 +127,13 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     private int mPacketsCacheLastSize = 0;
 
     protected int mMode;
+
+    private KeyboardUtils.SoftKeyboardToggleListener mKeyboardListener = new KeyboardUtils.SoftKeyboardToggleListener() {
+        @Override
+        public void onToggleSoftKeyboard(boolean isVisible) {
+            mKeyboardAccessoryView.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+        }
+    };
 
     // region Fragment Lifecycle
     public UartBaseFragment() {
@@ -155,24 +168,24 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
         // Buffer recycler view
         if (context != null) {
-            mBufferRecylerView = view.findViewById(R.id.bufferRecyclerView);
+            mBufferRecyclerView = view.findViewById(R.id.bufferRecyclerView);
             DividerItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
             Drawable lineSeparatorDrawable = ContextCompat.getDrawable(context, R.drawable.simpledivideritemdecoration);
             assert lineSeparatorDrawable != null;
             itemDecoration.setDrawable(lineSeparatorDrawable);
-            mBufferRecylerView.addItemDecoration(itemDecoration);
+            mBufferRecyclerView.addItemDecoration(itemDecoration);
 
             LinearLayoutManager layoutManager = new LinearLayoutManager(context);
             //layoutManager.setStackFromEnd(true);        // Scroll to bottom when adding elements
-            mBufferRecylerView.setLayoutManager(layoutManager);
+            mBufferRecyclerView.setLayoutManager(layoutManager);
 
-            SimpleItemAnimator itemAnimator = (SimpleItemAnimator) mBufferRecylerView.getItemAnimator();
+            SimpleItemAnimator itemAnimator = (SimpleItemAnimator) mBufferRecyclerView.getItemAnimator();
             if (itemAnimator != null) {
                 itemAnimator.setSupportsChangeAnimations(false);         // Disable update animation
             }
             mBufferItemAdapter = new TimestampItemAdapter(context);            // Adapter
 
-            mBufferRecylerView.setAdapter(mBufferItemAdapter);
+            mBufferRecyclerView.setAdapter(mBufferItemAdapter);
         }
 
         // Buffer
@@ -204,6 +217,10 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         mSendPeripheralSpinner = view.findViewById(R.id.sendPeripheralSpinner);
         mSendPeripheralSpinner.setVisibility(isInMultiUartMode ? View.VISIBLE : View.GONE);
 
+        // Title
+        mTerminalTitleTextView = view.findViewById(R.id.terminalTitleTextView);
+        mTerminalTitleTextView.setVisibility(View.GONE);
+
         // Counters
         mSentBytesTextView = view.findViewById(R.id.sentBytesTextView);
         mReceivedBytesTextView = view.findViewById(R.id.receivedBytesTextView);
@@ -218,8 +235,8 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         if (context != null) {
             SharedPreferences preferences = context.getSharedPreferences(kPreferences, Context.MODE_PRIVATE);
             setShowDataInHexFormat(!preferences.getBoolean(kPreferences_asciiMode, true));
-            final boolean isTimestampDisplayMode = preferences.getBoolean(kPreferences_timestampDisplayMode, false);
-            setDisplayFormatToTimestamp(isTimestampDisplayMode);
+            final int displayMode = preferences.getInt(kPreferences_displayMode, UARTDISPLAYMODE_TIMESTAMP);
+            setDisplayFormat(displayMode);
             setEchoEnabled(preferences.getBoolean(kPreferences_echo, true));
             mIsEolEnabled = preferences.getBoolean(kPreferences_eol, true);
             mEolCharactersId = preferences.getInt(kPreferences_eolCharactersId, 0);
@@ -239,11 +256,9 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             }
         }
 
+
         // Keyboard visibility
-        KeyboardUtils.addKeyboardToggleListener(requireActivity(), isVisible -> {
-            //Log.d(TAG, "Keyboard visible: " + isVisible);
-            mKeyboardAccessoryView.setVisibility(isVisible ? View.VISIBLE : View.GONE);
-        });
+        KeyboardUtils.addKeyboardToggleListener(requireActivity(), mKeyboardListener);
 
         // Keyboard custom buttons
         final Button ctrlCButton = view.findViewById(R.id.crtlCButton);
@@ -311,10 +326,18 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             editor.putBoolean(kPreferences_eol, mIsEolEnabled);
             editor.putInt(kPreferences_eolCharactersId, mEolCharactersId);
             editor.putBoolean(kPreferences_asciiMode, !mShowDataInHexFormat);
-            editor.putBoolean(kPreferences_timestampDisplayMode, mIsTimestampDisplayMode);
+            editor.putInt(kPreferences_displayMode, mDisplayMode);
 
             editor.apply();
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        KeyboardUtils.removeKeyboardToggleListener(mKeyboardListener);
+        mKeyboardListener = null;
     }
 
     @Override
@@ -327,15 +350,16 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         }
 
         // Uart
-        if (mBlePeripheralsUart != null) {
-            for (BlePeripheralUart blePeripheralUart : mBlePeripheralsUart) {
-                blePeripheralUart.uartDisable();
-            }
-            mBlePeripheralsUart.clear();
-            mBlePeripheralsUart = null;
-        }
+        uartDisconnect();
 
         super.onDestroy();
+    }
+
+    void uartDisconnect() {
+        for (BlePeripheralUart blePeripheralUart : mBlePeripheralsUart) {
+            blePeripheralUart.uartDisable();
+        }
+        mBlePeripheralsUart.clear();
     }
 
     @Override
@@ -349,16 +373,30 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         mMqttMenuItemAnimationRunnable.run();
 
         // DisplayMode
-        MenuItem displayModeMenuItem = menu.findItem(R.id.action_displaymode);
-        displayModeMenuItem.setTitle(String.format("%s: %s", getString(R.string.uart_settings_displayMode_title), getString(mIsTimestampDisplayMode ? R.string.uart_settings_displayMode_timestamp : R.string.uart_settings_displayMode_text)));
-        SubMenu displayModeSubMenu = displayModeMenuItem.getSubMenu();
-        if (mIsTimestampDisplayMode) {
-            MenuItem displayModeTimestampMenuItem = displayModeSubMenu.findItem(R.id.action_displaymode_timestamp);
-            displayModeTimestampMenuItem.setChecked(true);
-        } else {
-            MenuItem displayModeTextMenuItem = displayModeSubMenu.findItem(R.id.action_displaymode_text);
-            displayModeTextMenuItem.setChecked(true);
+
+        final int displayModeItemId;
+        final int displayModeStringId;
+        switch (mDisplayMode) {
+            case UARTDISPLAYMODE_TEXT:
+                displayModeStringId = R.string.uart_settings_displayMode_text;
+                displayModeItemId = R.id.action_displaymode_text;
+                break;
+            case UARTDISPLAYMODE_TERMINAL:
+                displayModeStringId = R.string.uart_settings_displayMode_terminal;
+                displayModeItemId = R.id.action_displaymode_terminal;
+                break;
+            default:
+                displayModeStringId = R.string.uart_settings_displayMode_timestamp;
+                displayModeItemId = R.id.action_displaymode_timestamp;
+                break;
         }
+
+        MenuItem displayModeMenuItem = menu.findItem(R.id.action_displaymode);
+        displayModeMenuItem.setTitle(String.format("%s: %s", getString(R.string.uart_settings_displayMode_title), getString(displayModeStringId)));
+        SubMenu displayModeSubMenu = displayModeMenuItem.getSubMenu();
+
+        MenuItem displayModeTimestampMenuItem = displayModeSubMenu.findItem(displayModeItemId);
+        displayModeTimestampMenuItem.setChecked(true);
 
         // DataMode
         MenuItem dataModeMenuItem = menu.findItem(R.id.action_datamode);
@@ -441,14 +479,21 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
             }
 
             case R.id.action_displaymode_timestamp: {
-                setDisplayFormatToTimestamp(true);
+                setDisplayFormat(UARTDISPLAYMODE_TIMESTAMP);
                 invalidateTextView();
                 activity.invalidateOptionsMenu();
                 return true;
             }
 
             case R.id.action_displaymode_text: {
-                setDisplayFormatToTimestamp(false);
+                setDisplayFormat(UARTDISPLAYMODE_TEXT);
+                invalidateTextView();
+                activity.invalidateOptionsMenu();
+                return true;
+            }
+
+            case R.id.action_displaymode_terminal: {
+                setDisplayFormat(UARTDISPLAYMODE_TERMINAL);
                 invalidateTextView();
                 activity.invalidateOptionsMenu();
                 return true;
@@ -519,9 +564,14 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
 
     // region Uart
-    protected abstract void setupUart();
+    protected abstract void setupUart(boolean force);
 
     protected abstract void send(byte[] data);
+
+    protected UartPacket onUartPacketTextPreProcess(UartPacket packet) {
+        // Can be overridden by subclasses
+        return packet;
+    }
 
     private void onClickSend() {
         String newText = mSendEditText.getText().toString();
@@ -541,6 +591,7 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
     // region UI
     protected void updateUartReadyUI(boolean isReady) {
+        Log.d(TAG, "updateUartReadyUI: " + isReady);
         // Check null because crash detected in logs
         if (mSendEditText != null) {
             mSendEditText.setEnabled(isReady);
@@ -548,6 +599,9 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         if (mSendButton != null) {
             mSendButton.setEnabled(isReady);
         }
+
+        mBufferTextView.setBackgroundColor(isReady ? Color.TRANSPARENT : 0xaaaaaa);
+        mBufferRecyclerView.setBackgroundColor(isReady ? Color.TRANSPARENT : 0xaaaaaa);
     }
 
     private void addTextToSpanBuffer(SpannableStringBuilder spanBuffer, String text, int color, boolean isBold) {
@@ -567,10 +621,15 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         }
     }
 
-    private void setDisplayFormatToTimestamp(boolean enabled) {
-        mIsTimestampDisplayMode = enabled;
-        mBufferTextView.setVisibility(enabled ? View.GONE : View.VISIBLE);
-        mBufferRecylerView.setVisibility(enabled ? View.VISIBLE : View.GONE);
+    private void setDisplayFormat(int displayMode) {
+        mDisplayMode = displayMode;
+        final boolean isUIInTableMode = isUIInTableMode();
+        mBufferTextView.setVisibility(isUIInTableMode ? View.GONE : View.VISIBLE);
+        mBufferRecyclerView.setVisibility(isUIInTableMode ? View.VISIBLE : View.GONE);
+    }
+
+    private boolean isUIInTableMode() {
+        return mDisplayMode == UARTDISPLAYMODE_TIMESTAMP;
     }
 
     abstract protected int colorForPacket(UartPacket packet);
@@ -580,7 +639,8 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
     }
 
     private void invalidateTextView() {
-        if (!mIsTimestampDisplayMode) {
+        final boolean isUIInTableMode = isUIInTableMode();
+        if (!isUIInTableMode) {
             mPacketsCacheLastSize = 0;
             mTextSpanBuffer.clear();
             mBufferTextView.setText("");
@@ -592,11 +652,12 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
         final int packetsCacheSize = packetsCache.size();
         if (mPacketsCacheLastSize != packetsCacheSize) {        // Only if the buffer has changed
 
-            if (mIsTimestampDisplayMode) {
+            final boolean isUIInTableMode = isUIInTableMode();
+            if (isUIInTableMode) {
 
                 mBufferItemAdapter.notifyDataSetChanged();
                 final int bufferSize = mBufferItemAdapter.getCachedDataBufferSize();
-                mBufferRecylerView.smoothScrollToPosition(Math.max(bufferSize - 1, 0));
+                mBufferRecyclerView.smoothScrollToPosition(Math.max(bufferSize - 1, 0));
 
             } else {
                 if (packetsCacheSize > maxPacketsToPaintAsText) {
@@ -624,9 +685,13 @@ public abstract class UartBaseFragment extends ConnectedPeripheralFragment imple
 
     private void onUartPacketText(UartPacket packet) {
         if (mIsEchoEnabled || packet.getMode() == UartPacket.TRANSFERMODE_RX) {
-            final int color = colorForPacket(packet);
-            final boolean isBold = isFontBoldForPacket(packet);
-            final byte[] bytes = packet.getData();
+            // Call preprocess function. It can be overridden by subclassed for custom behaviours
+            UartPacket newPacket = onUartPacketTextPreProcess(packet);
+
+            final int color = colorForPacket(newPacket);
+            final boolean isBold = isFontBoldForPacket(newPacket);
+
+            final byte[] bytes = newPacket.getData();
             final String formattedData = mShowDataInHexFormat ? BleUtils.bytesToHex2(bytes) : BleUtils.bytesToText(bytes, true);
             addTextToSpanBuffer(mTextSpanBuffer, formattedData, color, isBold);
         }

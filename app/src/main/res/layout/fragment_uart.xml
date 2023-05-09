@@ -104,6 +104,15 @@
         android:background="@color/white"
         android:orientation="vertical">
 
+        <TextView
+            android:id="@+id/terminalTitleTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/infotext"
+            android:paddingVertical="4dp"
+            android:text="🐍BLE:Ok | Done | x.x.x-beta.x-x-xxxxxxxxxx"
+            android:textColor="@color/black" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/bufferRecyclerView"
             android:layout_width="match_parent"
@@ -119,6 +128,7 @@
             android:background="@android:color/transparent"
             android:cursorVisible="false"
             android:gravity="top"
+            android:inputType="none"
             android:scrollbarFadeDuration="0"
             android:textColorHighlight="#ffffff" />
     </LinearLayout>

@@ -1,11 +1,11 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Log;
 
@@ -13,9 +13,9 @@ import androidx.annotation.IntRange;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 
+import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 
 import java.lang.ref.WeakReference;
@@ -81,7 +81,10 @@ public class BlePeripheralUart {
         mUartTxCharacteristic = mBlePeripheral.getCharacteristic(txCharacteristicUUID, serviceUUID);
         mUartRxCharacteristic = mBlePeripheral.getCharacteristic(rxCharacteristicUUID, serviceUUID);
         if (mUartTxCharacteristic != null && mUartRxCharacteristic != null) {
-            Log.d(TAG, "Uart Enable for: " + getName());
+            if (BuildConfig.DEBUG) {
+                String serviceDebugName = serviceUUID.equals(kCircuitPythonServiceUUID) ? "CircuitPython" : "Uart";
+                Log.d(TAG, serviceDebugName + " Enable for: " + getName());
+            }
 
             mUartTxCharacteristicWriteType = mUartTxCharacteristic.getWriteType();
 
@@ -100,6 +103,8 @@ public class BlePeripheralUart {
             mBlePeripheral.readDescriptor(mUartRxCharacteristic, BlePeripheral.kClientCharacteristicConfigUUID, status -> {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     // Enable notifications
+                    mBlePeripheral.characteristicEnableNotify(mUartRxCharacteristic, notifyHandler, completionHandler);
+                    /*
                     if (!BlePeripheral.isCharacteristicNotifyingForCachedClientConfigDescriptor(mUartRxCharacteristic)) {
                         mBlePeripheral.characteristicEnableNotify(mUartRxCharacteristic, notifyHandler, completionHandler);
                     } else {
@@ -107,13 +112,18 @@ public class BlePeripheralUart {
                         if (completionHandler != null) {
                             completionHandler.completion(BluetoothGatt.GATT_SUCCESS);
                         }
-                    }
+                    }*/
                 } else {
                     if (completionHandler != null) {
                         completionHandler.completion(status);
                     }
                 }
             });
+        }
+        else {
+            if (completionHandler != null) {
+                completionHandler.completion(BluetoothGatt.GATT_FAILURE);
+            }
         }
     }
 
@@ -134,7 +144,7 @@ public class BlePeripheralUart {
     }
 
     @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
     @MainThread
     public void disconnect() {
         mBlePeripheral.disconnect();

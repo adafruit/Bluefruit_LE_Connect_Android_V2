@@ -65,7 +65,7 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
     // Data
     private UartDataManager mUartDataManager;
     private long mOriginTimestamp;
-    private List<BlePeripheralUart> mBlePeripheralsUart = new ArrayList<>();
+    private final @NonNull List<BlePeripheralUart> mBlePeripheralsUart = new ArrayList<>();
     private boolean mIsAutoScrollEnabled = true;
     private int mVisibleInterval = 20;        // in seconds
     private final Map<String, DashPathEffect> mLineDashPathEffectForPeripheral = new HashMap<>();
@@ -168,19 +168,16 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
             }
         }
 
-        if (mBlePeripheralsUart != null) {
-            for (BlePeripheralUart blePeripheralUart : mBlePeripheralsUart) {
-                blePeripheralUart.uartDisable();
-            }
-            mBlePeripheralsUart.clear();
-            mBlePeripheralsUart = null;
+        for (BlePeripheralUart blePeripheralUart : mBlePeripheralsUart) {
+            blePeripheralUart.uartDisable();
         }
+        mBlePeripheralsUart.clear();
 
         super.onDestroy();
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_help, menu);
     }
@@ -193,13 +190,11 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
             case R.id.action_help:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.plotter_help_title), getString(R.string.plotter_help_text));
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .replace(R.id.contentLayout, helpFragment, "Help");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.plotter_help_title), getString(R.string.plotter_help_text));
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .replace(R.id.contentLayout, helpFragment, "Help");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
                 return true;
 

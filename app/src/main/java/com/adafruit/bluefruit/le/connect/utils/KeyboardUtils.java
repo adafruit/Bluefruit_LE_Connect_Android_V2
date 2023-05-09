@@ -50,13 +50,13 @@ public class KeyboardUtils implements ViewTreeObserver.OnGlobalLayoutListener {
     /**
      * Add a new keyboard listener
      *
-     * @param act      calling activity
+     * @param activity calling activity
      * @param listener callback
      */
-    public static void addKeyboardToggleListener(Activity act, SoftKeyboardToggleListener listener) {
+    public static void addKeyboardToggleListener(Activity activity, SoftKeyboardToggleListener listener) {
         removeKeyboardToggleListener(listener);
 
-        sListenerMap.put(listener, new KeyboardUtils(act, listener));
+        sListenerMap.put(listener, new KeyboardUtils(activity, listener));
     }
 
     /**
