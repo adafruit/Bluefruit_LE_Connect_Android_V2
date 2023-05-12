@@ -24,6 +24,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:autofillHints="no"
                 android:inputType="textNoSuggestions|textVisiblePassword"
                 android:scrollbarAlwaysDrawVerticalTrack="true"
                 android:scrollbars="vertical"
@@ -33,12 +34,13 @@
                 android:id="@+id/sendButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:labelFor="@+id/sendEditText"
                 android:text="@string/uart_send_action" />
 
             <Spinner
                 android:id="@+id/sendPeripheralSpinner"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="match_parent" />
         </LinearLayout>
 
         <LinearLayout
@@ -62,6 +64,33 @@
                 android:layout_marginStart="20dp"
                 android:text="@string/uart_receivedbytes_format"
                 android:textColor="@color/infotext" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/keyboardAccessoryView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#cccccc"
+            android:orientation="horizontal"
+            tools:ignore="ButtonStyle">
+
+            <Button
+                android:id="@+id/crtlCButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/uart_input_ctrlc" />
+
+            <Button
+                android:id="@+id/crtlDButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/uart_input_ctrld" />
+
+            <Button
+                android:id="@+id/crtlZButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/uart_input_ctrlz" />
 
         </LinearLayout>
 
@@ -75,6 +104,15 @@
         android:background="@color/white"
         android:orientation="vertical">
 
+        <TextView
+            android:id="@+id/terminalTitleTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/infotext"
+            android:paddingVertical="4dp"
+            android:text="🐍BLE:Ok | Done | x.x.x-beta.x-x-xxxxxxxxxx"
+            android:textColor="@color/black" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/bufferRecyclerView"
             android:layout_width="match_parent"
@@ -86,9 +124,11 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:autofillHints="no"
             android:background="@android:color/transparent"
             android:cursorVisible="false"
             android:gravity="top"
+            android:inputType="none"
             android:scrollbarFadeDuration="0"
             android:textColorHighlight="#ffffff" />
     </LinearLayout>

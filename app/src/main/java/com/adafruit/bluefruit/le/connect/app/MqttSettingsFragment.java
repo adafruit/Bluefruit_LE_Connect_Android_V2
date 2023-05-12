@@ -12,7 +12,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.MainThread;
@@ -29,6 +28,7 @@ import com.adafruit.bluefruit.le.connect.R;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttManager;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttSettings;
 import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
@@ -122,7 +122,7 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
             });
 
             // UI - Publish
-            Switch publishSwitch = view.findViewById(R.id.publishSwitch);
+            SwitchMaterial publishSwitch = view.findViewById(R.id.publishSwitch);
             publishSwitch.setChecked(MqttSettings.isPublishEnabled(context));
             publishSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> MqttSettings.setPublishEnabled(context, isChecked));
 
@@ -173,8 +173,7 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
                 }
             });
 
-
-            Switch subscribeSwitch = view.findViewById(R.id.subscribeSwitch);
+            SwitchMaterial subscribeSwitch = view.findViewById(R.id.subscribeSwitch);
             subscribeSwitch.setChecked(MqttSettings.isSubscribeEnabled(context));
             subscribeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 MqttSettings.setSubscribeEnabled(context, isChecked);
@@ -250,11 +249,11 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
                 }
             });
 
-            Switch cleanSessionSwitch = view.findViewById(R.id.cleanSessionSwitch);
+            SwitchMaterial cleanSessionSwitch = view.findViewById(R.id.cleanSessionSwitch);
             cleanSessionSwitch.setChecked(MqttSettings.isCleanSession(context));
             cleanSessionSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> MqttSettings.setCleanSession(context, isChecked));
 
-            Switch sslConnectionSwitch = view.findViewById(R.id.sslConnectionSwitch);
+            SwitchMaterial sslConnectionSwitch = view.findViewById(R.id.sslConnectionSwitch);
             sslConnectionSwitch.setChecked(MqttSettings.isSslConnection(context));
             sslConnectionSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> MqttSettings.setSslConnection(context, isChecked));
 
@@ -276,9 +275,10 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
                 // Connect / Disconnect
                 Context context1 = getContext();
                 if (context1 != null) {
-                    MqttManager.MqqtConnectionStatus status = mMqttManager.getClientStatus();
+                    // TODO: this should not create a new Manager. There should be only ONE manager
+                    MqttManager.MqttConnectionStatus status = mMqttManager.getClientStatus();
                     Log.d(TAG, "current mqtt status: " + status);
-                    if (status == MqttManager.MqqtConnectionStatus.DISCONNECTED || status == MqttManager.MqqtConnectionStatus.NONE || status == MqttManager.MqqtConnectionStatus.ERROR) {
+                    if (status == MqttManager.MqttConnectionStatus.DISCONNECTED || status == MqttManager.MqttConnectionStatus.NONE || status == MqttManager.MqttConnectionStatus.ERROR) {
                         mMqttManager.connectFromSavedSettings();
                     } else {
                         mMqttManager.disconnect();
@@ -302,15 +302,13 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
                 FragmentActivity activity = getActivity();
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        MqttSettingsCodeReaderFragment fragment = MqttSettingsCodeReaderFragment.newInstance();
-                        fragment.setTargetFragment(this, 0);
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
-                                .replace(R.id.contentLayout, fragment, "MqttSettingsCodeReader");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    MqttSettingsCodeReaderFragment fragment = MqttSettingsCodeReaderFragment.newInstance();
+                    fragment.setTargetFragment(this, 0);
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right, R.anim.slide_in_right, R.anim.slide_out_left)
+                            .replace(R.id.contentLayout, fragment, "MqttSettingsCodeReader");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
             });
 
@@ -350,16 +348,17 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
             return;
         }
 
-        MqttManager.MqqtConnectionStatus status = mMqttManager.getClientStatus();
+        MqttManager.MqttConnectionStatus status = mMqttManager.getClientStatus();
+        Log.d(TAG, "updateStatusUI: " + status);
 
         // Update enable-disable button
-        final boolean showWait = (status == MqttManager.MqqtConnectionStatus.CONNECTING || status == MqttManager.MqqtConnectionStatus.DISCONNECTING);
+        final boolean showWait = (status == MqttManager.MqttConnectionStatus.CONNECTING || status == MqttManager.MqttConnectionStatus.DISCONNECTING);
         mConnectButton.setVisibility(showWait ? View.INVISIBLE : View.VISIBLE);
         mConnectProgressBar.setVisibility(showWait ? View.VISIBLE : View.GONE);
 
         if (!showWait) {
             int stringId = R.string.uart_mqtt_action_connect;
-            if (status == MqttManager.MqqtConnectionStatus.CONNECTED) {
+            if (status == MqttManager.MqttConnectionStatus.CONNECTED) {
                 stringId = R.string.uart_mqtt_action_disconnect;
             }
 
@@ -406,11 +405,13 @@ public class MqttSettingsFragment extends Fragment implements MqttSettingsCodeRe
     // region MqttManagerListener
     @Override
     public void onMqttConnected() {
+        Log.d(TAG, "onMqttConnected");
         updateStatusUI();
     }
 
     @Override
     public void onMqttDisconnected() {
+        Log.d(TAG, "onMqttDisconnected");
         updateStatusUI();
     }
 

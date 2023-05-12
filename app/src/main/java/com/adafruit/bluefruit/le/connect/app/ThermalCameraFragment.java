@@ -322,7 +322,11 @@ public class ThermalCameraFragment extends ConnectedPeripheralFragment implement
                         .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
                             BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
                             if (strongBlePeripheralUart != null) {
-                                strongBlePeripheralUart.disconnect();
+                                try {
+                                    strongBlePeripheralUart.disconnect();
+                                } catch (SecurityException e) {
+                                    Log.w(TAG, "Security Exception: " + e);
+                                }
                             }
                         })
                         .show();

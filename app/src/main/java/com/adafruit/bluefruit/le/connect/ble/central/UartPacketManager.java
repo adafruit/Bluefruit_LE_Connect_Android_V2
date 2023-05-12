@@ -13,6 +13,7 @@ import com.adafruit.bluefruit.le.connect.mqtt.MqttManager;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttSettings;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class UartPacketManager extends UartPacketManagerBase {
     // Log
@@ -42,24 +43,23 @@ public class UartPacketManager extends UartPacketManagerBase {
         uartPeripheral.uartSendAndWaitReply(data, writeCompletionHandler, readTimeout, readCompletionHandler);
     }
 
-    public void send(@NonNull BlePeripheralUart uartPeripheral, @NonNull String text) {
-        send(uartPeripheral, text, false);
+    public void send(@NonNull BlePeripheralUart uartPeripheral, byte[] data) {
+        send(uartPeripheral, data, false);
     }
 
-    public void send(@NonNull BlePeripheralUart uartPeripheral, @NonNull String text, boolean wasReceivedFromMqtt) {
+    public void send(@NonNull BlePeripheralUart uartPeripheral, byte[] data, boolean wasReceivedFromMqtt) {
         if (mMqttManager != null) {
             // Mqtt publish to TX
             if (MqttSettings.isPublishEnabled(mContext)) {
                 final String topic = MqttSettings.getPublishTopic(mContext, MqttSettings.kPublishFeed_TX);
                 if (topic != null) {
                     final int qos = MqttSettings.getPublishQos(mContext, MqttSettings.kPublishFeed_TX);
-                    mMqttManager.publish(topic, text, qos);
+                    mMqttManager.publish(topic, data, qos);
                 }
             }
         }
 
         // Create data and send to Uart
-        byte[] data = text.getBytes(Charset.forName("UTF-8"));
         UartPacket uartPacket = new UartPacket(uartPeripheral.getIdentifier(), UartPacket.TRANSFERMODE_TX, data);
 
         try {

@@ -4,10 +4,10 @@ android {
     compileSdkVersion 33
     defaultConfig {
         applicationId "com.adafruit.bluefruit.le.connect"
-        minSdkVersion 23
+        minSdkVersion 27
         targetSdkVersion 33
-        versionCode 49
-        versionName "3.4.0"
+        versionCode 50
+        versionName "3.5.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         resValue "string", "app_name", "Bluefruit Connect"
@@ -47,7 +47,7 @@ dependencies {
     // Support library
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
     implementation 'androidx.recyclerview:recyclerview:1.3.0'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
@@ -59,7 +59,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-vision:20.1.3'
 
     // Needed to download files with SSL on Android 4.4
-    implementation 'com.google.android.gms:play-services-auth:20.4.1'
+    implementation 'com.google.android.gms:play-services-auth:20.5.0'
 
     // Nordic
     implementation 'no.nordicsemi.android.support.v18:scanner:1.6.0'
@@ -74,9 +74,12 @@ dependencies {
 
     // Mqtt
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
+    // Warning: Paho library is no longer compatible with Android 12+: https://github.com/eclipse/paho.mqtt.android/issues/485
+    /*
     implementation(group: 'org.eclipse.paho', name: 'org.eclipse.paho.android.service', version: '1.1.1') {
         exclude module: 'support-v4'
-    }
+    }*/
+    implementation 'androidx.work:work-runtime:2.8.1'
 
     // Charts
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
@@ -95,4 +98,15 @@ dependencies {
 
     //
     testImplementation 'junit:junit:4.13.2'
+
+
+    // Fix kotlin-stdlib duplicate class errors: https://stackoverflow.com/questions/75263047/duplicate-class-in-kotlin-android
+    constraints {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
+            because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")
+        }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0") {
+            because("kotlin-stdlib-jdk8 is now a part of kotlin-stdlib")
+        }
+    }
 }

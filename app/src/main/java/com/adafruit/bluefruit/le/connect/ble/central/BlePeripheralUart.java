@@ -1,16 +1,21 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
+
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
+import androidx.annotation.RequiresPermission;
 
+import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
 
 import java.lang.ref.WeakReference;
@@ -27,6 +32,13 @@ public class BlePeripheralUart {
     private static final UUID kUartServiceUUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
     private static final UUID kUartTxCharacteristicUUID = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
     private static final UUID kUartRxCharacteristicUUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
+
+    private static final UUID kCircuitPythonServiceUUID = UUID.fromString("ADAF0001-4369-7263-7569-74507974686e");
+    private static final UUID kCircuitPythonTxCharacteristicUUID = UUID.fromString("ADAF0002-4369-7263-7569-74507974686e");
+    private static final UUID kCircuitPythonRxCharacteristicUUID = UUID.fromString("ADAF0003-4369-7263-7569-74507974686e");
+
+    public final static int MODE_UART = 0;
+    public final static int MODE_CIRCUITPYTHON = 1;
 
     //private static final int kUartTxMaxBytes = 20;
     private static final int kUartReplyDefaultTimeout = 2000;       // in millis
@@ -51,12 +63,28 @@ public class BlePeripheralUart {
     }
 
     public void uartEnable(@Nullable UartRxHandler uartRxHandler, @Nullable BlePeripheral.CompletionHandler completionHandler) {
+        uartEnable(MODE_UART, uartRxHandler, completionHandler);
+    }
+
+    public void uartEnable(int mode, @Nullable UartRxHandler uartRxHandler, @Nullable BlePeripheral.CompletionHandler completionHandler) {
+        if (mode == MODE_UART) {
+            uartEnable(kUartServiceUUID, kUartTxCharacteristicUUID, kUartRxCharacteristicUUID, uartRxHandler, completionHandler);
+        } else {
+            uartEnable(kCircuitPythonServiceUUID, kCircuitPythonTxCharacteristicUUID, kCircuitPythonRxCharacteristicUUID, uartRxHandler, completionHandler);
+        }
+    }
+
+    private void uartEnable(@NonNull UUID serviceUUID, @NonNull UUID txCharacteristicUUID, @NonNull UUID rxCharacteristicUUID,
+                            @Nullable UartRxHandler uartRxHandler, @Nullable BlePeripheral.CompletionHandler completionHandler) {
 
         // Get uart communications characteristic
-        mUartTxCharacteristic = mBlePeripheral.getCharacteristic(kUartTxCharacteristicUUID, kUartServiceUUID);
-        mUartRxCharacteristic = mBlePeripheral.getCharacteristic(kUartRxCharacteristicUUID, kUartServiceUUID);
+        mUartTxCharacteristic = mBlePeripheral.getCharacteristic(txCharacteristicUUID, serviceUUID);
+        mUartRxCharacteristic = mBlePeripheral.getCharacteristic(rxCharacteristicUUID, serviceUUID);
         if (mUartTxCharacteristic != null && mUartRxCharacteristic != null) {
-            Log.d(TAG, "Uart Enable for: " + getName());
+            if (BuildConfig.DEBUG) {
+                String serviceDebugName = serviceUUID.equals(kCircuitPythonServiceUUID) ? "CircuitPython" : "Uart";
+                Log.d(TAG, serviceDebugName + " Enable for: " + getName());
+            }
 
             mUartTxCharacteristicWriteType = mUartTxCharacteristic.getWriteType();
 
@@ -75,6 +103,8 @@ public class BlePeripheralUart {
             mBlePeripheral.readDescriptor(mUartRxCharacteristic, BlePeripheral.kClientCharacteristicConfigUUID, status -> {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     // Enable notifications
+                    mBlePeripheral.characteristicEnableNotify(mUartRxCharacteristic, notifyHandler, completionHandler);
+                    /*
                     if (!BlePeripheral.isCharacteristicNotifyingForCachedClientConfigDescriptor(mUartRxCharacteristic)) {
                         mBlePeripheral.characteristicEnableNotify(mUartRxCharacteristic, notifyHandler, completionHandler);
                     } else {
@@ -82,13 +112,18 @@ public class BlePeripheralUart {
                         if (completionHandler != null) {
                             completionHandler.completion(BluetoothGatt.GATT_SUCCESS);
                         }
-                    }
+                    }*/
                 } else {
                     if (completionHandler != null) {
                         completionHandler.completion(status);
                     }
                 }
             });
+        }
+        else {
+            if (completionHandler != null) {
+                completionHandler.completion(BluetoothGatt.GATT_FAILURE);
+            }
         }
     }
 
@@ -108,6 +143,9 @@ public class BlePeripheralUart {
         mUartTxCharacteristic = null;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
+    @MainThread
     public void disconnect() {
         mBlePeripheral.disconnect();
     }
@@ -115,6 +153,7 @@ public class BlePeripheralUart {
     public String getIdentifier() {
         return mBlePeripheral.getIdentifier();
     }
+
 
     public String getName() {
         return mBlePeripheral.getName();
@@ -124,7 +163,8 @@ public class BlePeripheralUart {
         mBlePeripheral.requestMtu(mtuSize, completionHandler);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public void readPhy() {
         mBlePeripheral.readPhy();
     }
@@ -295,6 +335,11 @@ public class BlePeripheralUart {
     public static boolean hasUart(@NonNull BlePeripheral peripheral) {
         return peripheral.getService(kUartServiceUUID) != null;
     }
+
+    public static boolean hasCircuitPython(@NonNull BlePeripheral peripheral) {
+        return peripheral.getService(kCircuitPythonServiceUUID) != null;
+    }
+
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isUartInitialized(@NonNull BlePeripheral blePeripheral, @NonNull List<BlePeripheralUart> blePeripheralUarts) {

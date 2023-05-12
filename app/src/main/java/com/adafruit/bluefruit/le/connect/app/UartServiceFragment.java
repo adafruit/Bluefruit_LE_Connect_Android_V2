@@ -57,7 +57,7 @@ public class UartServiceFragment extends UartBaseFragment {
         setActionBarTitle(R.string.uart_tab_title);
 
         // Setup Uart
-        setupUart();
+        setupUart(false);
     }
 
     // endregion
@@ -69,7 +69,7 @@ public class UartServiceFragment extends UartBaseFragment {
         return false;
     }
 
-    protected void setupUart() {
+    protected void setupUart(boolean force) {
         // Init
         Context context = getContext();
         if (context == null) {
@@ -89,7 +89,7 @@ public class UartServiceFragment extends UartBaseFragment {
     // region Uart
 
     @Override
-    protected void send(String message) {
+    protected void send(byte[] data) {
         if (!(mUartData instanceof UartPeripheralModePacketManager)) {
             Log.e(TAG, "Error send with invalid uartData class");
             return;
@@ -101,7 +101,7 @@ public class UartServiceFragment extends UartBaseFragment {
         }
 
         UartPeripheralModePacketManager uartData = (UartPeripheralModePacketManager) mUartData;
-        uartData.send(mUartPeripheralService, message, false);
+        uartData.send(mUartPeripheralService, data, false);
     }
 
     // endregion
@@ -131,9 +131,9 @@ public class UartServiceFragment extends UartBaseFragment {
         }
 
         UartPeripheralModePacketManager uartData = (UartPeripheralModePacketManager) mUartData;
-        final String message = new String(mqttMessage.getPayload());
+        final byte[] data = mqttMessage.getPayload();
 
-        uartData.send(mUartPeripheralService, message, true);
+        uartData.send(mUartPeripheralService, data, true);
     }
 
     // endregion

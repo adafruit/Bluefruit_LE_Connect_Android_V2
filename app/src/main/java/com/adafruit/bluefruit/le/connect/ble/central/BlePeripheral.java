@@ -1,6 +1,7 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
@@ -12,14 +13,14 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.IntRange;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -64,6 +65,7 @@ public class BlePeripheral {
     public final static String kBlePeripheral_OnConnecting = kPrefix + "connecting";
     public final static String kBlePeripheral_OnConnected = kPrefix + "connected";
     public final static String kBlePeripheral_OnDisconnected = kPrefix + "disconnected";
+    public final static String kBlePeripheral_OnReconnecting = kPrefix + "reconnecting";
     public final static String kBlePeripheral_OnRssiUpdated = kPrefix + "rssiUpdated";
     public final static String kExtra_deviceAddress = kPrefix + "extra_deviceAddress";
     public final static String kExtra_expectedDisconnect = kPrefix + "extra_expectedDisconnect";
@@ -79,7 +81,7 @@ public class BlePeripheral {
     private BluetoothGatt mBluetoothGatt;
 
     private int mConnectionState = STATE_DISCONNECTED;
-    private final CommandQueue mCommmandQueue = new CommandQueue();
+    private final CommandQueue mCommandQueue = new CommandQueue();
     private final Map<String, NotifyHandler> mNotifyHandlers = new HashMap<>();
     private final List<CaptureReadHandler> mCaptureReadHandlers = new ArrayList<>();
 
@@ -90,20 +92,24 @@ public class BlePeripheral {
     private String cachedName = null;           // Cached name
     private String cachedAddress = null;        // Cached address
 
+    private Context mConnectionContext = null;
+    private boolean isAutoreconnectOnDisconnectionEnabled = false;
+
     // region BluetoothGattCallback
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @SuppressLint("InlinedApi")
-        @RequiresPermission(value = BLUETOOTH_CONNECT)
+        @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
-            Log.w(TAG, "onConnectionStateChange from: " + status + " to:" + newState);
+            Log.d(TAG, "onConnectionStateChange from: " + status + " to:" + newState);
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 mConnectionState = STATE_CONNECTED;
+                isAutoreconnectOnDisconnectionEnabled = true;
 
                 // Phy
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && kSetPhy_2M) {
+                if (kSetPhy_2M) {
                     Log.d(TAG, "Set Phy to 2M");
                     setPreferredPhy(BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_LE_2M_MASK, BluetoothDevice.PHY_OPTION_NO_PREFERRED);
                 }
@@ -117,7 +123,7 @@ public class BlePeripheral {
                 localBroadcastUpdate(kBlePeripheral_OnConnected, getIdentifier());
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.d(TAG, "onConnectionStateChange STATE_DISCONNECTED");
-                notifyConnectionFinished(false);
+                notifyConnectionFinished();
             } else {
                 Log.w(TAG, "unknown onConnectionStateChange from: " + status + " to:" + newState);
             }
@@ -137,7 +143,7 @@ public class BlePeripheral {
             Log.d(TAG, "onCharacteristicRead");
             if (kDebugCommands) {
                 final String identifier = getCharacteristicIdentifier(characteristic);
-                BleCommand command = mCommmandQueue.first();
+                BleCommand command = mCommandQueue.first();
                 if (command.mType == BleCommand.BLECOMMANDTYPE_READCHARACTERISTIC && identifier.equals(command.mIdentifier)) {
                     finishExecutingCommand(status);
                 } else {
@@ -152,7 +158,7 @@ public class BlePeripheral {
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
 
-            BleCommand command = mCommmandQueue.first();
+            BleCommand command = mCommandQueue.first();
             if (command != null && !command.mIsCancelled && command.mType == BleCommand.BLECOMMANDTYPE_WRITECHARACTERISTICANDWAITNOTIFY) {
                 if (kHackToAvoidProblemsWhenWriteIsReceivedBeforeChangedOnWriteWithResponse) {
                     Log.d(TAG, "onCharacteristicWrite. Ignored");
@@ -238,7 +244,7 @@ public class BlePeripheral {
 
             if (kDebugCommands) {
                 final String identifier = getDescriptorIdentifier(descriptor.getCharacteristic().getService().getUuid(), descriptor.getCharacteristic().getUuid(), descriptor.getUuid());
-                BleCommand command = mCommmandQueue.first();
+                BleCommand command = mCommandQueue.first();
                 if (command.mType == BleCommand.BLECOMMANDTYPE_READDESCRIPTOR && identifier.equals(command.mIdentifier)) {
                     finishExecutingCommand(status);
                 } else {
@@ -254,7 +260,7 @@ public class BlePeripheral {
             super.onDescriptorWrite(gatt, descriptor, status);
 
             //final String identifier = getDescriptorIdentifier(descriptor.getCharacteristic().getService().getUuid(), descriptor.getCharacteristic().getUuid(), descriptor.getUuid());
-            BleCommand command = mCommmandQueue.first();
+            BleCommand command = mCommandQueue.first();
             if (command != null && command.mType == BleCommand.BLECOMMANDTYPE_SETNOTIFY) {
                 if (kDebugCommands) {
                     final String identifier = getCharacteristicIdentifier(descriptor.getCharacteristic());
@@ -302,7 +308,7 @@ public class BlePeripheral {
             }
 
             // Check that the MTU changed callback was called in response to a command
-            BleCommand command = mCommmandQueue.first();
+            BleCommand command = mCommandQueue.first();
             if (command.mType == BleCommand.BLECOMMANDTYPE_REQUESTMTU) {
                 finishExecutingCommand(status);
             }
@@ -416,11 +422,14 @@ public class BlePeripheral {
         return cachedAddress;
     }
 
-    @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public String getName() {
         if (cachedNameNeedsUpdate) {
-            String name = mScanResult.getDevice().getName();
+            String name = null;
+            try {
+                name = mScanResult.getDevice().getName();
+            } catch (SecurityException e) {
+                Log.w(TAG, "getName security exception: " + e);
+            }
             if (name == null) {
                 name = getScanRecord().getDeviceName();
             }
@@ -443,11 +452,11 @@ public class BlePeripheral {
         mRssi = 0;
         mNotifyHandlers.clear();
         mCaptureReadHandlers.clear();
-        BleCommand firstCommand = mCommmandQueue.first();
+        BleCommand firstCommand = mCommandQueue.first();
         if (firstCommand != null) {
             firstCommand.cancel();  // Stop current command if is processing
         }
-        mCommmandQueue.clear();
+        mCommandQueue.clear();
     }
 
     @SuppressLint("InlinedApi")
@@ -458,12 +467,13 @@ public class BlePeripheral {
     }
 
     @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
     @MainThread
     public void connect(Context context) {
+        mConnectionContext = context;
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(context);
         BluetoothDevice device = mScanResult.getDevice();
-        mCommmandQueue.clear();
+        mCommandQueue.clear();
         mConnectionState = STATE_CONNECTING;
         localBroadcastUpdate(kBlePeripheral_OnConnecting, getIdentifier());
 
@@ -476,16 +486,16 @@ public class BlePeripheral {
     }
 
     @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
     @MainThread
     public void disconnect() {
         if (mBluetoothGatt != null) {
             final boolean wasConnecting = mConnectionState == STATE_CONNECTING;
-            mConnectionState = STATE_DISCONNECTING;
+            mConnectionState = STATE_DISCONNECTING;     // Important: set to disconnecting to signal that the disconnection was expected (check notifyConnectionFinished code)
             mBluetoothGatt.disconnect();
 
             if (wasConnecting) {        // Force a disconnect broadcast because it will not be generated by the OS
-                notifyConnectionFinished(true);
+                notifyConnectionFinished();
             }
         }
     }
@@ -495,16 +505,26 @@ public class BlePeripheral {
     }
 
     @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
-    private void notifyConnectionFinished(boolean isExpected) {
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
+    private void notifyConnectionFinished() {
+        final boolean isExpected = mConnectionState == STATE_DISCONNECTING;
         mConnectionState = STATE_DISCONNECTED;
         if (isExpected) {
             localBroadcastUpdate(kBlePeripheral_OnDisconnected, getIdentifier(), kExtra_expectedDisconnect, kExtra_expectedDisconnect);     // Send a extra parameter (kExtra_expectedDisconnect) with any value, so it is known that was expected (and no message errors are displayed to the user)
         } else {
-            localBroadcastUpdate(kBlePeripheral_OnDisconnected, getIdentifier());
+            if (isAutoreconnectOnDisconnectionEnabled) {
+                Log.d(TAG, "Trying to reconnect to peripheral: " + getName());
+                localBroadcastUpdate(kBlePeripheral_OnReconnecting, getIdentifier());
+                Handler mainHandler = new Handler(Looper.getMainLooper());
+                mainHandler.post(() -> connect(mConnectionContext));
+            } else {
+                localBroadcastUpdate(kBlePeripheral_OnDisconnected, getIdentifier());
+            }
+            isAutoreconnectOnDisconnectionEnabled = false;
         }
         closeBluetoothGatt();
-        mLocalBroadcastManager = null;
+        //mLocalBroadcastManager = null;
+        mConnectionContext = null;
     }
 
     @SuppressLint("InlinedApi")
@@ -516,7 +536,6 @@ public class BlePeripheral {
 
     @SuppressLint("InlinedApi")
     @RequiresPermission(value = BLUETOOTH_CONNECT)
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public void setPreferredPhy(int txPhy, int rxPhy, int phyOptions) {
         if (mBluetoothGatt != null) {
             Log.d(TAG, "setPreferredPhy");
@@ -527,7 +546,6 @@ public class BlePeripheral {
 
     @SuppressLint("InlinedApi")
     @RequiresPermission(value = BLUETOOTH_CONNECT)
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public void readPhy() {
         if (mBluetoothGatt != null) {
             mBluetoothGatt.readPhy();
@@ -543,7 +561,7 @@ public class BlePeripheral {
     private void closeBluetoothGatt() {
         if (mBluetoothGatt != null) {
             mBluetoothGatt.close();
-            mCommmandQueue.clear();
+            mCommandQueue.clear();
             mBluetoothGatt = null;
         }
     }
@@ -561,14 +579,17 @@ public class BlePeripheral {
             }
             mLocalBroadcastManager.sendBroadcast(intent);
         }
+        else {
+            Log.w(TAG, "localBroadcastUpdate with invalid manager");
+        }
     }
 
     private void finishExecutingCommand(int status) {
-        BleCommand command = mCommmandQueue.first();
+        BleCommand command = mCommandQueue.first();
         if (command != null && !command.mIsCancelled) {
             command.completion(status);
         }
-        mCommmandQueue.executeNext();
+        mCommandQueue.executeNext();
     }
 
     public void discoverServices(CompletionHandler completionHandler) {
@@ -584,11 +605,11 @@ public class BlePeripheral {
                 }
             }
         };
-        mCommmandQueue.add(command);
+        mCommandQueue.add(command);
     }
 
     public boolean isDiscoveringServices() {
-        return mCommmandQueue.containsCommandType(BleCommand.BLECOMMANDTYPE_DISCOVERSERVICES);
+        return mCommandQueue.containsCommandType(BleCommand.BLECOMMANDTYPE_DISCOVERSERVICES);
     }
 
     // endregion
@@ -648,7 +669,7 @@ public class BlePeripheral {
                 }
             }
         };
-        mCommmandQueue.add(command);
+        mCommandQueue.add(command);
     }
 
     public void characteristicDisableNotify(@NonNull final BluetoothGattCharacteristic characteristic, CompletionHandler completionHandler) {
@@ -671,7 +692,7 @@ public class BlePeripheral {
                 }
             }
         };
-        mCommmandQueue.add(command);
+        mCommandQueue.add(command);
     }
 
     public void characteristicUpdateNotify(@NonNull final BluetoothGattCharacteristic characteristic, NotifyHandler notifyHandler) {
@@ -732,7 +753,7 @@ public class BlePeripheral {
                 }
             }
         };
-        mCommmandQueue.add(command);
+        mCommandQueue.add(command);
     }
 
     public void writeCharacteristic(@NonNull BluetoothGattCharacteristic characteristic, int writeType, @NonNull byte[] data, @Nullable CompletionHandler completionHandler) {
@@ -772,7 +793,7 @@ public class BlePeripheral {
                 }
             }
         };
-        mCommmandQueue.add(command);
+        mCommandQueue.add(command);
     }
 
     public void writeCharacteristicAndCaptureNotify(@NonNull BluetoothGattCharacteristic characteristic, int writeType, @NonNull byte[] data, @Nullable CompletionHandler completionHandler, @NonNull BluetoothGattCharacteristic readCharacteristic, int readTimeout, @Nullable CaptureReadCompletionHandler readCompletionHandler) {
@@ -818,7 +839,7 @@ public class BlePeripheral {
                 }
             }
         };
-        mCommmandQueue.add(command);
+        mCommandQueue.add(command);
     }
 
     public void readDescriptor(@NonNull BluetoothGattService service, UUID characteristicUUID, UUID descriptorUUID, CompletionHandler completionHandler) {
@@ -848,7 +869,7 @@ public class BlePeripheral {
                 }
             }
         };
-        mCommmandQueue.add(command);
+        mCommandQueue.add(command);
     }
 
     public void requestMtu(@IntRange(from = 23, to = 517) int mtuSize, CompletionHandler completionHandler) {
@@ -859,16 +880,11 @@ public class BlePeripheral {
             @Override
             public void execute() {
                 // Request mtu size change
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                    Log.d(TAG, "Request mtu change");
-                    mBluetoothGatt.requestMtu(mtuSize);
-                } else {
-                    Log.w(TAG, "change mtu size not recommended on Android < 7.0");      // https://issuetracker.google.com/issues/37101017
-                    finishExecutingCommand(BluetoothGatt.GATT_REQUEST_NOT_SUPPORTED);
-                }
+                Log.d(TAG, "Request mtu change");
+                mBluetoothGatt.requestMtu(mtuSize);
             }
         };
-        mCommmandQueue.add(command);
+        mCommandQueue.add(command);
     }
 
     /*

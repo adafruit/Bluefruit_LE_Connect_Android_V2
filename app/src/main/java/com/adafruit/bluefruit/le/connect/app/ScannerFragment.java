@@ -752,7 +752,12 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
         FragmentActivity activity = getActivity();
         if (activity instanceof MainActivity) {
             MainActivity mainActivity = (MainActivity) activity;
-            mainActivity.startUpdate(blePeripheral, firmwareInfo);
+            try {
+                mainActivity.startUpdate(blePeripheral, firmwareInfo);
+            }
+            catch (SecurityException e) {
+                Log.e(TAG, "Security exception startFirmwareUpdate: " + e);
+            }
         }
     }
 

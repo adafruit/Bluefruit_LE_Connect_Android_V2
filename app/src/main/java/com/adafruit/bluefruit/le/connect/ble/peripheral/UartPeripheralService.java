@@ -31,7 +31,7 @@ public class UartPeripheralService extends PeripheralService {
 
     private final BluetoothGattCharacteristic mTxCharacteristic = new BluetoothGattCharacteristic(kUartTxCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE, BluetoothGattCharacteristic.PERMISSION_WRITE);
     private final BluetoothGattCharacteristic mRxCharacteristic = new BluetoothGattCharacteristic(kUartRxCharacteristicUUID, BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY, BluetoothGattCharacteristic.PERMISSION_READ);
-    private BluetoothGattDescriptor mRxConfigDescriptor = new BluetoothGattDescriptor(BlePeripheral.kClientCharacteristicConfigUUID, BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
+    private final BluetoothGattDescriptor mRxConfigDescriptor = new BluetoothGattDescriptor(BlePeripheral.kClientCharacteristicConfigUUID, BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
 
     // Data
     //private WeakReference<UartRXListener> mWeakRxListener;

@@ -13,7 +13,7 @@ public class DeviceInformationServiceViewModel extends AndroidViewModel {
     }
 
     public DeviceInformationPeripheralService getDeviceInfomationPeripheralService() {
-        return PeripheralModeManager.getInstance().getDeviceInfomationPeripheralService();
+        return PeripheralModeManager.getInstance().getDeviceInformationPeripheralService();
     }
 
     @Override
@@ -21,6 +21,6 @@ public class DeviceInformationServiceViewModel extends AndroidViewModel {
         super.onCleared();
 
         // Save current characteristic values
-        PeripheralModeManager.getInstance().getDeviceInfomationPeripheralService().saveValues(getApplication());
+        PeripheralModeManager.getInstance().getDeviceInformationPeripheralService().saveValues(getApplication());
     }
 }

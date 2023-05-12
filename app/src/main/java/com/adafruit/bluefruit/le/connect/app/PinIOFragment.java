@@ -272,7 +272,11 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
                             .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
                                 BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
                                 if (strongBlePeripheralUart != null) {
-                                    strongBlePeripheralUart.disconnect();
+                                    try {
+                                        strongBlePeripheralUart.disconnect();
+                                    } catch (SecurityException e) {
+                                        Log.e(TAG, "Security exception: " + e);
+                                    }
                                 }
                             })
                             .show();
@@ -734,7 +738,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         }
     }
 
-    private List<Byte> mReceivedPinStateDataBuffer2 = new ArrayList<>();
+    private final List<Byte> mReceivedPinStateDataBuffer2 = new ArrayList<>();
 
     private int getUnsignedReceivedPinState(int index) {
         return mReceivedPinStateDataBuffer2.get(index) & 0xff;
@@ -916,7 +920,7 @@ public class PinIOFragment extends ConnectedPeripheralFragment implements UartDa
         }
 
         // Data Structures
-        private class SectionViewHolder extends RecyclerView.ViewHolder {
+        private static class SectionViewHolder extends RecyclerView.ViewHolder {
             TextView titleTextView;
 
             SectionViewHolder(View view) {

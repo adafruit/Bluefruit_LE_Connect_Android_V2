@@ -29,20 +29,19 @@ public class UartPeripheralModePacketManager extends UartPacketManagerBase {
         uartPeripheralService.setRx(data);
     }
 
-    public void send(@NonNull UartPeripheralService uartPeripheralService, @NonNull String text, boolean wasReceivedFromMqtt) {
+    public void send(@NonNull UartPeripheralService uartPeripheralService, byte[] data, boolean wasReceivedFromMqtt) {
         if (mMqttManager != null) {
             // Mqtt publish to TX
             if (MqttSettings.isPublishEnabled(mContext)) {
                 final String topic = MqttSettings.getPublishTopic(mContext, MqttSettings.kPublishFeed_TX);
                 if (topic != null) {
                     final int qos = MqttSettings.getPublishQos(mContext, MqttSettings.kPublishFeed_TX);
-                    mMqttManager.publish(topic, text, qos);
+                    mMqttManager.publish(topic, data, qos);
                 }
             }
         }
 
         // Create data and send to Uart
-        byte[] data = text.getBytes(Charset.forName("UTF-8"));
         UartPacket uartPacket = new UartPacket(null, UartPacket.TRANSFERMODE_TX, data);
 
         try {

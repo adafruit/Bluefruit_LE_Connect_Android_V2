@@ -1,5 +1,8 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothGatt;
 import android.content.Context;
@@ -8,8 +11,10 @@ import android.graphics.DashPathEffect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -60,11 +65,11 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
     // Data
     private UartDataManager mUartDataManager;
     private long mOriginTimestamp;
-    private List<BlePeripheralUart> mBlePeripheralsUart = new ArrayList<>();
+    private final @NonNull List<BlePeripheralUart> mBlePeripheralsUart = new ArrayList<>();
     private boolean mIsAutoScrollEnabled = true;
     private int mVisibleInterval = 20;        // in seconds
-    private Map<String, DashPathEffect> mLineDashPathEffectForPeripheral = new HashMap<>();
-    private Map<String, List<LineDataSet>> mDataSetsForPeripheral = new HashMap<>();
+    private final Map<String, DashPathEffect> mLineDashPathEffectForPeripheral = new HashMap<>();
+    private final Map<String, List<LineDataSet>> mDataSetsForPeripheral = new HashMap<>();
     private LineDataSet mLastDataSetModified;
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
 
@@ -145,7 +150,12 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
             mOriginTimestamp = System.currentTimeMillis();
 
             setupChart();
-            setupUart();
+
+            try {
+                setupUart();
+            } catch (SecurityException e) {
+                Log.e(TAG, "onViewCreated security exception: " + e);
+            }
         }
     }
 
@@ -158,19 +168,16 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
             }
         }
 
-        if (mBlePeripheralsUart != null) {
-            for (BlePeripheralUart blePeripheralUart : mBlePeripheralsUart) {
-                blePeripheralUart.uartDisable();
-            }
-            mBlePeripheralsUart.clear();
-            mBlePeripheralsUart = null;
+        for (BlePeripheralUart blePeripheralUart : mBlePeripheralsUart) {
+            blePeripheralUart.uartDisable();
         }
+        mBlePeripheralsUart.clear();
 
         super.onDestroy();
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_help, menu);
     }
@@ -183,13 +190,11 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
             case R.id.action_help:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.plotter_help_title), getString(R.string.plotter_help_text));
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .replace(R.id.contentLayout, helpFragment, "Help");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.plotter_help_title), getString(R.string.plotter_help_text));
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .replace(R.id.contentLayout, helpFragment, "Help");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
                 return true;
 
@@ -206,6 +211,8 @@ public class PlotterFragment extends ConnectedPeripheralFragment implements Uart
         return mBlePeripheral == null;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     private void setupUart() {
         // Line dashes assigned to peripherals
         final DashPathEffect[] dashPathEffects = UartStyle.defaultDashPathEffects();

@@ -2,9 +2,10 @@ package com.adafruit.bluefruit.le.connect.ble.central;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Log;
 
 import java.util.UUID;
 

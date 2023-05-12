@@ -183,10 +183,13 @@
 	<string name="uart_tab_title">UART</string>
 	<string name="uart_navigation_title_format" formatted="false">UART - %s</string>
 
-
 	<string name="uart_send_action">Send</string>
 	<string name="uart_send_toall_action">To All</string>
 	<string name="uart_send_toall_long">All Connected Peripherals</string>
+
+	<string name="uart_input_ctrlc">CTRL-C</string>
+	<string name="uart_input_ctrld">CTRL-D</string>
+	<string name="uart_input_ctrlz">CTRL-Z</string>
 
 	<string name="uart_sentbytes_format" formatted="false">Sent: %d bytes</string>
 	<string name="uart_receivedbytes_format" formatted="false">Received: %d bytes</string>
@@ -239,8 +242,6 @@
 	<string name="uart_mqtt_qos_atleastonce">At Least Once</string>
 	<string name="uart_mqtt_qos_atmostonce">At Most Once</string>
 	<string name="uart_mqtt_qos_exactlyonce">Exactly Once</string>
-
-
 
 	<string name="uart_help_title">UART</string>
 	<string name="uart_help_text">Instructions:\n\n• Tap the input field at the bottom of the screen.\n\n• Enter the text string you want to send.\n\n• Send a message by pressing the keyboard\'s Send button.\n\n• Use the Timestamp/Text and ASCII/Hex control above the main console view to control the display format of messages.\n\n• Use the Export button to copy or send the contents of the console.\n\n• Use the Clear button to clear the console\'s contents.</string>
@@ -297,7 +298,7 @@
 	<string name="plotter_nodata">No chart data available</string>
 
 	<string name="plotter_help_title">Plotter</string>
-	<string name="plotter_help_text">• The \'Plotter\' utility can be used to plot incoming numeric data in a chart, without having to create a custom plotter code or application. It behaves similarly to the Serial Plotter in recent versions of the Arduino IDE.\n\n•  To plot one or more data streams to the plotter, send your numeric data in CSV format with one of the following seperators:\n\',\' - Comma (0x2C)\n\' \' - Space (0x20)\n\';\' - Semicolon (0x3B)\nHorizontal Tab (0x09), \'\\t\' in code\n\nEach unique set of data samples must be terminated by a LINE FEED character (0x0A), which is usually represented as \'\\n\' in code.\n\n• Only numeric data should be sent over the BLE UART connection(s).</string>
+	<string name="plotter_help_text">• The \'Plotter\' utility can be used to plot incoming numeric data in a chart, without having to create a custom plotter code or application. It behaves similarly to the Serial Plotter in recent versions of the Arduino IDE.\n\n•  To plot one or more data streams to the plotter, send your numeric data in CSV format with one of the following seperators:\n\',\' - Comma (0x2C)\n\' \' - Space (0x20)\n\';\' - Semicolon (0x3B)\nHorizontal Tab (0x09), \'\\t\' in code\n\nEach unique set of data samples must be terminated by a LINE FEED character (0x0A), which is usually represented as \'\\n\' in code.\n\n• Only numeric data should be sent over the BLE UART connection(s).\n• The horizontal axis represents time in seconds.</string>
 
 
 	<!-- CircuitPython -->

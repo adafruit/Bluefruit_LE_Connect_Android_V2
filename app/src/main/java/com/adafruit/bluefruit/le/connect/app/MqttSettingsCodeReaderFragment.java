@@ -49,8 +49,8 @@ public class MqttSettingsCodeReaderFragment extends Fragment implements BarcodeG
     private final static String TAG = MqttSettingsCodeReaderFragment.class.getSimpleName();
 
     // Constants
-    private boolean kAutoFocus = true;
-    private boolean kUseFlash = false;
+    private final boolean kAutoFocus = true;
+    private final boolean kUseFlash = false;
 
     // intent request code to handle updating play services if needed.
     private static final int RC_HANDLE_GMS = 9001;
