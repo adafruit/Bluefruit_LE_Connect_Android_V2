@@ -429,16 +429,11 @@ public class MqttAndroidClient extends BroadcastReceiver implements
 			if (!receiverRegistered) registerReceiver(this);
 		}
 		else {
-			pool.execute(new Runnable() {
+			pool.execute(() -> {
+				doConnect();
 
-				@Override
-				public void run() {
-					doConnect();
-					
-					//Register receiver to show shoulder tap.
-					if (!receiverRegistered) registerReceiver(MqttAndroidClient.this);
-				}
-
+				//Register receiver to show shoulder tap.
+				if (!receiverRegistered) registerReceiver(MqttAndroidClient.this);
 			});
 		}
 

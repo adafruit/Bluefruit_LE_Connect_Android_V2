@@ -1,6 +1,7 @@
 package com.adafruit.bluefruit.le.connect.app;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.content.Context.CLIPBOARD_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
 
@@ -533,7 +534,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     }
 
     @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
     void disconnectAllPeripherals() {
         mScannerViewModel.disconnectAllPeripherals();
     }

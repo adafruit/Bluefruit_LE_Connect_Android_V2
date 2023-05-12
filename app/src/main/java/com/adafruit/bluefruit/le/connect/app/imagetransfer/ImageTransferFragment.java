@@ -386,7 +386,11 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                             .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
                                 BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
                                 if (strongBlePeripheralUart != null) {
-                                    strongBlePeripheralUart.disconnect();
+                                    try {
+                                        strongBlePeripheralUart.disconnect();
+                                    } catch (SecurityException e) {
+                                        Log.e(TAG, "security exception: " + e);
+                                    }
                                 }
                             })
                             .show();

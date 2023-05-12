@@ -5,13 +5,13 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
 import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
 
-import java.lang.ref.WeakReference;
 import java.util.UUID;
 
 public class UartPeripheralService extends PeripheralService {

@@ -377,13 +377,13 @@ class BlePeripheralsAdapter extends RecyclerView.Adapter<BlePeripheralsAdapter.V
 
     // region ViewHolder
     static class ViewHolder extends RecyclerView.ViewHolder {
-        View view;
-        TextView nameTextView;
-        TextView descriptionTextView;
-        ImageView rssiImageView;
-        Button connectButton;
-        Button rawDataButton;
-        TextView dataTextView;
+        final View view;
+        final TextView nameTextView;
+        final TextView descriptionTextView;
+        final ImageView rssiImageView;
+        final Button connectButton;
+        final  Button rawDataButton;
+        final TextView dataTextView;
         String deviceAddress;
 
         private boolean isExpanded = false;

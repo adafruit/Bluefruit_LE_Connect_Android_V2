@@ -345,7 +345,11 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
                         .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
                             BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
                             if (strongBlePeripheralUart != null) {
-                                strongBlePeripheralUart.disconnect();
+                                try {
+                                    strongBlePeripheralUart.disconnect();
+                                } catch (SecurityException e) {
+                                    Log.e(TAG, "security exception: " + e);
+                                }
                             }
                         })
                         .show();
@@ -811,7 +815,7 @@ public class NeopixelFragment extends ConnectedPeripheralFragment implements Neo
             }
         }
 
-        class ViewHolder extends RecyclerView.ViewHolder {
+        static class ViewHolder extends RecyclerView.ViewHolder {
             Button mColorButton;
 
             ViewHolder(ViewGroup view) {

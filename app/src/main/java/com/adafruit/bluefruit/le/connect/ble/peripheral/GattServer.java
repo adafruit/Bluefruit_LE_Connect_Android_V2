@@ -1,6 +1,9 @@
 package com.adafruit.bluefruit.le.connect.ble.peripheral;
 
-import android.annotation.TargetApi;
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.content.Context.MODE_PRIVATE;
+
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -21,10 +24,11 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.ParcelUuid;
-import androidx.annotation.NonNull;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.adafruit.bluefruit.le.connect.ble.central.BlePeripheral;
 
@@ -36,9 +40,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
-import static android.content.Context.MODE_PRIVATE;
-
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class GattServer implements PeripheralService.Listener {
     // Log
     private final static String TAG = GattServer.class.getSimpleName();
@@ -181,6 +182,8 @@ public class GattServer implements PeripheralService.Listener {
     }
 
     // region Local Name
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public String getLocalBluetoothName() {
         String name = null;
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -190,6 +193,8 @@ public class GattServer implements PeripheralService.Listener {
         return name;
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(value = BLUETOOTH_CONNECT)
     public void setLocalBluetoothName(String name) {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter != null) {

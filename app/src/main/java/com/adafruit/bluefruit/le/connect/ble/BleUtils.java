@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -202,7 +201,7 @@ public class BleUtils {
     public static String bytesToHex2(byte[] bytes) {
         StringBuilder stringBuffer = new StringBuilder();
         for (byte aByte : bytes) {
-            String charString = String.format("%02X", (byte) aByte);
+            String charString = String.format("%02X", aByte);
 
             stringBuffer.append(charString).append(" ");
         }
@@ -226,7 +225,7 @@ public class BleUtils {
     public static String bytesToHexWithSpaces(byte[] bytes) {
         StringBuilder newString = new StringBuilder();
         for (byte aByte : bytes) {
-            String byteHex = String.format("%02X", (byte) aByte);
+            String byteHex = String.format("%02X", aByte);
             newString.append(byteHex).append(" ");
 
         }

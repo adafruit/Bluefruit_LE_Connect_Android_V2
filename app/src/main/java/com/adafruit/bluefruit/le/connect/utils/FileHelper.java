@@ -1,6 +1,5 @@
 package com.adafruit.bluefruit.le.connect.utils;
 
-import android.annotation.TargetApi;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -8,7 +7,6 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
@@ -17,15 +15,14 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 public class FileHelper {
     // Constants
     private final static String TAG = FileHelper.class.getSimpleName();
 
+    /*
     public static Uri extractFileFromAssets(Context context, String assetsFilename, String outFilename) {
         AssetManager assetManager = context.getAssets();
 
@@ -56,7 +53,7 @@ public class FileHelper {
             out.write(buffer, 0, read);
         }
     }
-
+    */
 
     public static @Nullable Bitmap getBitmapFromAsset(@NonNull Context context, String filePath) {
         AssetManager assetManager = context.getAssets();
@@ -85,7 +82,6 @@ public class FileHelper {
      * @param uri     The Uri to query.
      * @author paulburke
      */
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     public static String getPath(final Context context, final Uri uri) {
 
         // DocumentProvider
@@ -107,7 +103,7 @@ public class FileHelper {
 
                 final String id = DocumentsContract.getDocumentId(uri);
                 final Uri contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+                        Uri.parse("content://downloads/public_downloads"), Long.parseLong(id));
 
                 return getDataColumn(context, contentUri, null, null);
             }

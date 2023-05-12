@@ -38,7 +38,6 @@ import com.adafruit.bluefruit.le.connect.ble.central.BleUUIDNames;
 import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,7 +172,7 @@ public class InfoFragment extends ConnectedPeripheralFragment {
 
         if (services != null) {
             // Order services so "DIS" is at the top (if present)
-            Collections.sort(services, (serviceA, serviceB) -> {
+            services.sort((serviceA, serviceB) -> {
                 final boolean isServiceADis = serviceA.getUuid().equals(kDisServiceUUID);
                 final boolean isServiceBDis = serviceB.getUuid().equals(kDisServiceUUID);
                 return isServiceADis ? -1 : (isServiceBDis ? 1 : serviceA.getUuid().compareTo(serviceB.getUuid()));

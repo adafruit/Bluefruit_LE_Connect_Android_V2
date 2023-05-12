@@ -371,7 +371,12 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     }
 
     private void popFragmentsIfNoPeripheralsConnected() {
-        final int numConnectedPeripherals = BleManager.getInstance().getConnectedDevices().size();
+        int numConnectedPeripherals = 0;
+        try {
+            numConnectedPeripherals = BleManager.getInstance().getConnectedDevices().size();
+        } catch (SecurityException e) {
+            Log.e(TAG, "security exception: " + e);
+        }
         final boolean isLastConnectedPeripheral = numConnectedPeripherals == 0;
 
         if (isLastConnectedPeripheral && (!kAvoidPoppingFragmentsWhileOnDfu || !isIsDfuInProgress())) {
@@ -433,7 +438,11 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BlePeripheral.kBlePeripheral_OnDisconnected.equals(action)) {
-                popFragmentsIfNoPeripheralsConnected();
+                try {
+                    popFragmentsIfNoPeripheralsConnected();
+                } catch (SecurityException e) {
+                    Log.e(TAG, "security exception: " + e);
+                }
             }
         }
     };
@@ -504,8 +513,8 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
 
     // endregion
 
-    private void dfuFinished() {
 
+    private void dfuFinished() {
         if (kAvoidPoppingFragmentsWhileOnDfu) {
             popFragmentsIfNoPeripheralsConnected();
         } else {

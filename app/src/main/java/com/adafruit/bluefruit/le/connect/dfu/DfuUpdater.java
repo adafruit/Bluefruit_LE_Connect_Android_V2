@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
 

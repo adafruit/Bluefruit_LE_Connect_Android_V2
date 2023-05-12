@@ -1,7 +1,6 @@
 package com.adafruit.bluefruit.le.connect.app;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothGatt;
@@ -15,7 +14,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -95,7 +93,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
 
     // Data
     private GoogleApiClient mGoogleApiClient;
-    private Handler sendDataHandler = new Handler();
+    private final Handler sendDataHandler = new Handler();
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
     private FusedLocationProviderClient mFusedLocationClient;
 
@@ -108,9 +106,9 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     private Sensor mGyroscope;
     private Sensor mMagnetometer;
 
-    private float[] mRotation = new float[9];
-    private float[] mOrientation = new float[3];
-    private float[] mQuaternion = new float[4];
+    private final float[] mRotation = new float[9];
+    private final float[] mOrientation = new float[3];
+    private final float[] mQuaternion = new float[4];
 
     private boolean isSensorPollingEnabled = false;
 
@@ -121,14 +119,14 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
     // Create a WeakReference to LocationCallback to avoid memory leaks in GoogleServices: https://github.com/googlesamples/android-play-location/issues/26
     private static class LocationCallbackReference extends LocationCallback {
 
-        private WeakReference<LocationCallback> weakLocationCallback;
+        private final WeakReference<LocationCallback> weakLocationCallback;
 
         LocationCallbackReference(LocationCallback locationCallback) {
             weakLocationCallback = new WeakReference<>(locationCallback);
         }
 
         @Override
-        public void onLocationResult(LocationResult locationResult) {
+        public void onLocationResult(@NonNull LocationResult locationResult) {
             super.onLocationResult(locationResult);
             if (weakLocationCallback.get() != null) {
                 weakLocationCallback.get().onLocationResult(locationResult);
@@ -136,7 +134,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         }
     }
 
-    private LocationCallback mInternalLocationCallback = new LocationCallback() {
+    private final LocationCallback mInternalLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             Location location = locationResult.getLastLocation();
@@ -144,7 +142,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         }
     };
 
-    private LocationCallbackReference mLocationCallback = new LocationCallbackReference(mInternalLocationCallback);
+    private final LocationCallbackReference mLocationCallback = new LocationCallbackReference(mInternalLocationCallback);
     // endregion
 
     // region Fragment Lifecycle
@@ -462,7 +460,11 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                             .setPositiveButton(android.R.string.ok, (dialogInterface, which) -> {
                                 BlePeripheralUart strongBlePeripheralUart = weakBlePeripheralUart.get();
                                 if (strongBlePeripheralUart != null) {
-                                    strongBlePeripheralUart.disconnect();
+                                    try {
+                                        strongBlePeripheralUart.disconnect();
+                                    } catch (SecurityException e) {
+                                        Log.e(TAG, "security exception: " + e);
+                                    }
                                 }
                             })
                             .show();
@@ -839,7 +841,7 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         private class SensorDataViewHolder extends RecyclerView.ViewHolder {
             TextView nameTextView;
             SwitchCompat enabledSwitch;
-            private ViewGroup expandedViewGroup;
+            private final ViewGroup expandedViewGroup;
             TextView value0TextView;
             TextView value1TextView;
             TextView value2TextView;
@@ -889,9 +891,9 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
         }
 
         // Data
-        private Context mContext;
-        private SensorData[] mSensorData;
-        private Listener mListener;
+        private final Context mContext;
+        private final SensorData[] mSensorData;
+        private final Listener mListener;
 
         ControllerAdapter(@NonNull Context context, @NonNull SensorData[] sensorData, @NonNull Listener listener) {
             mContext = context.getApplicationContext();
@@ -977,13 +979,13 @@ public class ControllerFragment extends ConnectedPeripheralFragment implements G
                                 String valueString = null;
                                 final boolean isDefined = sensorData.values != null && i < sensorData.values.length;
                                 if (isDefined) {
+                                    final int[] prefixId;
                                     if (sensorData.sensorType == kSensorType_Location) {
-                                        final int[] prefixId = {R.string.controller_component_lat, R.string.controller_component_long, R.string.controller_component_alt};
-                                        valueString = mContext.getString(prefixId[i]) + ":\t " + sensorData.values[i];
+                                        prefixId = new int[]{R.string.controller_component_lat, R.string.controller_component_long, R.string.controller_component_alt};
                                     } else {
-                                        final int[] prefixId = {R.string.controller_component_x, R.string.controller_component_y, R.string.controller_component_z, R.string.controller_component_w};
-                                        valueString = mContext.getString(prefixId[i]) + ":\t " + sensorData.values[i];
+                                        prefixId = new int[]{R.string.controller_component_x, R.string.controller_component_y, R.string.controller_component_z, R.string.controller_component_w};
                                     }
+                                    valueString = mContext.getString(prefixId[i]) + ":\t " + sensorData.values[i];
                                 }
 
                                 textView.setVisibility(isDefined ? View.VISIBLE : View.GONE);
