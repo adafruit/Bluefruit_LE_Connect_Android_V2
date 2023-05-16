@@ -1,5 +1,6 @@
 package com.adafruit.bluefruit.le.connect.ble.central;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 
@@ -11,6 +12,8 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresPermission;
+
+import com.adafruit.bluefruit.le.connect.utils.PermissionsUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -76,7 +79,11 @@ public class BleScanner {
             if (listener != null) {
                 listener.onScanPeripheralsFailed(errorCode);
             }
-            stop();
+            try {
+                stop();
+            } catch (SecurityException e) {
+                Log.d(TAG, "onScanFailed -> stop: " + e);
+            }
         }
     };
 
@@ -168,11 +175,15 @@ public class BleScanner {
     // endregion
 
     // region Actions
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, BLUETOOTH_SCAN})
     public void start() {
         startWithFilters(null);
     }
 
     @SuppressWarnings("unused")
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, BLUETOOTH_SCAN})
     public void startFilteringServiceUuid(ParcelUuid uuid) {
 
         List<ScanFilter> scanFilters = new ArrayList<>();
@@ -183,27 +194,30 @@ public class BleScanner {
         startWithFilters(scanFilters);
     }
 
-    //     @RequiresPermission(anyOf = {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION})
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, BLUETOOTH_SCAN})
     private synchronized void startWithFilters(@Nullable List<ScanFilter> filters) {
-        if (!mIsScanning) {
-            BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
-            ScanSettings settings = new ScanSettings.Builder()
-                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).setReportDelay(kScanReportDelay)
-                    .setUseHardwareBatchingIfSupported(false).build();
-            mScanFilters = filters;
-            try {
-                scanner.startScan(mScanFilters, settings, mScanCallback);
-                mIsScanning = true;
-                BleScannerListener listener = mWeakListener.get();
-                if (listener != null) {
-                    listener.onScanStatusChanged(true);
+            if (!mIsScanning) {
+                BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
+                ScanSettings settings = new ScanSettings.Builder()
+                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).setReportDelay(kScanReportDelay)
+                        .setUseHardwareBatchingIfSupported(false).build();
+                mScanFilters = filters;
+                try {
+                    scanner.startScan(mScanFilters, settings, mScanCallback);
+                    mIsScanning = true;
+                    BleScannerListener listener = mWeakListener.get();
+                    if (listener != null) {
+                        listener.onScanStatusChanged(true);
+                    }
+                } catch (IllegalStateException e) {     // Exception if the BT adapter is not on
+                    Log.d(TAG, "startWithFilters illegalStateException" + e.getMessage());
                 }
-            } catch (IllegalStateException e) {     // Exception if the BT adapter is not on
-                Log.d(TAG, "startWithFilters illegalStateExcpetion" + e.getMessage());
             }
-        }
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(anyOf = {BLUETOOTH_SCAN})
     public synchronized void stop() {
         if (mIsScanning) {
             BluetoothLeScannerCompat scanner = BluetoothLeScannerCompat.getScanner();
@@ -216,6 +230,8 @@ public class BleScanner {
         }
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, BLUETOOTH_SCAN})
     public synchronized void refresh() {
         stop();
 

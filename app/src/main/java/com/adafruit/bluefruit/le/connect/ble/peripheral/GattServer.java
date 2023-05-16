@@ -1,5 +1,6 @@
 package com.adafruit.bluefruit.le.connect.ble.peripheral;
 
+import static android.Manifest.permission.BLUETOOTH_ADVERTISE;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.content.Context.MODE_PRIVATE;
 
@@ -254,6 +255,8 @@ public class GattServer implements PeripheralService.Listener {
     // endregion
 
     // region Advertising
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(allOf = {BLUETOOTH_CONNECT, BLUETOOTH_ADVERTISE})
     public synchronized boolean startAdvertising(@NonNull Context context) {
         mShouldStartAdvertising = true;
 
