@@ -1,5 +1,10 @@
 package com.adafruit.bluefruit.le.connect.app;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
+
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,6 +13,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -221,6 +227,8 @@ public class MainFragment extends Fragment {
     // endregion
 
     // region Actions
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, BLUETOOTH_SCAN})
     void startScanning() {
         // Send the message to the peripheral mode fragment, or ignore it if is not selected
         if (getCurrentFragment() instanceof ScannerFragment) {
@@ -228,6 +236,8 @@ public class MainFragment extends Fragment {
         }
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
     void disconnectAllPeripherals() {
         // Send the message to the peripheral mode fragment, or ignore it if is not selected
         if (getCurrentFragment() instanceof ScannerFragment) {

@@ -1,9 +1,6 @@
 package magick;
 
 
-import java.io.File;
-
-import android.content.Context;
 import fakeawt.Rectangle;
 
 

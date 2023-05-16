@@ -1,5 +1,6 @@
 package com.adafruit.bluefruit.le.connect.models;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.content.Context.MODE_PRIVATE;
@@ -249,7 +250,11 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         super.onCleared();
 
         // Stop and remove listener
-        stop();
+        try {
+            stop();
+        } catch (SecurityException e) {
+            Log.d(TAG, "Security exception: " + e);
+        }
         if (mScanner.getListener() == this) {       // Replace only if is still myself
             mScanner.setListener(null);
         }
@@ -387,10 +392,14 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
     // endregion
 
     // region Actions
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, BLUETOOTH_SCAN})
     public void refresh() {
         mScanner.refresh();
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(anyOf = {ACCESS_FINE_LOCATION, BLUETOOTH_SCAN})
     public void start() {
         if (!mScanner.isScanning()) {
             Log.d(TAG, "start scanning");
@@ -400,6 +409,8 @@ public class ScannerViewModel extends AndroidViewModel implements BleScanner.Ble
         }
     }
 
+    @SuppressLint("InlinedApi")
+    @RequiresPermission(anyOf = {BLUETOOTH_SCAN})
     public void stop() {
         if (mScanner.isScanning()) {
             Log.d(TAG, "stop scanning");

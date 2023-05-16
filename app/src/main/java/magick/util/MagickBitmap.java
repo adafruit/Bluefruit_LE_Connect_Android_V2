@@ -1,16 +1,15 @@
 package magick.util;
 
-import fakeawt.Dimension;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.util.Log;
+
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
 import magick.ImageInfo;
 import magick.MagickException;
 import magick.MagickImage;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.os.Handler;
-import android.util.Log;
 public class MagickBitmap {
 
 	//////////////////////////////////////////////////////////

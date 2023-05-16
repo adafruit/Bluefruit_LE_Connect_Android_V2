@@ -1,15 +1,11 @@
 package com.adafruit.bluefruit.le.connect.utils;
 
-import android.content.Context;
-import android.inputmethodservice.Keyboard;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.content.Context;
 import android.view.inputmethod.InputMethodManager;
 
 import java.util.HashMap;

@@ -1,8 +1,9 @@
 package com.adafruit.bluefruit.le.connect.dfu;
 
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -12,7 +13,6 @@ import org.xml.sax.InputSource;
 
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +107,7 @@ public class ReleasesParser {
                         }
 
                         // Sort based on version (descending)
-                        Collections.sort(boardInfo.firmwareReleases, (f1, f2) -> versionCompare(f2.version, f1.version));
+                        boardInfo.firmwareReleases.sort((f1, f2) -> versionCompare(f2.version, f1.version));
 
                         // Read bootloader releases
                         try {
@@ -138,7 +138,7 @@ public class ReleasesParser {
                         }
 
                         // Sort based on version (descending)
-                        Collections.sort(boardInfo.bootloaderReleases, (f1, f2) -> versionCompare(f2.version, f1.version));
+                        boardInfo.bootloaderReleases.sort((f1, f2) -> versionCompare(f2.version, f1.version));
 
                     }
                 }

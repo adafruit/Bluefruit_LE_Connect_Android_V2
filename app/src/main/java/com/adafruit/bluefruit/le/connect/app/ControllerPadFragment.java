@@ -62,7 +62,7 @@ public class ControllerPadFragment extends Fragment {
     View.OnTouchListener mPadButtonTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent event) {
-            final int tag = Integer.valueOf((String) view.getTag());
+            final int tag = Integer.parseInt((String) view.getTag());
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 view.setPressed(true);
                 mListener.onSendControllerPadButtonStatus(tag, true);
@@ -194,7 +194,7 @@ public class ControllerPadFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_help, menu);
     }
@@ -207,13 +207,11 @@ public class ControllerPadFragment extends Fragment {
             case R.id.action_help:
                 if (activity != null) {
                     FragmentManager fragmentManager = activity.getSupportFragmentManager();
-                    if (fragmentManager != null) {
-                        CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.controlpad_help_title), getString(R.string.controlpad_help_text));
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
-                                .replace(R.id.contentLayout, helpFragment, "Help");
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
+                    CommonHelpFragment helpFragment = CommonHelpFragment.newInstance(getString(R.string.controlpad_help_title), getString(R.string.controlpad_help_text));
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction()
+                            .replace(R.id.contentLayout, helpFragment, "Help");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
                 }
                 return true;
 

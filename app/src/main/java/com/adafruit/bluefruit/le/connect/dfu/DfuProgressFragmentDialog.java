@@ -1,6 +1,5 @@
 package com.adafruit.bluefruit.le.connect.dfu;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;

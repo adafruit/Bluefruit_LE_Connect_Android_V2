@@ -2,7 +2,6 @@ package com.adafruit.bluefruit.le.connect.app;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -11,10 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,6 +36,7 @@ import com.adafruit.bluefruit.le.connect.dfu.DfuUpdater;
 import com.adafruit.bluefruit.le.connect.dfu.ReleasesParser;
 import com.adafruit.bluefruit.le.connect.models.DfuViewModel;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
+import com.adafruit.bluefruit.le.connect.utils.PermissionsUtils;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -54,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     private final static boolean kAvoidPoppingFragmentsWhileOnDfu = false;
 
     // Permission requests
-    private final static int PERMISSION_REQUEST_ALL = 1;
+    private final static int PERMISSION_REQUEST_BLUETOOTHSCANNING = 1;
 
     // Activity request codes (used for onActivityResult)
     private static final int kActivityRequestCode_EnableBluetooth = 1;
@@ -67,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     private MainFragment mMainFragment;
     private AlertDialog mRequestLocationDialog;
     private boolean hasUserAlreadyBeenAskedAboutBluetoothStatus = false;
+    private boolean isRequestingPermissions = false;
 
     // region Activity Lifecycle
     @Override
@@ -90,7 +88,11 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         // Back navigation listener
         fragmentManager.addOnBackStackChangedListener(() -> {
             if (fragmentManager.getBackStackEntryCount() == 0) {        // Check if coming back
-                mMainFragment.disconnectAllPeripherals();
+                try {
+                    mMainFragment.disconnectAllPeripherals();
+                } catch (SecurityException e) {
+                    Log.d(TAG, "Security exception: " + e);
+                }
             }
         });
 
@@ -181,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
 
     private void checkPermissions() {
 
-        final boolean areLocationServicesReadyForScanning = manageLocationServiceAvailabilityForScanning();
+        final boolean areLocationServicesReadyForScanning = PermissionsUtils.manageLocationServiceAvailabilityForScanning(this);
         if (!areLocationServicesReadyForScanning) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             mRequestLocationDialog = builder.setMessage(R.string.bluetooth_locationpermission_disabled_text)
@@ -195,18 +197,23 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
             }
 
             // Bluetooth state
-            if (!hasUserAlreadyBeenAskedAboutBluetoothStatus) {     // Don't repeat the check if the user was already informed to avoid showing the "Enable Bluetooth" system prompt several times
-                final boolean isBluetoothEnabled = manageBluetoothAvailability();
+            final boolean isBluetoothEnabled = BleUtils.getBleStatus(getApplicationContext()) == BleUtils.STATUS_BLE_ENABLED;
+            if ((isBluetoothEnabled || !hasUserAlreadyBeenAskedAboutBluetoothStatus) && !isRequestingPermissions) {     // Don't repeat the check if the user was already informed to avoid showing the "Enable Bluetooth" system prompt several times
+                manageBluetoothAvailability();
 
                 if (isBluetoothEnabled) {
                     // Request Bluetooth scanning permissions
-                    final boolean isLocationPermissionGranted = requestScanningPermissionsIfNeeded();
+                    final boolean isScanningPermissionGranted = requestScanningPermissionsIfNeeded();
 
-                    if (isLocationPermissionGranted) {
+                    if (isScanningPermissionGranted) {
                         // All good. Start Scanning
                         BleManager.getInstance().start(MainActivity.this);
                         // Bluetooth was enabled, resume scanning
-                        mMainFragment.startScanning();
+                        try {
+                            mMainFragment.startScanning();
+                        } catch (SecurityException e) {
+                            Log.e(TAG, "Start scanning failed: " + e);
+                        }
                     }
                 }
             }
@@ -214,52 +221,15 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     }
 
     // region Permissions
-    String[] getNeededPermissionsForScanning() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            return new String[]{
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT
-            };
-        } else {
-            return new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION
-            };
-        }
-    }
-
-    private boolean manageLocationServiceAvailabilityForScanning() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            return true;
-        } else {
-            int locationMode = Settings.Secure.LOCATION_MODE_OFF;
-            try {
-                locationMode = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
-
-            } catch (Settings.SettingNotFoundException e) {
-                e.printStackTrace();
-            }
-            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
-        }
-    }
-
-    private static boolean hasPermissions(Context context, String... permissions) {
-        if (context != null && permissions != null) {
-            for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
 
     private boolean requestScanningPermissionsIfNeeded() {       // Starting with Android 10, Bluetooth scanning needs Location FINE Permission
 
-        String[] permissions = getNeededPermissionsForScanning();
-        if (hasPermissions(this, permissions)) {
+        String[] permissions = PermissionsUtils.getNeededPermissionsForScanning();
+        if (PermissionsUtils.hasPermissions(this, permissions)) {
             return true;
         } else {
-            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_ALL);
+            isRequestingPermissions = true;
+            ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_BLUETOOTHSCANNING);
             return false;
         }
 
@@ -284,10 +254,10 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         switch (requestCode) {
-            case PERMISSION_REQUEST_ALL: {
-                if (hasPermissions(this, permissions)) {
+            case PERMISSION_REQUEST_BLUETOOTHSCANNING: {
+                if (PermissionsUtils.hasPermissions(this, permissions)) {
+                    isRequestingPermissions = false;
                     Log.d(TAG, "Bluetooth permissions granted");
-
                     checkPermissions();
 
                 } else {
@@ -296,6 +266,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
                     builder.setMessage(R.string.bluetooth_permissions_notavailable_text);
                     builder.setPositiveButton(android.R.string.ok, null);
                     builder.setOnDismissListener(dialog -> {
+                        isRequestingPermissions = false;
                     });
                     builder.show();
                 }
@@ -371,7 +342,12 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     }
 
     private void popFragmentsIfNoPeripheralsConnected() {
-        final int numConnectedPeripherals = BleManager.getInstance().getConnectedDevices().size();
+        int numConnectedPeripherals = 0;
+        try {
+            numConnectedPeripherals = BleManager.getInstance().getConnectedDevices().size();
+        } catch (SecurityException e) {
+            Log.e(TAG, "security exception: " + e);
+        }
         final boolean isLastConnectedPeripheral = numConnectedPeripherals == 0;
 
         if (isLastConnectedPeripheral && (!kAvoidPoppingFragmentsWhileOnDfu || !isIsDfuInProgress())) {
@@ -384,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
     // endregion
 
     // region ScannerFragmentListener
-    public void bluetoothAdapterIsDisabled() {
+    public void scanningIsNotAvailable() {
         checkPermissions();
     }
 
@@ -433,7 +409,11 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BlePeripheral.kBlePeripheral_OnDisconnected.equals(action)) {
-                popFragmentsIfNoPeripheralsConnected();
+                try {
+                    popFragmentsIfNoPeripheralsConnected();
+                } catch (SecurityException e) {
+                    Log.e(TAG, "security exception: " + e);
+                }
             }
         }
     };
@@ -504,12 +484,16 @@ public class MainActivity extends AppCompatActivity implements ScannerFragment.S
 
     // endregion
 
-    private void dfuFinished() {
 
+    private void dfuFinished() {
         if (kAvoidPoppingFragmentsWhileOnDfu) {
             popFragmentsIfNoPeripheralsConnected();
         } else {
-            mMainFragment.startScanning();
+            try {
+                mMainFragment.startScanning();
+            } catch (SecurityException e) {
+                Log.w(TAG, "Start scanning after DFU finished failed: " + e);
+            }
         }
     }
 

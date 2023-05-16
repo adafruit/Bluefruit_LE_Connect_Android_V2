@@ -1,6 +1,7 @@
 package com.adafruit.bluefruit.le.connect.app;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.content.Context.CLIPBOARD_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
 
@@ -64,6 +65,7 @@ import com.adafruit.bluefruit.le.connect.style.StyledSnackBar;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
 import com.adafruit.bluefruit.le.connect.utils.KeyboardUtils;
 import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
+import com.adafruit.bluefruit.le.connect.utils.PermissionsUtils;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Locale;
@@ -204,10 +206,14 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             // Swipe to refreshAll
             mSwipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
             mSwipeRefreshLayout.setOnRefreshListener(() -> {
-                if (BleManager.getInstance().isAdapterEnabled()) {
-                    mScannerViewModel.refresh();
+                if (BleManager.getInstance().isAdapterEnabled() && PermissionsUtils.hasPermissionsForScanning(context)) {
+                    try {
+                        mScannerViewModel.refresh();
+                    } catch (SecurityException e) {
+                        Log.e(TAG, "Security exception:" + e);
+                    }
                 } else {
-                    mListener.bluetoothAdapterIsDisabled();
+                    mListener.scanningIsNotAvailable();
                 }
                 new Handler().postDelayed(() -> mSwipeRefreshLayout.setRefreshing(false), 500);
             });
@@ -473,7 +479,11 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
             // Automatically starts scanning
             boolean isDfuInProgress = activity instanceof MainActivity && ((MainActivity) activity).isIsDfuInProgress();
             if (!isDfuInProgress) {
-                startScanning();
+                try {
+                    startScanning();
+                } catch (SecurityException e) {
+                    Log.d(TAG, "Scanning can't resume: " + e);
+                }
             } else {
                 Log.d(TAG, "Don't start scanning because DFU  is in progress");
             }
@@ -484,7 +494,11 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
     public void onPause() {
         super.onPause();
 
-        mScannerViewModel.stop();
+        try {
+            mScannerViewModel.stop();
+        } catch (SecurityException e) {
+            Log.d(TAG, "Security exception: " + e);
+        }
     }
 
     @Override
@@ -529,11 +543,23 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
     // region Actions
     void startScanning() {
-        mScannerViewModel.start();
+        final Context context = getContext();
+        if (context != null) {
+            if (BleManager.getInstance().isAdapterEnabled() && PermissionsUtils.hasPermissionsForScanning(context)) {
+                try {
+                    mScannerViewModel.start();
+                } catch (SecurityException e) {
+                    Log.e(TAG, "Security exception:" + e);
+                }
+
+            } /*else {
+                mListener.scanningIsNotAvailable();
+            }*/
+        }
     }
 
     @SuppressLint("InlinedApi")
-    @RequiresPermission(value = BLUETOOTH_CONNECT)
+    @RequiresPermission(allOf = {BLUETOOTH_SCAN, BLUETOOTH_CONNECT})
     void disconnectAllPeripherals() {
         mScannerViewModel.disconnectAllPeripherals();
     }
@@ -747,15 +773,18 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
     private void startFirmwareUpdate(@NonNull BlePeripheral blePeripheral, @NonNull ReleasesParser.FirmwareInfo firmwareInfo) {
         removeConnectionStateDialog();       // hide current dialogs because software update will display a dialog
-        mScannerViewModel.stop();
+        try {
+            mScannerViewModel.stop();
+        } catch (SecurityException e) {
+            Log.w(TAG, "Security exception:" + e);
+        }
 
         FragmentActivity activity = getActivity();
         if (activity instanceof MainActivity) {
             MainActivity mainActivity = (MainActivity) activity;
             try {
                 mainActivity.startUpdate(blePeripheral, firmwareInfo);
-            }
-            catch (SecurityException e) {
+            } catch (SecurityException e) {
                 Log.e(TAG, "Security exception startFirmwareUpdate: " + e);
             }
         }
@@ -763,7 +792,7 @@ public class ScannerFragment extends Fragment implements ScannerStatusFragmentDi
 
     // region Listeners
     interface ScannerFragmentListener {
-        void bluetoothAdapterIsDisabled();
+        void scanningIsNotAvailable();
 
         void scannerRequestPermissionsIfNeeded();
 

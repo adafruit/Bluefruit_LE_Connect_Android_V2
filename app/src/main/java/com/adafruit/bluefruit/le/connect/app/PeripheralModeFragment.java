@@ -106,7 +106,7 @@ public class PeripheralModeFragment extends Fragment {
             //PeripheralModeViewModel model = new ViewModelProvider(activity).get(PeripheralModeViewModel.class);
             PeripheralModeViewModel model = new ViewModelProvider(activity, new ViewModelProvider.AndroidViewModelFactory(activity.getApplication())).get(PeripheralModeViewModel.class);
 
-            model.getStartAdvertisingErrorCode().observe(this, errorCode -> {
+            model.getStartAdvertisingErrorCode().observe(getViewLifecycleOwner(), errorCode -> {
                 Log.d(TAG, "Advertising error: " + errorCode);
 
                 if (errorCode != null) {
@@ -180,7 +180,7 @@ public class PeripheralModeFragment extends Fragment {
         }
 
         // Structs
-        class SectionViewHolder extends RecyclerView.ViewHolder {
+        static class SectionViewHolder extends RecyclerView.ViewHolder {
             TextView titleTextView;
 
             SectionViewHolder(View view) {
@@ -189,7 +189,7 @@ public class PeripheralModeFragment extends Fragment {
             }
         }
 
-        class AdvertisingInfoViewHolder extends RecyclerView.ViewHolder {
+        static class AdvertisingInfoViewHolder extends RecyclerView.ViewHolder {
             TextView titleTextView;
             EditText nameEditText;
             SwitchCompat enabledSwitch;
@@ -202,7 +202,7 @@ public class PeripheralModeFragment extends Fragment {
             }
         }
 
-        class ServiceViewHolder extends RecyclerView.ViewHolder {
+        static class ServiceViewHolder extends RecyclerView.ViewHolder {
             ViewGroup mainViewGroup;
             TextView nameTextView;
             SwitchCompat enabledSwitch;
@@ -216,9 +216,9 @@ public class PeripheralModeFragment extends Fragment {
         }
 
         // Data
-        private Context mContext;
-        private PeripheralModeViewModel mModel;
-        private Listener mListener;
+        private final Context mContext;
+        private final PeripheralModeViewModel mModel;
+        private final Listener mListener;
 
         //
         PeripheralModeAdapter(@NonNull Context context, @NonNull PeripheralModeViewModel viewModel, @NonNull Listener listener) {

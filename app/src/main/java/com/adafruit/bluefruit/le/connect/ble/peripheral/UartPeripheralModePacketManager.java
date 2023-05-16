@@ -1,16 +1,15 @@
 package com.adafruit.bluefruit.le.connect.ble.peripheral;
 
 import android.content.Context;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Log;
 
 import com.adafruit.bluefruit.le.connect.ble.UartPacket;
 import com.adafruit.bluefruit.le.connect.ble.UartPacketManagerBase;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttManager;
 import com.adafruit.bluefruit.le.connect.mqtt.MqttSettings;
-
-import java.nio.charset.Charset;
 
 public class UartPeripheralModePacketManager extends UartPacketManagerBase {
     // Log

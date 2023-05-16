@@ -996,9 +996,9 @@ public class BlePeripheral {
     };
 
     static class BleCommandCaptureReadParameters {
-        String readIdentifier;
-        CaptureReadCompletionHandler completionHandler;
-        int timeout;
+        final String readIdentifier;
+        final CaptureReadCompletionHandler completionHandler;
+        final int timeout;
 
         BleCommandCaptureReadParameters(@NonNull String readIdentifier, @Nullable CaptureReadCompletionHandler completionHandler, int timeout) {
             this.readIdentifier = readIdentifier;

@@ -36,13 +36,11 @@ import com.adafruit.bluefruit.le.connect.ble.central.BleScanner;
 import com.adafruit.bluefruit.le.connect.ble.central.UartPacketManager;
 import com.adafruit.bluefruit.le.connect.style.UartStyle;
 import com.adafruit.bluefruit.le.connect.utils.DialogUtils;
-import com.adafruit.bluefruit.le.connect.utils.LocalizationManager;
 
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -201,7 +201,7 @@ public class CameraSourcePreview extends ViewGroup {
 
         // Computes height and width for potentially doing fit width.
         int childWidth = layoutWidth;
-        int childHeight = (int) (((float) layoutWidth / (float) width) * height);
+        //int childHeight = (int) (((float) layoutWidth / (float) width) * height);
 
         for (int i = 0; i < getChildCount(); ++i) {
             getChildAt(i).layout(0, 0, childWidth, layoutHeight);
