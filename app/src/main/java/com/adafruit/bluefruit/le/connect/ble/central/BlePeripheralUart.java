@@ -254,7 +254,7 @@ public class BlePeripheralUart {
                         public void run() {
                             uartSendPacket(data, this.getWrittenSize(), uartTxCharacteristic, withResponseEveryPacketCount, numPacketsRemainingForDelay <= 0 ? withResponseEveryPacketCount : numPacketsRemainingForDelay - 1, progressHandler, completionHandler);
                         }
-                    }, 20);
+                    }, 40);
 
                 }
             }

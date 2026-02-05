@@ -554,24 +554,20 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         PackageManager packageManager = context.getPackageManager();
         final boolean hasCamera = packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
 
-        boolean isCameraAvailable = false;
-        if (hasCamera) {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            if (takePictureIntent.resolveActivity(packageManager) != null) {
-                isCameraAvailable = true;
-            }
+        if (!hasCamera) {
+            Log.d(TAG, "No camera available");
         }
 
         // Show image picker choices
         String[] imageChoices;
-        if (isCameraAvailable) {
+        if (hasCamera) {
             imageChoices = new String[]{getString(R.string.imagetransfer_imagepicker_camera), getString(R.string.imagetransfer_imagepicker_photolibrary)};
         } else {
             imageChoices = new String[]{getString(R.string.imagetransfer_imagepicker_photolibrary)};
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        boolean finalIsCameraAvailable = isCameraAvailable;
+        boolean finalIsCameraAvailable = hasCamera;
         builder.setTitle(R.string.imagetransfer_imageorigin_choose)
                 .setItems(imageChoices, (dialog, which) -> {
                     boolean isCameraSelected = which == 0 && finalIsCameraAvailable;
@@ -598,33 +594,30 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         PackageManager packageManager = context.getPackageManager();
 
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(packageManager) != null) {
 
-            File photoFile = null;
-            try {
-                photoFile = createImageFile(context);
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-                Log.w(TAG, "Could not create file to save picture");
-                new AlertDialog.Builder(context)
-                        .setMessage(R.string.imagetransfer_cameranotavailable)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                final String authority = context.getApplicationContext().getPackageName() + kAuthorityField;
-                Uri photoUri = FileProvider.getUriForFile(context.getApplicationContext(), authority, photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-
-                Log.d(TAG, "Start takePictureIntent");
-                startActivityForResult(takePictureIntent, kActivityRequestCode_takePicture);
-                Log.d(TAG, "Started takePictureIntent");
-            }
-
-        } else {
-            Log.w(TAG, "Image capture not available");
+        File photoFile = null;
+        try {
+            photoFile = createImageFile(context);
+        } catch (IOException ex) {
+            // Error occurred while creating the File
+            Log.w(TAG, "Could not create file to save picture");
+            new AlertDialog.Builder(context)
+                    .setMessage(R.string.imagetransfer_cameranotavailable)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
         }
+        // Continue only if the File was successfully created
+        if (photoFile != null) {
+            final String authority = context.getApplicationContext().getPackageName() + kAuthorityField;
+            Uri photoUri = FileProvider.getUriForFile(context.getApplicationContext(), authority, photoFile);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+
+            Log.d(TAG, "Start takePictureIntent");
+            startActivityForResult(takePictureIntent, kActivityRequestCode_takePicture);
+            Log.d(TAG, "Started takePictureIntent");
+        }
+
+
     }
 
     private void chooseFromLibrary(@NonNull Context context) {
