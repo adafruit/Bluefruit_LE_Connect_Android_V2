@@ -38,6 +38,9 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -118,6 +121,8 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     // Data - photo
     private String mTemporalPhotoPath;
 
+    private ActivityResultLauncher<PickVisualMediaRequest> pickMedia;
+
     public static ImageTransferFragment newInstance(@Nullable String singlePeripheralIdentifier) {
         ImageTransferFragment fragment = new ImageTransferFragment();
         fragment.setArguments(createFragmentArgs(singlePeripheralIdentifier));
@@ -130,6 +135,43 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
+        // Registers a photo picker activity launcher in single-select mode.
+        pickMedia =
+                registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+                    // Callback is invoked after the user selects a media item or closes the
+                    // photo picker.
+                    if (uri != null) {
+                        Log.d("PhotoPicker", "Selected URI: " + uri);
+                        // Copy image to temporary file
+                        try {
+                            InputStream input = getContext().getContentResolver().openInputStream(uri);
+                            if (input != null) {
+                                final File temporaryFile = File.createTempFile("imagetransfer_picture", null);
+                                temporaryFile.deleteOnExit();
+                                try (FileOutputStream output = new FileOutputStream(temporaryFile)) {
+                                    byte[] buffer = new byte[4 * 1024];
+                                    int read;
+                                    while ((read = input.read(buffer)) != -1) {
+                                        output.write(buffer, 0, read);
+                                    }
+
+                                    output.flush();
+                                }
+
+                                cropImage(temporaryFile.getPath());
+                            }
+
+                        } catch (FileNotFoundException e) {
+                            Log.e(TAG, "Error opening image: " + e);
+                        } catch (IOException e) {
+                            Log.e(TAG, "Error creating temporary image: " + e);
+                        }
+                    } else {
+                        Log.d("PhotoPicker", "No media selected");
+                    }
+                });
+
         super.onCreate(savedInstanceState);
     }
 
@@ -537,7 +579,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                     if (isCameraSelected) {     // Get image from camera
                         chooseFromCameraAskingPermissionIfNeeded(context);
                     } else {            // Get image from gallery
-                        chooseFromLibraryAskingPermissionIfNeeded(context);
+                        chooseFromLibrary(context);
                     }
                 });
         builder.show();
@@ -585,25 +627,14 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         }
     }
 
-    private void chooseFromLibraryAskingPermissionIfNeeded(@NonNull Context context) {
-        int rc = ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
-        if (rc == PackageManager.PERMISSION_GRANTED) {
-            chooseFromLibrary(context);
-        } else {
-            requestExternalReadPermission();
-        }
-    }
-
     private void chooseFromLibrary(@NonNull Context context) {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        Intent pickPictureIntent = Intent.createChooser(intent, getString(R.string.imagetransfer_imageorigin_choose));
-        if (pickPictureIntent.resolveActivity(context.getPackageManager()) != null) {
-            startActivityForResult(pickPictureIntent, kActivityRequestCode_pickFromGallery);
-        } else {
-            Log.w(TAG, "There is no photo picker available");
-        }
+        // API 34+ new Photo picker
+        // https://developer.android.com/training/data-storage/shared/photo-picker
+        // Launch the photo picker and let the user choose only images.
+        pickMedia.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build());
+
     }
 
     private void setImage(Bitmap bitmap) {
@@ -629,38 +660,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         Context context = getContext();
         if (context == null) return;
 
-        if (requestCode == kActivityRequestCode_pickFromGallery && resultCode == Activity.RESULT_OK) {
-            if (data != null && data.getData() != null) {
-
-                // Copy image to temporary file
-                try {
-                    InputStream input = context.getContentResolver().openInputStream(data.getData());
-                    if (input != null) {
-                        final File temporaryFile = File.createTempFile("imagetransfer_picture", null);
-                        temporaryFile.deleteOnExit();
-                        try (FileOutputStream output = new FileOutputStream(temporaryFile)) {
-                            byte[] buffer = new byte[4 * 1024];
-                            int read;
-                            while ((read = input.read(buffer)) != -1) {
-                                output.write(buffer, 0, read);
-                            }
-
-                            output.flush();
-                        }
-
-                        cropImage(temporaryFile.getPath());
-                    }
-
-                } catch (FileNotFoundException e) {
-                    Log.e(TAG, "Error opening image: " + e);
-                } catch (IOException e) {
-                    Log.e(TAG, "Error creating temporary image: " + e);
-                }
-
-            } else {
-                Log.w(TAG, "Couldn't pick a photo");
-            }
-        } else if (requestCode == kActivityRequestCode_takePicture && resultCode == Activity.RESULT_OK) {
+        if (requestCode == kActivityRequestCode_takePicture && resultCode == Activity.RESULT_OK) {
             Log.d(TAG, "Picture taken");
 
             addPictureToGallery(context, mTemporalPhotoPath);
@@ -723,26 +723,6 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         }
         Toast.makeText(activity, R.string.imagetransfer_cameraneeded, Toast.LENGTH_LONG).show();
          */
-    }
-
-    private void requestExternalReadPermission() {
-        FragmentActivity activity = getActivity();
-        if (activity == null) {
-            return;
-        }
-
-        Log.w(TAG, "External read permission is not granted. Requesting permission");
-
-        final String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
-        requestPermissions(permissions, kActivityRequestCode_requestReadExternalStoragePermission);
-
-        /* No need to explain rationale
-        if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            requestPermissions(permissions, kActivityRequestCode_requestReadExternalStoragePermission);
-            return;
-        }
-        Toast.makeText(activity, R.string.imagetransfer_readexternalneeded, Toast.LENGTH_LONG).show();
-        */
     }
 
     @Override
