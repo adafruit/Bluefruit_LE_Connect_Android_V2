@@ -19,7 +19,6 @@ import androidx.annotation.RequiresPermission;
 
 import com.adafruit.bluefruit.le.connect.BuildConfig;
 import com.adafruit.bluefruit.le.connect.ble.BleUtils;
-import com.adafruit.bluefruit.le.connect.utils.RunnableWithSizeArg;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
@@ -251,14 +250,9 @@ public class BlePeripheralUart {
                     //int finalWrittenSize = writtenSize;
                     //handler.postDelayed(() -> uartSendPacket(handler, data, finalWrittenSize, uartTxCharacteristic, uartTxCharacteristicWriteType, progressHandler, completionHandler), 100);
 
+                    final int nextOffset = writtenSize;
                     // small delay to give CircuitPython time to render
-                    handler.postDelayed(new RunnableWithSizeArg(writtenSize) {
-                        @Override
-                        public void run() {
-                            uartSendPacket(data, this.getWrittenSize(), uartTxCharacteristic, withResponseEveryPacketCount, numPacketsRemainingForDelay <= 0 ? withResponseEveryPacketCount : numPacketsRemainingForDelay - 1, progressHandler, completionHandler);
-                        }
-                    }, UART_PACKET_SEND_DELAY_MS);
-
+                    handler.postDelayed(() -> uartSendPacket(data, nextOffset, uartTxCharacteristic, withResponseEveryPacketCount, numPacketsRemainingForDelay <= 0 ? withResponseEveryPacketCount : numPacketsRemainingForDelay - 1, progressHandler, completionHandler), 40);
                 }
             }
 
