@@ -151,7 +151,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                                 Log.w(TAG, "PhotoPicker callback invoked with null context; aborting image processing");
                                 return;
                             }
-                            try (InputStream input = getContext().getContentResolver().openInputStream(uri)) {
+                            try (InputStream input = context.getContentResolver().openInputStream(uri)) {
                                 if (input != null) {
                                     final File temporaryFile = File.createTempFile("imagetransfer_picture", null, context.getCacheDir());
                                     try (FileOutputStream output = new FileOutputStream(temporaryFile)) {
@@ -926,12 +926,22 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     // endregion
 
     // region ImageCropFragment
+    @Override
     public void onCropFinished(Bitmap bitmap, String tempFilePath) {
         Log.d(TAG, "onCropFinished");
         setImage(bitmap);
+
+        Context context = getContext();
+        if (context == null || tempFilePath == null) {
+            return;
+        }
         final File tempImgFile = new File(tempFilePath);
-        final boolean deleteSuccess = tempImgFile.delete();
-        Log.d(TAG, "tempImageFile deleted successfully: " + deleteSuccess);
+        final File cacheDir = context.getCacheDir();
+        // Only delete temporary picker copies stored under the app's cache directory.
+        if (cacheDir != null && tempImgFile.getAbsolutePath().startsWith(cacheDir.getAbsolutePath())) {
+            final boolean deleteSuccess = tempImgFile.delete();
+            Log.d(TAG, "tempImageFile deleted successfully: " + deleteSuccess);
+        }
     }
     // endregion
 }
