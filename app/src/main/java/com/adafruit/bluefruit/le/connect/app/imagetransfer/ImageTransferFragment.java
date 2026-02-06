@@ -622,7 +622,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     }
 
     private void chooseFromLibrary(@NonNull Context context) {
-        // API 34+ new Photo picker
+        // API 33+ new Photo picker (androidx provides backward compatibility for lower API levels)
         // https://developer.android.com/training/data-storage/shared/photo-picker
         // Launch the photo picker and let the user choose only images.
         pickMedia.launch(new PickVisualMediaRequest.Builder()
