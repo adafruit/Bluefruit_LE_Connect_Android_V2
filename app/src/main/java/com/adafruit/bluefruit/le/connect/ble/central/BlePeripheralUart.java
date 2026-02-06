@@ -252,7 +252,7 @@ public class BlePeripheralUart {
 
                     final int nextOffset = writtenSize;
                     // small delay to give CircuitPython time to render
-                    handler.postDelayed(() -> uartSendPacket(data, nextOffset, uartTxCharacteristic, withResponseEveryPacketCount, numPacketsRemainingForDelay <= 0 ? withResponseEveryPacketCount : numPacketsRemainingForDelay - 1, progressHandler, completionHandler), 40);
+                    handler.postDelayed(() -> uartSendPacket(data, nextOffset, uartTxCharacteristic, withResponseEveryPacketCount, numPacketsRemainingForDelay <= 0 ? withResponseEveryPacketCount : numPacketsRemainingForDelay - 1, progressHandler, completionHandler), UART_PACKET_SEND_DELAY_MS);
                 }
             }
 
