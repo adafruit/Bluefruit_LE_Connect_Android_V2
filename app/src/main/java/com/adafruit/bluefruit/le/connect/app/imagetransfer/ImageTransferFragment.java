@@ -145,10 +145,14 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                         Log.d("PhotoPicker", "Selected URI: " + uri);
                         // Copy image to temporary file
                         try {
+                            final Context context = getContext();
+                            if (context == null) {
+                                Log.w(TAG, "PhotoPicker callback invoked with null context; aborting image processing");
+                                return;
+                            }
                             try (InputStream input = getContext().getContentResolver().openInputStream(uri)) {
                                 if (input != null) {
-                                    final File temporaryFile = File.createTempFile("imagetransfer_picture", null);
-                                    temporaryFile.deleteOnExit();
+                                    final File temporaryFile = File.createTempFile("imagetransfer_picture", null, context.getCacheDir());
                                     try (FileOutputStream output = new FileOutputStream(temporaryFile)) {
                                         byte[] buffer = new byte[4 * 1024];
                                         int read;
@@ -592,8 +596,6 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     }
 
     private void chooseFromCamera(@NonNull Context context) {
-        PackageManager packageManager = context.getPackageManager();
-
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         File photoFile = null;
@@ -930,10 +932,12 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     // endregion
 
     // region ImageCropFragment
-    public void onCropFinished(Bitmap bitmap) {
+    public void onCropFinished(Bitmap bitmap, String tempFilePath) {
         Log.d(TAG, "onCropFinished");
         setImage(bitmap);
-
+        final File tempImgFile = new File(tempFilePath);
+        final boolean deleteSuccess = tempImgFile.delete();
+        Log.d(TAG, "tempImageFile deleted successfully: " + deleteSuccess);
     }
     // endregion
 }
