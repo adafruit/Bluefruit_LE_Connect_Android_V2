@@ -59,7 +59,7 @@ public class BlePeripheralUart {
     private BluetoothGattCharacteristic mUartRxCharacteristic;
     private int mUartTxCharacteristicWriteType;
     private boolean mIsSendSequentiallyCancelled = false;
-    final Handler mHandler = new Handler(Looper.getMainLooper());
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     // region Initialization
     public BlePeripheralUart(@NonNull BlePeripheral blePeripheral) {
