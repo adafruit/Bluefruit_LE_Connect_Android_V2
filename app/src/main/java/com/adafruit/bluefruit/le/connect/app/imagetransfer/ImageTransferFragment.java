@@ -145,21 +145,22 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                         Log.d("PhotoPicker", "Selected URI: " + uri);
                         // Copy image to temporary file
                         try {
-                            InputStream input = getContext().getContentResolver().openInputStream(uri);
-                            if (input != null) {
-                                final File temporaryFile = File.createTempFile("imagetransfer_picture", null);
-                                temporaryFile.deleteOnExit();
-                                try (FileOutputStream output = new FileOutputStream(temporaryFile)) {
-                                    byte[] buffer = new byte[4 * 1024];
-                                    int read;
-                                    while ((read = input.read(buffer)) != -1) {
-                                        output.write(buffer, 0, read);
+                            try (InputStream input = getContext().getContentResolver().openInputStream(uri)) {
+                                if (input != null) {
+                                    final File temporaryFile = File.createTempFile("imagetransfer_picture", null);
+                                    temporaryFile.deleteOnExit();
+                                    try (FileOutputStream output = new FileOutputStream(temporaryFile)) {
+                                        byte[] buffer = new byte[4 * 1024];
+                                        int read;
+                                        while ((read = input.read(buffer)) != -1) {
+                                            output.write(buffer, 0, read);
+                                        }
+
+                                        output.flush();
                                     }
 
-                                    output.flush();
+                                    cropImage(temporaryFile.getPath());
                                 }
-
-                                cropImage(temporaryFile.getPath());
                             }
 
                         } catch (FileNotFoundException e) {
@@ -567,10 +568,10 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        boolean finalIsCameraAvailable = hasCamera;
+
         builder.setTitle(R.string.imagetransfer_imageorigin_choose)
                 .setItems(imageChoices, (dialog, which) -> {
-                    boolean isCameraSelected = which == 0 && finalIsCameraAvailable;
+                    boolean isCameraSelected = which == 0 && hasCamera;
 
                     if (isCameraSelected) {     // Get image from camera
                         chooseFromCameraAskingPermissionIfNeeded(context);

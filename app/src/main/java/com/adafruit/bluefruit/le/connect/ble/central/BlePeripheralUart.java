@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelUuid;
 import android.util.Log;
 
@@ -41,6 +42,8 @@ public class BlePeripheralUart {
 
     public final static int MODE_UART = 0;
     public final static int MODE_CIRCUITPYTHON = 1;
+
+    private final static int UART_PACKET_SEND_DELAY_MS = 40;
 
     //private static final int kUartTxMaxBytes = 20;
     private static final int kUartReplyDefaultTimeout = 2000;       // in millis
@@ -233,7 +236,7 @@ public class BlePeripheralUart {
         final byte[] packet = Arrays.copyOfRange(data, offset, offset + packetSize);
         final int writeStartingOffset = offset;
         final int uartTxCharacteristicWriteType = numPacketsRemainingForDelay <= 0 ? BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT : BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE;          // Send a packet WRITE_TYPE_DEFAULT to force wait until receive response and avoid dropping packets if the peripheral is not processing them fast enough
-        final Handler handler = new Handler();
+        final Handler handler = new Handler(Looper.getMainLooper());
         mBlePeripheral.writeCharacteristic(uartTxCharacteristic, uartTxCharacteristicWriteType, packet, status -> {
             int writtenSize = writeStartingOffset;
 
@@ -254,7 +257,7 @@ public class BlePeripheralUart {
                         public void run() {
                             uartSendPacket(data, this.getWrittenSize(), uartTxCharacteristic, withResponseEveryPacketCount, numPacketsRemainingForDelay <= 0 ? withResponseEveryPacketCount : numPacketsRemainingForDelay - 1, progressHandler, completionHandler);
                         }
-                    }, 40);
+                    }, UART_PACKET_SEND_DELAY_MS);
 
                 }
             }
