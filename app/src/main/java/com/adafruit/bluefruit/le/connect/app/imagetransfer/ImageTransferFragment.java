@@ -3,6 +3,7 @@ package com.adafruit.bluefruit.le.connect.app.imagetransfer;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothGatt;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -616,11 +617,16 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
 
             Log.d(TAG, "Start takePictureIntent");
-            startActivityForResult(takePictureIntent, kActivityRequestCode_takePicture);
-            Log.d(TAG, "Started takePictureIntent");
+            try {
+                startActivityForResult(takePictureIntent, kActivityRequestCode_takePicture);
+                Log.d(TAG, "Started takePictureIntent");
+            }catch (ActivityNotFoundException e){
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setMessage(R.string.imagetransfer_no_camera_app)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+            }
         }
-
-
     }
 
     private void chooseFromLibrary(@NonNull Context context) {
@@ -741,19 +747,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
             }
-        } else if (requestCode == kActivityRequestCode_requestReadExternalStoragePermission) {
-            if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "External read permission granted");
-                chooseFromLibrary(context);
-            } else {
-                Log.e(TAG, "Permission not granted: results len = " + grantResults.length + " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                builder.setMessage(R.string.imagetransfer_readexternalneeded)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
-            }
-        } else {
+        }else {
             Log.d(TAG, "Got unexpected permission result: " + requestCode);
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }

@@ -59,6 +59,7 @@ public class BlePeripheralUart {
     private BluetoothGattCharacteristic mUartRxCharacteristic;
     private int mUartTxCharacteristicWriteType;
     private boolean mIsSendSequentiallyCancelled = false;
+    final Handler mHandler = new Handler(Looper.getMainLooper());
 
     // region Initialization
     public BlePeripheralUart(@NonNull BlePeripheral blePeripheral) {
@@ -235,7 +236,6 @@ public class BlePeripheralUart {
         final byte[] packet = Arrays.copyOfRange(data, offset, offset + packetSize);
         final int writeStartingOffset = offset;
         final int uartTxCharacteristicWriteType = numPacketsRemainingForDelay <= 0 ? BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT : BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE;          // Send a packet WRITE_TYPE_DEFAULT to force wait until receive response and avoid dropping packets if the peripheral is not processing them fast enough
-        final Handler handler = new Handler(Looper.getMainLooper());
         mBlePeripheral.writeCharacteristic(uartTxCharacteristic, uartTxCharacteristicWriteType, packet, status -> {
             int writtenSize = writeStartingOffset;
 
@@ -252,7 +252,7 @@ public class BlePeripheralUart {
 
                     final int nextOffset = writtenSize;
                     // small delay to give CircuitPython time to render
-                    handler.postDelayed(() -> uartSendPacket(data, nextOffset, uartTxCharacteristic, withResponseEveryPacketCount, numPacketsRemainingForDelay <= 0 ? withResponseEveryPacketCount : numPacketsRemainingForDelay - 1, progressHandler, completionHandler), UART_PACKET_SEND_DELAY_MS);
+                    mHandler.postDelayed(() -> uartSendPacket(data, nextOffset, uartTxCharacteristic, withResponseEveryPacketCount, numPacketsRemainingForDelay <= 0 ? withResponseEveryPacketCount : numPacketsRemainingForDelay - 1, progressHandler, completionHandler), UART_PACKET_SEND_DELAY_MS);
                 }
             }
 
