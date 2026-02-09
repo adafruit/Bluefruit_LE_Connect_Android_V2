@@ -3,6 +3,7 @@ package com.adafruit.bluefruit.le.connect.app.imagetransfer;
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothGatt;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -38,6 +39,9 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -118,6 +122,8 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     // Data - photo
     private String mTemporalPhotoPath;
 
+    private ActivityResultLauncher<PickVisualMediaRequest> mPickMedia;
+
     public static ImageTransferFragment newInstance(@Nullable String singlePeripheralIdentifier) {
         ImageTransferFragment fragment = new ImageTransferFragment();
         fragment.setArguments(createFragmentArgs(singlePeripheralIdentifier));
@@ -130,6 +136,48 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
+        // Registers a photo picker activity launcher in single-select mode.
+        mPickMedia =
+                registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+                    // Callback is invoked after the user selects a media item or closes the
+                    // photo picker.
+                    if (uri != null) {
+                        Log.d(TAG, "PhotoPicker Selected URI: " + uri);
+                        // Copy image to temporary file
+                        try {
+                            final Context context = getContext();
+                            if (context == null) {
+                                Log.w(TAG, "PhotoPicker callback invoked with null context; aborting image processing");
+                                return;
+                            }
+                            try (InputStream input = context.getContentResolver().openInputStream(uri)) {
+                                if (input != null) {
+                                    final File temporaryFile = File.createTempFile("imagetransfer_picture", null, context.getCacheDir());
+                                    try (FileOutputStream output = new FileOutputStream(temporaryFile)) {
+                                        byte[] buffer = new byte[4 * 1024];
+                                        int read;
+                                        while ((read = input.read(buffer)) != -1) {
+                                            output.write(buffer, 0, read);
+                                        }
+
+                                        output.flush();
+                                    }
+
+                                    cropImage(temporaryFile.getPath());
+                                }
+                            }
+
+                        } catch (FileNotFoundException e) {
+                            Log.e(TAG, "Error opening image: " + e);
+                        } catch (IOException e) {
+                            Log.e(TAG, "Error creating temporary image: " + e);
+                        }
+                    } else {
+                        Log.d(TAG, "No media selected");
+                    }
+                });
+
         super.onCreate(savedInstanceState);
     }
 
@@ -512,32 +560,28 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         PackageManager packageManager = context.getPackageManager();
         final boolean hasCamera = packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
 
-        boolean isCameraAvailable = false;
-        if (hasCamera) {
-            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            if (takePictureIntent.resolveActivity(packageManager) != null) {
-                isCameraAvailable = true;
-            }
+        if (!hasCamera) {
+            Log.d(TAG, "No camera available");
         }
 
         // Show image picker choices
         String[] imageChoices;
-        if (isCameraAvailable) {
+        if (hasCamera) {
             imageChoices = new String[]{getString(R.string.imagetransfer_imagepicker_camera), getString(R.string.imagetransfer_imagepicker_photolibrary)};
         } else {
             imageChoices = new String[]{getString(R.string.imagetransfer_imagepicker_photolibrary)};
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        boolean finalIsCameraAvailable = isCameraAvailable;
+
         builder.setTitle(R.string.imagetransfer_imageorigin_choose)
                 .setItems(imageChoices, (dialog, which) -> {
-                    boolean isCameraSelected = which == 0 && finalIsCameraAvailable;
+                    boolean isCameraSelected = which == 0 && hasCamera;
 
                     if (isCameraSelected) {     // Get image from camera
                         chooseFromCameraAskingPermissionIfNeeded(context);
                     } else {            // Get image from gallery
-                        chooseFromLibraryAskingPermissionIfNeeded(context);
+                        chooseFromLibrary(context);
                     }
                 });
         builder.show();
@@ -553,57 +597,46 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     }
 
     private void chooseFromCamera(@NonNull Context context) {
-        PackageManager packageManager = context.getPackageManager();
-
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(packageManager) != null) {
 
-            File photoFile = null;
+        File photoFile = null;
+        try {
+            photoFile = createImageFile(context);
+        } catch (IOException ex) {
+            // Error occurred while creating the File
+            Log.w(TAG, "Could not create file to save picture");
+            new AlertDialog.Builder(context)
+                    .setMessage(R.string.imagetransfer_cameranotavailable)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+        }
+        // Continue only if the File was successfully created
+        if (photoFile != null) {
+            final String authority = context.getApplicationContext().getPackageName() + kAuthorityField;
+            Uri photoUri = FileProvider.getUriForFile(context.getApplicationContext(), authority, photoFile);
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+
+            Log.d(TAG, "Start takePictureIntent");
             try {
-                photoFile = createImageFile(context);
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-                Log.w(TAG, "Could not create file to save picture");
-                new AlertDialog.Builder(context)
-                        .setMessage(R.string.imagetransfer_cameranotavailable)
+                startActivityForResult(takePictureIntent, kActivityRequestCode_takePicture);
+                Log.d(TAG, "Started takePictureIntent");
+            }catch (ActivityNotFoundException e){
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setMessage(R.string.imagetransfer_no_camera_app)
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
             }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                final String authority = context.getApplicationContext().getPackageName() + kAuthorityField;
-                Uri photoUri = FileProvider.getUriForFile(context.getApplicationContext(), authority, photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-
-                Log.d(TAG, "Start takePictureIntent");
-                startActivityForResult(takePictureIntent, kActivityRequestCode_takePicture);
-                Log.d(TAG, "Started takePictureIntent");
-            }
-
-        } else {
-            Log.w(TAG, "Image capture not available");
-        }
-    }
-
-    private void chooseFromLibraryAskingPermissionIfNeeded(@NonNull Context context) {
-        int rc = ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
-        if (rc == PackageManager.PERMISSION_GRANTED) {
-            chooseFromLibrary(context);
-        } else {
-            requestExternalReadPermission();
         }
     }
 
     private void chooseFromLibrary(@NonNull Context context) {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        Intent pickPictureIntent = Intent.createChooser(intent, getString(R.string.imagetransfer_imageorigin_choose));
-        if (pickPictureIntent.resolveActivity(context.getPackageManager()) != null) {
-            startActivityForResult(pickPictureIntent, kActivityRequestCode_pickFromGallery);
-        } else {
-            Log.w(TAG, "There is no photo picker available");
-        }
+        // API 33+ new Photo picker (androidx provides backward compatibility for lower API levels)
+        // https://developer.android.com/training/data-storage/shared/photo-picker
+        // Launch the photo picker and let the user choose only images.
+        mPickMedia.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build());
+
     }
 
     private void setImage(Bitmap bitmap) {
@@ -629,38 +662,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
         Context context = getContext();
         if (context == null) return;
 
-        if (requestCode == kActivityRequestCode_pickFromGallery && resultCode == Activity.RESULT_OK) {
-            if (data != null && data.getData() != null) {
-
-                // Copy image to temporary file
-                try {
-                    InputStream input = context.getContentResolver().openInputStream(data.getData());
-                    if (input != null) {
-                        final File temporaryFile = File.createTempFile("imagetransfer_picture", null);
-                        temporaryFile.deleteOnExit();
-                        try (FileOutputStream output = new FileOutputStream(temporaryFile)) {
-                            byte[] buffer = new byte[4 * 1024];
-                            int read;
-                            while ((read = input.read(buffer)) != -1) {
-                                output.write(buffer, 0, read);
-                            }
-
-                            output.flush();
-                        }
-
-                        cropImage(temporaryFile.getPath());
-                    }
-
-                } catch (FileNotFoundException e) {
-                    Log.e(TAG, "Error opening image: " + e);
-                } catch (IOException e) {
-                    Log.e(TAG, "Error creating temporary image: " + e);
-                }
-
-            } else {
-                Log.w(TAG, "Couldn't pick a photo");
-            }
-        } else if (requestCode == kActivityRequestCode_takePicture && resultCode == Activity.RESULT_OK) {
+        if (requestCode == kActivityRequestCode_takePicture && resultCode == Activity.RESULT_OK) {
             Log.d(TAG, "Picture taken");
 
             addPictureToGallery(context, mTemporalPhotoPath);
@@ -725,26 +727,6 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
          */
     }
 
-    private void requestExternalReadPermission() {
-        FragmentActivity activity = getActivity();
-        if (activity == null) {
-            return;
-        }
-
-        Log.w(TAG, "External read permission is not granted. Requesting permission");
-
-        final String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
-        requestPermissions(permissions, kActivityRequestCode_requestReadExternalStoragePermission);
-
-        /* No need to explain rationale
-        if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            requestPermissions(permissions, kActivityRequestCode_requestReadExternalStoragePermission);
-            return;
-        }
-        Toast.makeText(activity, R.string.imagetransfer_readexternalneeded, Toast.LENGTH_LONG).show();
-        */
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -765,19 +747,7 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
             }
-        } else if (requestCode == kActivityRequestCode_requestReadExternalStoragePermission) {
-            if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d(TAG, "External read permission granted");
-                chooseFromLibrary(context);
-            } else {
-                Log.e(TAG, "Permission not granted: results len = " + grantResults.length + " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                builder.setMessage(R.string.imagetransfer_readexternalneeded)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
-            }
-        } else {
+        }else {
             Log.d(TAG, "Got unexpected permission result: " + requestCode);
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
@@ -956,10 +926,22 @@ public class ImageTransferFragment extends ConnectedPeripheralFragment implement
     // endregion
 
     // region ImageCropFragment
-    public void onCropFinished(Bitmap bitmap) {
+    @Override
+    public void onCropFinished(Bitmap bitmap, String tempFilePath) {
         Log.d(TAG, "onCropFinished");
         setImage(bitmap);
 
+        Context context = getContext();
+        if (context == null || tempFilePath == null) {
+            return;
+        }
+        final File tempImgFile = new File(tempFilePath);
+        final File cacheDir = context.getCacheDir();
+        // Only delete temporary picker copies stored under the app's cache directory.
+        if (cacheDir != null && tempImgFile.getAbsolutePath().startsWith(cacheDir.getAbsolutePath())) {
+            final boolean deleteSuccess = tempImgFile.delete();
+            Log.d(TAG, "tempImageFile deleted successfully: " + deleteSuccess);
+        }
     }
     // endregion
 }

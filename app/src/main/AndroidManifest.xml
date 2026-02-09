@@ -40,6 +40,8 @@
 
     <!-- FOREGROUND_SERVICE permission is required required: https://github.com/NordicSemiconductor/Android-DFU-Library/issues/321 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <!-- Downloads Permissions -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -48,9 +50,6 @@
 
     <!-- Barcode reading & Image Transfer -->
     <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- Image Transfer -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!-- MQTT -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
@@ -68,10 +67,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:targetApi="s">
-        <service android:name=".dfu.DfuService" />
+        <service android:name=".dfu.DfuService"
+            android:foregroundServiceType="connectedDevice"/>
 
         <!-- Mqtt Service -->
-        <service android:name="org.eclipse.paho.android.service.MqttService" />
+        <service android:name="org.eclipse.paho.android.service.MqttService"
+            android:foregroundServiceType="dataSync"/>
 
         <activity
             android:name=".app.SplashActivity"

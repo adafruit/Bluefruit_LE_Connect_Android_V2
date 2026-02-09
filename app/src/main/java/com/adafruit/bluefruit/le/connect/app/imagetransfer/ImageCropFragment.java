@@ -29,7 +29,7 @@ public class ImageCropFragment extends Fragment {
 
     // Interface
     public interface OnImageCropListener {
-        void onCropFinished(Bitmap bitmap);
+        void onCropFinished(Bitmap bitmap, String tempFilePath);
     }
 
     // Data
@@ -109,7 +109,7 @@ public class ImageCropFragment extends Fragment {
                 //bitmapConvertToFile(b);
 
                 if (mListener != null) {
-                    mListener.onCropFinished(bitmap);
+                    mListener.onCropFinished(bitmap, mImagePath);
 
                     FragmentManager fragmentManager = getFragmentManager();
                     if (fragmentManager != null) {
