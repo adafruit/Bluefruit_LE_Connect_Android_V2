@@ -1,3 +1,7 @@
+# Archived
+
+This repo is now archived. The new version of the app can be found here: [Bluefruit_LE_Connect_Android_V4](https://github.com/adafruit/Bluefruit_LE_Connect_Android_V4)
+
 # Bluefruit_LE_Connect_Android_V2
 
 Android app for use with Bluefruit Bluetooth LE modules and dev boards from Adafruit.
